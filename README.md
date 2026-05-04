@@ -2,6 +2,19 @@
 
 Unified long-term memory and knowledge platform for AI agents, with MCP access, memory governance, rule gating, and graph-oriented knowledge evolution.
 
+[![Repository Gates](https://github.com/PrecipAI/agent-memory-knowledge-platform/actions/workflows/repository-gates.yml/badge.svg)](https://github.com/PrecipAI/agent-memory-knowledge-platform/actions/workflows/repository-gates.yml)
+[![Node.js >= 20](https://img.shields.io/badge/node-%3E%3D20-43853d)](#getting-started)
+[![MCP](https://img.shields.io/badge/protocol-MCP-111111)](services/memory-mcp-server/README.md)
+[![Status](https://img.shields.io/badge/status-engineering_stage-orange)](#current-status)
+
+## Highlights
+
+- Unified long-term memory, knowledge, rule, and skill platform
+- MCP integration for agent hosts such as Codex and Claude Code
+- Governance-oriented knowledge evolution instead of append-only storage
+- Rule-gated high-risk operations with auditability
+- Markdown-first ingestion and graph-first knowledge synthesis
+
 ## Why this project
 
 Most agent memory systems stop at one of three incomplete states:
@@ -186,4 +199,4 @@ Current characteristics:
 
 ## License
 
-No public open-source license has been assigned yet.
+This repository is currently distributed under a private internal-use license. See [LICENSE](LICENSE).
