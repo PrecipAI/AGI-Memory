@@ -1,0 +1,154 @@
+{
+  "scenario": "minimal-golden-path.v1",
+  "mode": "single_tenant_memory_validation",
+  "generated_at": "2026-04-25T03:33:26.346Z",
+  "gate_status": "PASS",
+  "tenant_id": "tenant-local",
+  "scope": "memory.validation",
+  "task_request_id": "e3845cce-94a5-4123-a1c8-6372642e93c5",
+  "baselines": {
+    "contract_requires_fingerprint_status": true,
+    "task_request_projects_task_run": true,
+    "artifact_evidence_persisted": true,
+    "factual_candidate_persists_to_memory": true,
+    "procedural_candidate_persists_to_skill": true,
+    "governance_rebuilds_summary_and_snapshot": true,
+    "matched_fingerprint_enables_procedural_retrieval": true,
+    "mismatch_or_missing_fingerprint_blocks_procedural_retrieval": true
+  },
+  "steps": [
+    {
+      "id": "seed_raw_facts",
+      "action": "db.seed",
+      "ok": true,
+      "duration_ms": 157,
+      "status_code": null
+    },
+    {
+      "id": "planner",
+      "action": "http.post",
+      "ok": true,
+      "duration_ms": 48,
+      "status_code": 200
+    },
+    {
+      "id": "fetch_effectful_step",
+      "action": "db.fetch_one",
+      "ok": true,
+      "duration_ms": 2,
+      "status_code": null
+    },
+    {
+      "id": "task_run_projection",
+      "action": "db.assert",
+      "ok": true,
+      "duration_ms": 2,
+      "status_code": null
+    },
+    {
+      "id": "resolver",
+      "action": "http.post",
+      "ok": true,
+      "duration_ms": 5,
+      "status_code": 200
+    },
+    {
+      "id": "precheck",
+      "action": "http.post",
+      "ok": true,
+      "duration_ms": 3,
+      "status_code": 200
+    },
+    {
+      "id": "dispatch",
+      "action": "http.post",
+      "ok": true,
+      "duration_ms": 9,
+      "status_code": 200
+    },
+    {
+      "id": "artifact_evidence",
+      "action": "db.assert",
+      "ok": true,
+      "duration_ms": 2,
+      "status_code": null
+    },
+    {
+      "id": "postcheck",
+      "action": "http.post",
+      "ok": true,
+      "duration_ms": 1,
+      "status_code": 200
+    },
+    {
+      "id": "submit_factual_candidate",
+      "action": "http.post",
+      "ok": true,
+      "duration_ms": 5,
+      "status_code": 200
+    },
+    {
+      "id": "submit_procedural_candidate",
+      "action": "http.post",
+      "ok": true,
+      "duration_ms": 4,
+      "status_code": 200
+    },
+    {
+      "id": "submit_mismatch_candidate",
+      "action": "http.post",
+      "ok": true,
+      "duration_ms": 2,
+      "status_code": 200
+    },
+    {
+      "id": "run_governance",
+      "action": "http.post",
+      "ok": true,
+      "duration_ms": 76,
+      "status_code": 200
+    },
+    {
+      "id": "retrieve_missing_status",
+      "action": "http.post",
+      "ok": true,
+      "duration_ms": 1,
+      "status_code": 400
+    },
+    {
+      "id": "retrieve_missing_fingerprint",
+      "action": "http.post",
+      "ok": true,
+      "duration_ms": 0,
+      "status_code": 400
+    },
+    {
+      "id": "retrieve_matched",
+      "action": "http.post",
+      "ok": true,
+      "duration_ms": 5,
+      "status_code": 200
+    },
+    {
+      "id": "retrieve_mismatch",
+      "action": "http.post",
+      "ok": true,
+      "duration_ms": 4,
+      "status_code": 200
+    },
+    {
+      "id": "audit_check",
+      "action": "db.assert",
+      "ok": true,
+      "duration_ms": 1,
+      "status_code": null
+    },
+    {
+      "id": "report",
+      "action": "report.write",
+      "ok": true,
+      "duration_ms": 0,
+      "status_code": null
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+name: Repository Gates
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - "codex/**"
+  pull_request:
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: super_agent_system
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d super_agent_system"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_URL: postgresql://postgres:postgres@127.0.0.1:5432/super_agent_system
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGDATABASE: super_agent_system
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PSQL_PATH: psql
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Verify P1 Golden
+        run: npm run verify:p1-golden
+
+      - name: Verify MCP
+        run: npm run verify:mcp
+
+      - name: Verify MCP Client Smoke
+        run: npm run verify:mcp-client-smoke
+
+      - name: Verify MCP CLI
+        run: npm run verify:mcp-cli
+
+      - name: Verify MCP Pack
+        run: npm run verify:mcp-pack
+
+      - name: Rebuild Graph
+        run: npm run graph:rebuild
+        continue-on-error: true
+
+      - name: Upload gate artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: repository-gates-artifacts
+          path: |
+            tests/integration/p1-gate-report.json
+            tests/integration/mcp-report.json
+            tests/integration/mcp-client-smoke-report.json
+            tests/integration/mcp-cli-report.json
+            tests/integration/mcp-pack-report.json
+            graphify-out/GRAPH_REPORT.md
+          if-no-files-found: error

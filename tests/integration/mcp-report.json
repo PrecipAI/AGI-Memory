@@ -1,0 +1,17 @@
+{
+  "tool_count": 6,
+  "resource_count": 2,
+  "tool_names": [
+    "memory_health",
+    "memory_ingest_candidate",
+    "memory_query_layer",
+    "memory_retrieve_context",
+    "memory_run_governance",
+    "rule_gate_check"
+  ],
+  "resource_uris": [
+    "memory://defaults",
+    "memory://health"
+  ],
+  "adapter_request_count": 6
+}

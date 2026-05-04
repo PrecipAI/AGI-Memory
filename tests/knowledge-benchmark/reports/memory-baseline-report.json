@@ -1,0 +1,191 @@
+{
+  "benchmark_name": "current-memory-baseline",
+  "memory_service_url": "http://127.0.0.1:3101",
+  "tenant_id": "tenant-local",
+  "scope": "memory.validation",
+  "generated_at": "2026-04-27T07:04:07.362Z",
+  "contract_checks": [
+    {
+      "id": "missing_fingerprint_status",
+      "ok": true,
+      "status": 400,
+      "error_code": "FINGERPRINT_STATUS_REQUIRED"
+    },
+    {
+      "id": "missing_fingerprint",
+      "ok": true,
+      "status": 400,
+      "error_code": "FINGERPRINT_REQUIRED"
+    }
+  ],
+  "summary": {
+    "total_cases": 5,
+    "hit_at_1": 0.4,
+    "hit_at_3": 0.8,
+    "hit_at_5": 1,
+    "avg_mrr": 0.6167,
+    "must_have_pass_rate": 1,
+    "p50_latency_ms": 5.878,
+    "p95_latency_ms": 44.576
+  },
+  "results": [
+    {
+      "id": "fact-sla-001",
+      "scene": "factual_exact",
+      "query": "What is the P1 incident acknowledgement requirement?",
+      "expected_bucket": "factual_memory",
+      "expected_titles": [
+        "Support SLA"
+      ],
+      "returned_titles": [
+        "Support SLA",
+        "Escalation policy",
+        "UTF-8 enforcement requires executable safeguards",
+        "Support environment endpoint"
+      ],
+      "hit_index": 0,
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true,
+      "mrr": 1,
+      "must_have_passed": true,
+      "latency_ms": 44.576,
+      "gates": {
+        "factual": {
+          "allowed": true,
+          "reason": "enabled"
+        },
+        "procedural": {
+          "allowed": false,
+          "reason": "disabled-by-request"
+        }
+      }
+    },
+    {
+      "id": "fact-escalation-001",
+      "scene": "factual_paraphrase",
+      "query": "When should a blocker be escalated?",
+      "expected_bucket": "factual_memory",
+      "expected_titles": [
+        "Escalation policy"
+      ],
+      "returned_titles": [
+        "Support SLA",
+        "Escalation policy",
+        "UTF-8 enforcement requires executable safeguards",
+        "Support environment endpoint"
+      ],
+      "hit_index": 1,
+      "hit_at_1": false,
+      "hit_at_3": true,
+      "hit_at_5": true,
+      "mrr": 0.5,
+      "must_have_passed": true,
+      "latency_ms": 3.95,
+      "gates": {
+        "factual": {
+          "allowed": true,
+          "reason": "enabled"
+        },
+        "procedural": {
+          "allowed": false,
+          "reason": "disabled-by-request"
+        }
+      }
+    },
+    {
+      "id": "fact-endpoint-001",
+      "scene": "factual_exact",
+      "query": "What capability is reachable in the validation environment?",
+      "expected_bucket": "factual_memory",
+      "expected_titles": [
+        "Support environment endpoint"
+      ],
+      "returned_titles": [
+        "Support SLA",
+        "Escalation policy",
+        "UTF-8 enforcement requires executable safeguards",
+        "Support environment endpoint"
+      ],
+      "hit_index": 3,
+      "hit_at_1": false,
+      "hit_at_3": false,
+      "hit_at_5": true,
+      "mrr": 0.25,
+      "must_have_passed": true,
+      "latency_ms": 5.878,
+      "gates": {
+        "factual": {
+          "allowed": true,
+          "reason": "enabled"
+        },
+        "procedural": {
+          "allowed": false,
+          "reason": "disabled-by-request"
+        }
+      }
+    },
+    {
+      "id": "fact-utf8-001",
+      "scene": "cross_object",
+      "query": "What is the UTF-8 enforcement preference on this machine?",
+      "expected_bucket": "factual_memory",
+      "expected_titles": [
+        "UTF-8 enforcement requires executable safeguards"
+      ],
+      "returned_titles": [
+        "Support SLA",
+        "Escalation policy",
+        "UTF-8 enforcement requires executable safeguards",
+        "Support environment endpoint"
+      ],
+      "hit_index": 2,
+      "hit_at_1": false,
+      "hit_at_3": true,
+      "hit_at_5": true,
+      "mrr": 0.3333333333333333,
+      "must_have_passed": true,
+      "latency_ms": 3.72,
+      "gates": {
+        "factual": {
+          "allowed": true,
+          "reason": "enabled"
+        },
+        "procedural": {
+          "allowed": false,
+          "reason": "disabled-by-request"
+        }
+      }
+    },
+    {
+      "id": "proc-triage-001",
+      "scene": "procedural_with_fingerprint",
+      "query": "How should I handle support triage?",
+      "expected_bucket": "procedural_memory",
+      "expected_titles": [
+        "Ticket triage"
+      ],
+      "returned_titles": [
+        "Ticket triage",
+        "Retry support triage workflow"
+      ],
+      "hit_index": 0,
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true,
+      "mrr": 1,
+      "must_have_passed": true,
+      "latency_ms": 30.815,
+      "gates": {
+        "factual": {
+          "allowed": true,
+          "reason": "enabled"
+        },
+        "procedural": {
+          "allowed": true,
+          "reason": "fingerprint-matched-path"
+        }
+      }
+    }
+  ]
+}

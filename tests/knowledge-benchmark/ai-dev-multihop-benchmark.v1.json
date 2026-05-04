@@ -1,0 +1,147 @@
+{
+  "schema_version": "ai-dev-multihop-benchmark.v1",
+  "purpose": "多跳召回评测样例。该文件标注自然语料池之上的证据角色，不要求每条 query 绑定唯一文档。",
+  "metrics": [
+    "hop_recall_at_k",
+    "path_recall_at_k",
+    "role_coverage",
+    "bridge_accuracy",
+    "distractor_resistance",
+    "cross_lingual_recall",
+    "evidence_grounding_rate"
+  ],
+  "cases": [
+    {
+      "id": "dev-multihop-001",
+      "query": "为什么长期知识系统不能只依赖向量检索，还需要治理和 evidence grounding？",
+      "language": "zh-CN",
+      "intent_type": "multi_hop_reasoning",
+      "required_evidence_roles": [
+        {
+          "role": "retrieval_limitation",
+          "acceptable_document_titles": [
+            "RAGAS Documentation",
+            "RAGAS Paper",
+            "RAGVUE"
+          ],
+          "must_have_terms": [
+            "retrieval",
+            "context",
+            "evaluation"
+          ]
+        },
+        {
+          "role": "memory_governance",
+          "acceptable_document_titles": [
+            "OpenAI Memory FAQ",
+            "LangGraph Memory Overview",
+            "Building an Agentic Memory System for GitHub Copilot"
+          ],
+          "must_have_terms": [
+            "memory",
+            "scope",
+            "manage"
+          ]
+        },
+        {
+          "role": "evidence_grounding",
+          "acceptable_document_titles": [
+            "RAGAS Paper",
+            "DeepEval Introduction",
+            "Model Context Protocol Specification"
+          ],
+          "must_have_terms": [
+            "evidence",
+            "faithfulness",
+            "grounding"
+          ]
+        }
+      ],
+      "min_required_roles": 2,
+      "forbidden_document_titles": [
+        "Vector Database Intro"
+      ],
+      "difficulty": "hard"
+    },
+    {
+      "id": "dev-multihop-002",
+      "query": "How should an agent platform combine memory scope, tool permissions, and retrieval evaluation before using stored context?",
+      "language": "en",
+      "intent_type": "multi_hop_reasoning",
+      "required_evidence_roles": [
+        {
+          "role": "memory_scope",
+          "acceptable_document_titles": [
+            "GitHub Copilot Memory Public Preview",
+            "OpenAI Memory FAQ",
+            "LangGraph Memory Overview"
+          ],
+          "must_have_terms": [
+            "memory",
+            "scope"
+          ]
+        },
+        {
+          "role": "tool_permission",
+          "acceptable_document_titles": [
+            "Model Context Protocol Specification",
+            "MCP 中文文档：Tools"
+          ],
+          "must_have_terms": [
+            "tool",
+            "permission",
+            "consent"
+          ]
+        },
+        {
+          "role": "retrieval_evaluation",
+          "acceptable_document_titles": [
+            "RAGAS Documentation",
+            "DeepEval Introduction"
+          ],
+          "must_have_terms": [
+            "evaluation",
+            "retrieval"
+          ]
+        }
+      ],
+      "min_required_roles": 3,
+      "forbidden_document_titles": [],
+      "difficulty": "hard"
+    },
+    {
+      "id": "dev-multihop-003",
+      "query": "中文长期记忆实践文章和 LangGraph 官方 memory 文档在哪些概念上可能是同义或实现关系？",
+      "language": "zh-CN",
+      "intent_type": "cross_lingual_relation_lookup",
+      "required_evidence_roles": [
+        {
+          "role": "english_concept_source",
+          "acceptable_document_titles": [
+            "LangGraph Memory Overview",
+            "LangMem SDK Launch"
+          ],
+          "must_have_terms": [
+            "short-term",
+            "long-term",
+            "thread"
+          ]
+        },
+        {
+          "role": "chinese_practice_source",
+          "acceptable_document_titles": [
+            "Agent 记忆系统设计：从会话到长期记忆",
+            "AI Agent 记忆管理：长期记忆与知识治理实战"
+          ],
+          "must_have_terms": [
+            "长期记忆",
+            "会话"
+          ]
+        }
+      ],
+      "min_required_roles": 2,
+      "forbidden_document_titles": [],
+      "difficulty": "medium"
+    }
+  ]
+}

@@ -1,0 +1,202 @@
+[
+  {
+    "id": "ai-agent-memory-001",
+    "theme": "agent_memory",
+    "title": "Agentic memory for GitHub Copilot is in public preview",
+    "source_type": "official_changelog",
+    "date": "2026-01-15",
+    "url": "https://github.blog/changelog/2026-01-15-agentic-memory-for-github-copilot-is-in-public-preview/",
+    "phase": 1,
+    "priority": "high",
+    "why_selected": [
+      "product-level memory contract",
+      "repository scope and cross-agent reuse",
+      "explicit expiration behavior"
+    ],
+    "test_focus": [
+      "factual extraction",
+      "rule extraction",
+      "time-bounded memory facts"
+    ],
+    "query_categories": [
+      "fact_lookup",
+      "rule_lookup",
+      "time_sensitive_change"
+    ]
+  },
+  {
+    "id": "ai-agent-memory-002",
+    "theme": "agent_memory",
+    "title": "Building an agentic memory system for GitHub Copilot",
+    "source_type": "official_engineering_blog",
+    "date": "2026-01-15",
+    "url": "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/",
+    "phase": 1,
+    "priority": "high",
+    "why_selected": [
+      "stronger engineering depth than changelog",
+      "cross-agent memory design",
+      "validation-before-use patterns"
+    ],
+    "test_focus": [
+      "section splitting",
+      "relation extraction",
+      "architectural intent retrieval"
+    ],
+    "query_categories": [
+      "architecture_relation",
+      "cross_section_summary",
+      "boundary_or_risk"
+    ]
+  },
+  {
+    "id": "ai-agent-framework-001",
+    "theme": "agent_framework",
+    "title": "LangGraph Memory Overview",
+    "source_type": "official_docs",
+    "date_checked": "2026-04-28",
+    "url": "https://docs.langchain.com/oss/javascript/concepts/memory",
+    "phase": 1,
+    "priority": "high",
+    "why_selected": [
+      "explicit short-term vs long-term memory boundary",
+      "namespace-based long-term memory",
+      "good comparison source for our own design"
+    ],
+    "test_focus": [
+      "concept retrieval",
+      "definition grounding",
+      "comparison questions"
+    ],
+    "query_categories": [
+      "definition_lookup",
+      "fact_lookup",
+      "architecture_relation"
+    ]
+  },
+  {
+    "id": "ai-agent-framework-002",
+    "theme": "agent_framework",
+    "title": "LangGraph ReAct Memory Agent",
+    "source_type": "official_repo",
+    "date_checked": "2026-04-28",
+    "url": "https://github.com/langchain-ai/memory-agent",
+    "phase": 1,
+    "priority": "high",
+    "why_selected": [
+      "concrete memory-agent implementation",
+      "user_id scoped memory pattern",
+      "repo-level eval hints"
+    ],
+    "test_focus": [
+      "implementation-detail retrieval",
+      "memory scope questions",
+      "example-driven fact extraction"
+    ],
+    "query_categories": [
+      "fact_lookup",
+      "definition_lookup",
+      "evidence_grounding"
+    ]
+  },
+  {
+    "id": "ai-agent-framework-003",
+    "theme": "agent_framework",
+    "title": "microsoft/autogen",
+    "source_type": "official_repo",
+    "date_checked": "2026-04-28",
+    "url": "https://github.com/microsoft/autogen",
+    "phase": 1,
+    "priority": "medium",
+    "why_selected": [
+      "historically important agent framework",
+      "currently marked maintenance mode",
+      "migration context toward Microsoft Agent Framework"
+    ],
+    "test_focus": [
+      "change-over-time facts",
+      "deprecation and maintenance knowledge",
+      "framework comparison"
+    ],
+    "query_categories": [
+      "time_sensitive_change",
+      "fact_lookup",
+      "boundary_or_risk"
+    ]
+  },
+  {
+    "id": "ai-agentic-rag-001",
+    "theme": "agentic_rag",
+    "title": "deepset-ai/haystack",
+    "source_type": "official_repo",
+    "date_checked": "2026-04-28",
+    "url": "https://github.com/deepset-ai/haystack",
+    "phase": 1,
+    "priority": "medium",
+    "why_selected": [
+      "production-ready RAG and agent framing",
+      "explicit control over retrieval routing memory generation",
+      "modular pipeline concepts"
+    ],
+    "test_focus": [
+      "pipeline concept extraction",
+      "architecture term grounding",
+      "component relationship queries"
+    ],
+    "query_categories": [
+      "architecture_relation",
+      "definition_lookup",
+      "cross_section_summary"
+    ]
+  },
+  {
+    "id": "ai-agentic-rag-002",
+    "theme": "agentic_rag",
+    "title": "SoK: Agentic Retrieval-Augmented Generation (RAG)",
+    "source_type": "paper",
+    "date": "2026-03-07",
+    "url": "https://arxiv.org/abs/2603.07379",
+    "phase": 1,
+    "priority": "high",
+    "why_selected": [
+      "taxonomy and architecture decomposition",
+      "evaluation and reliability framing",
+      "strong abstract structured knowledge source"
+    ],
+    "test_focus": [
+      "multi-hop retrieval",
+      "taxonomy extraction",
+      "risk-oriented queries"
+    ],
+    "query_categories": [
+      "architecture_relation",
+      "boundary_or_risk",
+      "cross_section_summary"
+    ]
+  },
+  {
+    "id": "ai-eval-harness-001",
+    "theme": "eval_harness",
+    "title": "RAGalyst: Automated Human-Aligned Agentic Evaluation for Domain-Specific RAG",
+    "source_type": "paper",
+    "date": "2025-11-06",
+    "url": "https://arxiv.org/abs/2511.04502",
+    "phase": 1,
+    "priority": "high",
+    "why_selected": [
+      "RAG evaluation methodology",
+      "human-aligned evaluation framing",
+      "directly relevant to harness engineering"
+    ],
+    "test_focus": [
+      "evaluation-method retrieval",
+      "evidence-aware benchmarking questions",
+      "design trade-off queries"
+    ],
+    "query_categories": [
+      "definition_lookup",
+      "boundary_or_risk",
+      "evidence_grounding"
+    ]
+  }
+]

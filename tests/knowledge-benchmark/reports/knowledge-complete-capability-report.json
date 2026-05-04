@@ -1,0 +1,2550 @@
+{
+  "benchmark_name": "knowledge-capability-eval-v1",
+  "generated_at": "2026-04-30T10:07:12.213Z",
+  "service_url": "http://127.0.0.1:3101",
+  "tenant_id": "tenant-local",
+  "scope": "memory.validation",
+  "corpus": {
+    "active_documents": 121,
+    "active_sections": 2401,
+    "active_evidence": 2401,
+    "active_synthesized_knowledge": 16,
+    "fact_count": 0,
+    "entity_count": 0,
+    "relation_count": 0,
+    "intermediate_recall_count": 0
+  },
+  "summary": {
+    "total_cases": 48,
+    "passed_cases": 48,
+    "pass_rate": 1,
+    "positive_pass_rate": 1,
+    "boundary_pass_rate": 1,
+    "avg_latency_ms": 265.026,
+    "avg_derived_count": 3.292,
+    "avg_evidence_trace_count": 17.563,
+    "p50_latency_ms": 274.225,
+    "p95_latency_ms": 509.135,
+    "max_latency_ms": 549.287,
+    "avg_unique_evidence_sources": 17.104
+  },
+  "categories": [
+    {
+      "category": "agent_harness",
+      "total": 4,
+      "passed": 4,
+      "pass_rate": 1,
+      "avg_latency_ms": 229.417,
+      "avg_derived_count": 3.5,
+      "avg_unique_evidence_sources": 17.75
+    },
+    {
+      "category": "cross_lingual",
+      "total": 3,
+      "passed": 3,
+      "pass_rate": 1,
+      "avg_latency_ms": 482.561,
+      "avg_derived_count": 5,
+      "avg_unique_evidence_sources": 23
+    },
+    {
+      "category": "cross_source_synthesis",
+      "total": 3,
+      "passed": 3,
+      "pass_rate": 1,
+      "avg_latency_ms": 358.611,
+      "avg_derived_count": 4,
+      "avg_unique_evidence_sources": 21.667
+    },
+    {
+      "category": "graph_boundary_non_search",
+      "total": 3,
+      "passed": 3,
+      "pass_rate": 1,
+      "avg_latency_ms": 325.034,
+      "avg_derived_count": 5,
+      "avg_unique_evidence_sources": 24.333
+    },
+    {
+      "category": "intermediate_purge_contract",
+      "total": 2,
+      "passed": 2,
+      "pass_rate": 1,
+      "avg_latency_ms": 367.92,
+      "avg_derived_count": 3.5,
+      "avg_unique_evidence_sources": 15
+    },
+    {
+      "category": "irrelevant_boundary",
+      "total": 5,
+      "passed": 5,
+      "pass_rate": 1,
+      "avg_latency_ms": 0.979,
+      "avg_derived_count": 0,
+      "avg_unique_evidence_sources": 0
+    },
+    {
+      "category": "knowledge_platform",
+      "total": 3,
+      "passed": 3,
+      "pass_rate": 1,
+      "avg_latency_ms": 385.757,
+      "avg_derived_count": 3.667,
+      "avg_unique_evidence_sources": 21
+    },
+    {
+      "category": "memory_governance",
+      "total": 4,
+      "passed": 4,
+      "pass_rate": 1,
+      "avg_latency_ms": 182.392,
+      "avg_derived_count": 3.75,
+      "avg_unique_evidence_sources": 17
+    },
+    {
+      "category": "observability",
+      "total": 3,
+      "passed": 3,
+      "pass_rate": 1,
+      "avg_latency_ms": 230.919,
+      "avg_derived_count": 5,
+      "avg_unique_evidence_sources": 26.333
+    },
+    {
+      "category": "rag_evaluation",
+      "total": 3,
+      "passed": 3,
+      "pass_rate": 1,
+      "avg_latency_ms": 387.842,
+      "avg_derived_count": 4.667,
+      "avg_unique_evidence_sources": 25.667
+    },
+    {
+      "category": "rag_retrieval",
+      "total": 4,
+      "passed": 4,
+      "pass_rate": 1,
+      "avg_latency_ms": 360.367,
+      "avg_derived_count": 4.5,
+      "avg_unique_evidence_sources": 25.75
+    },
+    {
+      "category": "retrieval_backend",
+      "total": 3,
+      "passed": 3,
+      "pass_rate": 1,
+      "avg_latency_ms": 380.986,
+      "avg_derived_count": 2.333,
+      "avg_unique_evidence_sources": 13.667
+    },
+    {
+      "category": "security_and_mcp",
+      "total": 3,
+      "passed": 3,
+      "pass_rate": 1,
+      "avg_latency_ms": 222.923,
+      "avg_derived_count": 3.333,
+      "avg_unique_evidence_sources": 17
+    },
+    {
+      "category": "specificity",
+      "total": 2,
+      "passed": 2,
+      "pass_rate": 1,
+      "avg_latency_ms": 282.361,
+      "avg_derived_count": 2.5,
+      "avg_unique_evidence_sources": 15.5
+    },
+    {
+      "category": "ungoverned_document_boundary",
+      "total": 3,
+      "passed": 3,
+      "pass_rate": 1,
+      "avg_latency_ms": 1.057,
+      "avg_derived_count": 0,
+      "avg_unique_evidence_sources": 0
+    }
+  ],
+  "results": [
+    {
+      "id": "full-001",
+      "category": "memory_governance",
+      "language": "zh-CN",
+      "query": "长期记忆系统为什么不能只靠相似召回？",
+      "status": 200,
+      "latency_ms": 217.901,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 4,
+      "evidence_trace_count": 20,
+      "primary_facts_count": 0,
+      "warnings": [
+        "section_retrieval_empty"
+      ],
+      "top_title": "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+      "top_titles": [
+        "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+        "长期记忆召回不能只做相似检索，必须在使用时验证有效性",
+        "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理"
+      ],
+      "title_term_hits": [
+        "长期记忆",
+        "相似召回"
+      ],
+      "evidence_term_hits": [
+        "memory"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 19,
+      "top_evidence_sources": [
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-8",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+        "https://docs.langchain.com/oss/javascript/concepts/memory#section-7",
+        "https://docs.mem0.ai/overview#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-10",
+        "https://eastondev.com/blog/zh/posts/ai/20260413-ai-agent-memory#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-18",
+        "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-27"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 4 derived knowledge objects, 0 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "full-002",
+      "category": "memory_governance",
+      "language": "zh-CN",
+      "query": "长期记忆在使用前为什么要验证当前是否仍然有效？",
+      "status": 200,
+      "latency_ms": 178.102,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 3,
+      "evidence_trace_count": 12,
+      "primary_facts_count": 0,
+      "warnings": [
+        "section_retrieval_empty"
+      ],
+      "top_title": "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+      "top_titles": [
+        "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+        "长期记忆召回不能只做相似检索，必须在使用时验证有效性",
+        "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理"
+      ],
+      "title_term_hits": [
+        "验证有效性",
+        "长期记忆"
+      ],
+      "evidence_term_hits": [
+        "memory"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 11,
+      "top_evidence_sources": [
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-8",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+        "https://docs.langchain.com/oss/javascript/concepts/memory#section-7",
+        "https://docs.mem0.ai/overview#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-10",
+        "https://eastondev.com/blog/zh/posts/ai/20260413-ai-agent-memory#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-18",
+        "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-27"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 3 derived knowledge objects, 0 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "full-003",
+      "category": "memory_governance",
+      "language": "zh-CN",
+      "query": "长期记忆为什么不能退化成向量片段库？",
+      "status": 200,
+      "latency_ms": 161.468,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 4,
+      "evidence_trace_count": 20,
+      "primary_facts_count": 0,
+      "warnings": [
+        "section_retrieval_empty"
+      ],
+      "top_title": "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理",
+      "top_titles": [
+        "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理",
+        "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+        "长期记忆召回不能只做相似检索，必须在使用时验证有效性"
+      ],
+      "title_term_hits": [
+        "向量片段库",
+        "结构"
+      ],
+      "evidence_term_hits": [
+        "memory"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 19,
+      "top_evidence_sources": [
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-8",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+        "https://docs.langchain.com/oss/javascript/concepts/memory#section-7",
+        "https://docs.mem0.ai/overview#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-10",
+        "https://eastondev.com/blog/zh/posts/ai/20260413-ai-agent-memory#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-18",
+        "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-27"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 4 derived knowledge objects, 0 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "full-004",
+      "category": "memory_governance",
+      "language": "zh-CN",
+      "query": "长期记忆什么时候应该过期、替换或被治理？",
+      "status": 200,
+      "latency_ms": 172.095,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 4,
+      "evidence_trace_count": 20,
+      "primary_facts_count": 0,
+      "warnings": [
+        "section_retrieval_empty"
+      ],
+      "top_title": "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理",
+      "top_titles": [
+        "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理",
+        "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+        "长期记忆召回不能只做相似检索，必须在使用时验证有效性"
+      ],
+      "title_term_hits": [
+        "长期记忆",
+        "治理"
+      ],
+      "evidence_term_hits": [
+        "memory"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 19,
+      "top_evidence_sources": [
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-8",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+        "https://docs.langchain.com/oss/javascript/concepts/memory#section-7",
+        "https://docs.mem0.ai/overview#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-10",
+        "https://eastondev.com/blog/zh/posts/ai/20260413-ai-agent-memory#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-18",
+        "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-27"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 4 derived knowledge objects, 0 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "full-005",
+      "category": "security_and_mcp",
+      "language": "zh-CN",
+      "query": "Agent 工具和 MCP 接入为什么不能只靠提示词约束？",
+      "status": 200,
+      "latency_ms": 201.296,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 2,
+      "evidence_trace_count": 12,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+      "top_titles": [
+        "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+        "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力"
+      ],
+      "title_term_hits": [
+        "MCP",
+        "提示词",
+        "结构化授权"
+      ],
+      "evidence_term_hits": [
+        "authorization",
+        "permission"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 11,
+      "top_evidence_sources": [
+        "https://github.com/ai-boost/awesome-harness-engineering#section-84",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-73",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-47",
+        "https://openai.github.io/openai-agents-js/guides/agents#section-19",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-89",
+        "https://deepeval.com/docs/introduction#section-14",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-39",
+        "https://python.langchain.com/docs/tutorials/rag#section-24"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 2 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-006",
+      "category": "security_and_mcp",
+      "language": "zh-CN",
+      "query": "Agent 工具调用如何设计权限、沙箱、外部访问和审计？",
+      "status": 200,
+      "latency_ms": 217.747,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 4,
+      "evidence_trace_count": 21,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+      "top_titles": [
+        "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+        "Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词",
+        "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力"
+      ],
+      "title_term_hits": [
+        "权限",
+        "沙箱",
+        "审计"
+      ],
+      "evidence_term_hits": [
+        "sandbox"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 19,
+      "top_evidence_sources": [
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-2",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-6",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-7",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-84",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-73",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-47",
+        "https://openai.github.io/openai-agents-js/guides/agents#section-19",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-89"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 4 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-007",
+      "category": "security_and_mcp",
+      "language": "en",
+      "query": "How should agentic tools handle authorization, sandboxing, and audit?",
+      "status": 200,
+      "latency_ms": 249.727,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 4,
+      "evidence_trace_count": 23,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+      "top_titles": [
+        "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+        "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+        "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败"
+      ],
+      "title_term_hits": [
+        "MCP",
+        "授权",
+        "沙箱"
+      ],
+      "evidence_term_hits": [
+        "authorization",
+        "permission"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 21,
+      "top_evidence_sources": [
+        "https://docs.mem0.ai/overview#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-10",
+        "https://eastondev.com/blog/zh/posts/ai/20260413-ai-agent-memory#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-18",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-84",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-73",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-47"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 4 derived knowledge objects, 5 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "full-008",
+      "category": "agent_harness",
+      "language": "zh-CN",
+      "query": "为什么 Agent 可靠性主要由 harness 决定，而不是单次提示词？",
+      "status": 200,
+      "latency_ms": 211.528,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 4,
+      "evidence_trace_count": 21,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词",
+      "top_titles": [
+        "Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词",
+        "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+        "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束"
+      ],
+      "title_term_hits": [
+        "harness",
+        "可靠性"
+      ],
+      "evidence_term_hits": [
+        "harness"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 19,
+      "top_evidence_sources": [
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-2",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-6",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-7",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-84",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-73",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-47",
+        "https://openai.github.io/openai-agents-js/guides/agents#section-19",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-89"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 4 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-009",
+      "category": "agent_harness",
+      "language": "zh-CN",
+      "query": "Agent harness 闭环里安全边界、执行编排、反馈和评估分别起什么作用？",
+      "status": 200,
+      "latency_ms": 206.704,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 4,
+      "evidence_trace_count": 21,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+      "top_titles": [
+        "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+        "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+        "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败"
+      ],
+      "title_term_hits": [
+        "harness",
+        "闭环"
+      ],
+      "evidence_term_hits": [
+        "agent"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 19,
+      "top_evidence_sources": [
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-2",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-6",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-7",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-84",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-73",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-47",
+        "https://openai.github.io/openai-agents-js/guides/agents#section-19",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-89"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 4 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-010",
+      "category": "agent_harness",
+      "language": "zh-CN",
+      "query": "Agent 框架为什么会收敛到工具、记忆、工作流、多智能体和评估的一体化运行时？",
+      "status": 200,
+      "latency_ms": 215.301,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 1,
+      "evidence_trace_count": 8,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时",
+      "top_titles": [
+        "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时"
+      ],
+      "title_term_hits": [
+        "Agent 框架",
+        "一体化运行时"
+      ],
+      "evidence_term_hits": [
+        "workflow"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 8,
+      "top_evidence_sources": [
+        "https://github.com/agentscope-ai/agentscope#section-10",
+        "https://docs.crewai.com#section-6",
+        "https://github.com/agentscope-ai/agentscope#section-27",
+        "https://docs.camel-ai.org#section-6",
+        "https://github.com/geekan/MetaGPT#section-8",
+        "https://github.com/InternLM/lagent#section-12",
+        "https://google.github.io/adk-docs#section-3",
+        "https://docs.crewai.com#section-7"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 1 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-011",
+      "category": "agent_harness",
+      "language": "en",
+      "query": "Why is an agent harness more important than a long prompt for reliability?",
+      "status": 200,
+      "latency_ms": 284.134,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 27,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词",
+      "top_titles": [
+        "Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词",
+        "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+        "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力"
+      ],
+      "title_term_hits": [
+        "harness",
+        "可靠性"
+      ],
+      "evidence_term_hits": [
+        "harness"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 25,
+      "top_evidence_sources": [
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-2",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-6",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-7",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-84",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-73",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-47",
+        "https://openai.github.io/openai-agents-js/guides/agents#section-19",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-89"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 3 baseline factual memories"
+    },
+    {
+      "id": "full-012",
+      "category": "observability",
+      "language": "zh-CN",
+      "query": "Agent 失败治理需要记录哪些轨迹、工具调用、上下文和成本？",
+      "status": 200,
+      "latency_ms": 211.919,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 26,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+      "top_titles": [
+        "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+        "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+        "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力"
+      ],
+      "title_term_hits": [
+        "观测",
+        "工具调用",
+        "成本"
+      ],
+      "evidence_term_hits": [
+        "trace"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 23,
+      "top_evidence_sources": [
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-8",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+        "https://docs.langchain.com/oss/javascript/concepts/memory#section-7",
+        "https://docs.mem0.ai/overview#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-10",
+        "https://eastondev.com/blog/zh/posts/ai/20260413-ai-agent-memory#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-18",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-84"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-013",
+      "category": "observability",
+      "language": "zh-CN",
+      "query": "为什么没有 trace/span 就无法治理 Agent 失败？",
+      "status": 200,
+      "latency_ms": 199.938,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 32,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+      "top_titles": [
+        "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+        "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+        "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环"
+      ],
+      "title_term_hits": [
+        "观测",
+        "轨迹"
+      ],
+      "evidence_term_hits": [
+        "trace"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 31,
+      "top_evidence_sources": [
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43",
+        "https://genai.owasp.org/llmrisk/llm01-prompt-injection#section-17",
+        "https://github.com/infiniflow/ragflow#section-9",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-84",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-73"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-014",
+      "category": "observability",
+      "language": "en",
+      "query": "What observability data should be captured for agent failure governance?",
+      "status": 200,
+      "latency_ms": 280.899,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 25,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节",
+      "top_titles": [
+        "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节",
+        "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+        "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败"
+      ],
+      "title_term_hits": [
+        "观测",
+        "工具调用"
+      ],
+      "evidence_term_hits": [
+        "trace"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 25,
+      "top_evidence_sources": [
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-6",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-7",
+        "https://python.langchain.com/docs/tutorials/rag#section-2",
+        "https://python.langchain.com/docs/tutorials/rag#section-6",
+        "https://python.langchain.com/docs/tutorials/rag#section-7",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-2",
+        "https://python.langchain.com/docs/tutorials/rag#section-8",
+        "https://deepeval.com/docs/guides-rag-evaluation#section-8"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-015",
+      "category": "rag_retrieval",
+      "language": "zh-CN",
+      "query": "生产级 RAG 默认应该采用什么检索结构？",
+      "status": 200,
+      "latency_ms": 369.29,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 27,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+      "top_titles": [
+        "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+        "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+        "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束"
+      ],
+      "title_term_hits": [
+        "生产级",
+        "检索"
+      ],
+      "evidence_term_hits": [
+        "retrieval",
+        "rag"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 27,
+      "top_evidence_sources": [
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43",
+        "https://genai.owasp.org/llmrisk/llm01-prompt-injection#section-17",
+        "https://github.com/infiniflow/ragflow#section-9",
+        "https://www.phppan.com/tag/rag#section-50",
+        "https://www.flandre.ltd/agent-memory#section-5"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-016",
+      "category": "rag_retrieval",
+      "language": "zh-CN",
+      "query": "RAG 为什么不能只做向量检索后直接拼上下文？",
+      "status": 200,
+      "latency_ms": 344.166,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 28,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+      "top_titles": [
+        "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+        "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+        "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节"
+      ],
+      "title_term_hits": [
+        "RAG",
+        "证据装配"
+      ],
+      "evidence_term_hits": [
+        "retrieval"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 28,
+      "top_evidence_sources": [
+        "https://python.langchain.com/docs/tutorials/rag#section-2",
+        "https://python.langchain.com/docs/tutorials/rag#section-6",
+        "https://python.langchain.com/docs/tutorials/rag#section-7",
+        "https://python.langchain.com/docs/tutorials/rag#section-8",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-017",
+      "category": "rag_retrieval",
+      "language": "zh-CN",
+      "query": "BM25、向量、元数据过滤、RRF 和重排在生产级检索里分别负责什么？",
+      "status": 200,
+      "latency_ms": 323.326,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 3,
+      "evidence_trace_count": 19,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+      "top_titles": [
+        "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+        "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+        "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环"
+      ],
+      "title_term_hits": [
+        "多信号",
+        "重排"
+      ],
+      "evidence_term_hits": [
+        "retrieval"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 19,
+      "top_evidence_sources": [
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43",
+        "https://genai.owasp.org/llmrisk/llm01-prompt-injection#section-17",
+        "https://github.com/infiniflow/ragflow#section-9",
+        "https://www.phppan.com/tag/rag#section-50",
+        "https://www.phppan.com/tag/rag#section-52"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 3 derived knowledge objects, 5 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "full-018",
+      "category": "rag_retrieval",
+      "language": "en",
+      "query": "What is a production-grade RAG retrieval pipeline?",
+      "status": 200,
+      "latency_ms": 404.685,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 29,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+      "top_titles": [
+        "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+        "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节",
+        "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败"
+      ],
+      "title_term_hits": [
+        "生产级",
+        "RAG"
+      ],
+      "evidence_term_hits": [
+        "retrieval"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 29,
+      "top_evidence_sources": [
+        "https://python.langchain.com/docs/tutorials/rag#section-2",
+        "https://python.langchain.com/docs/tutorials/rag#section-6",
+        "https://python.langchain.com/docs/tutorials/rag#section-7",
+        "https://python.langchain.com/docs/tutorials/rag#section-8",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-019",
+      "category": "rag_evaluation",
+      "language": "zh-CN",
+      "query": "RAG 评估应该拆成检索质量、生成忠实度和多轮行为吗？",
+      "status": 200,
+      "latency_ms": 351.339,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 25,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+      "top_titles": [
+        "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+        "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节",
+        "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径"
+      ],
+      "title_term_hits": [
+        "RAG 评估",
+        "检索质量"
+      ],
+      "evidence_term_hits": [
+        "rag"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 25,
+      "top_evidence_sources": [
+        "https://python.langchain.com/docs/tutorials/rag#section-2",
+        "https://python.langchain.com/docs/tutorials/rag#section-6",
+        "https://python.langchain.com/docs/tutorials/rag#section-7",
+        "https://python.langchain.com/docs/tutorials/rag#section-8",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-020",
+      "category": "rag_evaluation",
+      "language": "zh-CN",
+      "query": "RAG 系统不能只看回答对不对，应该怎样拆评估？",
+      "status": 200,
+      "latency_ms": 359.151,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 4,
+      "evidence_trace_count": 24,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+      "top_titles": [
+        "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+        "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+        "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时"
+      ],
+      "title_term_hits": [
+        "RAG 评估",
+        "生成"
+      ],
+      "evidence_term_hits": [
+        "evaluation"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 24,
+      "top_evidence_sources": [
+        "https://python.langchain.com/docs/tutorials/rag#section-2",
+        "https://python.langchain.com/docs/tutorials/rag#section-6",
+        "https://python.langchain.com/docs/tutorials/rag#section-7",
+        "https://python.langchain.com/docs/tutorials/rag#section-8",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 4 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-021",
+      "category": "rag_evaluation",
+      "language": "en",
+      "query": "How should RAG evaluation separate retrieval, generation faithfulness, and end-to-end behavior?",
+      "status": 200,
+      "latency_ms": 453.036,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 28,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+      "top_titles": [
+        "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+        "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+        "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统"
+      ],
+      "title_term_hits": [
+        "RAG 评估",
+        "忠实度"
+      ],
+      "evidence_term_hits": [
+        "rag"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 28,
+      "top_evidence_sources": [
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-8",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+        "https://docs.langchain.com/oss/javascript/concepts/memory#section-7",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43",
+        "https://genai.owasp.org/llmrisk/llm01-prompt-injection#section-17"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-022",
+      "category": "retrieval_backend",
+      "language": "zh-CN",
+      "query": "检索基础设施为什么应该抽象为可替换后端？",
+      "status": 200,
+      "latency_ms": 233.523,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 1,
+      "evidence_trace_count": 7,
+      "primary_facts_count": 0,
+      "warnings": [
+        "section_retrieval_empty"
+      ],
+      "top_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "top_titles": [
+        "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排"
+      ],
+      "title_term_hits": [
+        "可替换后端",
+        "混合召回"
+      ],
+      "evidence_term_hits": [],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 7,
+      "top_evidence_sources": [
+        "https://github.com/FlagOpen/FlagEmbedding#section-19",
+        "https://docs.pinecone.io/guides/search/hybrid-search#section-13",
+        "https://github.com/FlagOpen/FlagEmbedding#section-18",
+        "https://qdrant.tech/documentation/overview#section-15",
+        "https://www.elastic.co/guide/en/elasticsearch/reference/current/rrf.html#section-2",
+        "https://docs.pinecone.io/guides/search/hybrid-search#section-2",
+        "https://docs.pinecone.io/guides/search/hybrid-search#section-14"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 1 derived knowledge objects, 0 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "full-023",
+      "category": "retrieval_backend",
+      "language": "zh-CN",
+      "query": "Milvus、Qdrant、Pinecone、Weaviate 和 Elasticsearch 在检索系统里应该怎么定位？",
+      "status": 200,
+      "latency_ms": 360.149,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 1,
+      "evidence_trace_count": 7,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "top_titles": [
+        "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排"
+      ],
+      "title_term_hits": [
+        "检索基础设施",
+        "后端"
+      ],
+      "evidence_term_hits": [],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 7,
+      "top_evidence_sources": [
+        "https://github.com/FlagOpen/FlagEmbedding#section-19",
+        "https://docs.pinecone.io/guides/search/hybrid-search#section-13",
+        "https://github.com/FlagOpen/FlagEmbedding#section-18",
+        "https://qdrant.tech/documentation/overview#section-15",
+        "https://www.elastic.co/guide/en/elasticsearch/reference/current/rrf.html#section-2",
+        "https://docs.pinecone.io/guides/search/hybrid-search#section-2",
+        "https://docs.pinecone.io/guides/search/hybrid-search#section-14"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 1 derived knowledge objects, 5 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "full-024",
+      "category": "retrieval_backend",
+      "language": "en",
+      "query": "Why should vector databases and sparse retrieval engines be hidden behind a backend abstraction?",
+      "status": 200,
+      "latency_ms": 549.287,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 27,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "top_titles": [
+        "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+        "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+        "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败"
+      ],
+      "title_term_hits": [
+        "检索基础设施",
+        "后端"
+      ],
+      "evidence_term_hits": [
+        "vector"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 27,
+      "top_evidence_sources": [
+        "https://python.langchain.com/docs/tutorials/rag#section-2",
+        "https://python.langchain.com/docs/tutorials/rag#section-8",
+        "https://python.langchain.com/docs/tutorials/rag#section-6",
+        "https://python.langchain.com/docs/tutorials/rag#section-7",
+        "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-41",
+        "https://github.com/infiniflow/ragflow#section-17",
+        "https://github.com/infiniflow/ragflow#section-35",
+        "https://github.com/eosphoros-ai/DB-GPT#section-12"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-025",
+      "category": "knowledge_platform",
+      "language": "zh-CN",
+      "query": "成熟知识平台为什么会收敛为知识库、工作流、Agent 和多源数据的一体化系统？",
+      "status": 200,
+      "latency_ms": 343.534,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 1,
+      "evidence_trace_count": 6,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+      "top_titles": [
+        "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统"
+      ],
+      "title_term_hits": [
+        "成熟知识平台",
+        "一体化系统"
+      ],
+      "evidence_term_hits": [
+        "workflow"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 6,
+      "top_evidence_sources": [
+        "https://github.com/infiniflow/ragflow#section-17",
+        "https://github.com/infiniflow/ragflow#section-35",
+        "https://github.com/eosphoros-ai/DB-GPT#section-12",
+        "https://github.com/labring/FastGPT#section-18",
+        "https://github.com/eosphoros-ai/DB-GPT#section-13",
+        "https://github.com/labring/FastGPT#section-8"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 1 derived knowledge objects, 5 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "full-026",
+      "category": "knowledge_platform",
+      "language": "zh-CN",
+      "query": "知识系统为什么应该提供统一 ingest、governance、recall 和 evidence trace？",
+      "status": 200,
+      "latency_ms": 340.468,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 27,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+      "top_titles": [
+        "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+        "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+        "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径"
+      ],
+      "title_term_hits": [
+        "知识平台",
+        "evidence trace"
+      ],
+      "evidence_term_hits": [
+        "knowledge"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 27,
+      "top_evidence_sources": [
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-8",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+        "https://docs.langchain.com/oss/javascript/concepts/memory#section-7",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43",
+        "https://genai.owasp.org/llmrisk/llm01-prompt-injection#section-17"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-027",
+      "category": "knowledge_platform",
+      "language": "en",
+      "query": "Why are knowledge bases, workflows, agents, and multi-source data converging into one platform?",
+      "status": 200,
+      "latency_ms": 473.269,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 31,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+      "top_titles": [
+        "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+        "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+        "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时"
+      ],
+      "title_term_hits": [
+        "成熟知识平台",
+        "一体化系统"
+      ],
+      "evidence_term_hits": [
+        "workflow"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 30,
+      "top_evidence_sources": [
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-10",
+        "https://docs.mem0.ai/overview#section-2",
+        "https://eastondev.com/blog/zh/posts/ai/20260413-ai-agent-memory#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-18",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-84",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-73",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-47"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 2 baseline factual memories"
+    },
+    {
+      "id": "full-028",
+      "category": "graph_boundary_non_search",
+      "language": "zh-CN",
+      "query": "图谱召回适合什么问题，为什么不能替代证据治理？",
+      "status": 200,
+      "latency_ms": 277.536,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 25,
+      "primary_facts_count": 0,
+      "warnings": [
+        "section_retrieval_empty"
+      ],
+      "top_title": "图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断",
+      "top_titles": [
+        "图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断",
+        "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+        "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排"
+      ],
+      "title_term_hits": [
+        "图谱召回",
+        "证据治理"
+      ],
+      "evidence_term_hits": [
+        "graph"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 25,
+      "top_evidence_sources": [
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-1",
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-7",
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-9",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43",
+        "https://genai.owasp.org/llmrisk/llm01-prompt-injection#section-17"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 0 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "full-029",
+      "category": "graph_boundary_non_search",
+      "language": "zh-CN",
+      "query": "图谱抽取为什么不等于知识治理？",
+      "status": 200,
+      "latency_ms": 250.897,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 25,
+      "primary_facts_count": 0,
+      "warnings": [
+        "section_retrieval_empty"
+      ],
+      "top_title": "图谱抽取不等于知识治理，chunk 内路径只能作为图谱候选",
+      "top_titles": [
+        "图谱抽取不等于知识治理，chunk 内路径只能作为图谱候选",
+        "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+        "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排"
+      ],
+      "title_term_hits": [
+        "图谱抽取",
+        "知识治理"
+      ],
+      "evidence_term_hits": [
+        "graph"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 25,
+      "top_evidence_sources": [
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-1",
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-7",
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-9",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43",
+        "https://genai.owasp.org/llmrisk/llm01-prompt-injection#section-17"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 0 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "full-030",
+      "category": "graph_boundary_non_search",
+      "language": "en",
+      "query": "Why can graph retrieval organize candidates but not decide final answer validity?",
+      "status": 200,
+      "latency_ms": 446.668,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 23,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "top_titles": [
+        "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+        "图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断",
+        "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径"
+      ],
+      "title_term_hits": [
+        "图谱",
+        "事实有效性"
+      ],
+      "evidence_term_hits": [
+        "graph"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 23,
+      "top_evidence_sources": [
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-8",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+        "https://docs.langchain.com/oss/javascript/concepts/memory#section-7",
+        "https://python.langchain.com/docs/tutorials/rag#section-2",
+        "https://python.langchain.com/docs/tutorials/rag#section-6",
+        "https://python.langchain.com/docs/tutorials/rag#section-7",
+        "https://python.langchain.com/docs/tutorials/rag#section-8",
+        "https://www.phppan.com/tag/rag#section-50"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 2 baseline factual memories"
+    },
+    {
+      "id": "full-031",
+      "category": "cross_source_synthesis",
+      "language": "zh-CN",
+      "query": "根据已有知识，当前工程上比较合理的 RAG 形态是什么？",
+      "status": 200,
+      "latency_ms": 408.35,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 2,
+      "evidence_trace_count": 12,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+      "top_titles": [
+        "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+        "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环"
+      ],
+      "title_term_hits": [
+        "生产级",
+        "RAG"
+      ],
+      "evidence_term_hits": [
+        "rag"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 12,
+      "top_evidence_sources": [
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43",
+        "https://genai.owasp.org/llmrisk/llm01-prompt-injection#section-17",
+        "https://github.com/infiniflow/ragflow#section-9",
+        "https://www.phppan.com/tag/rag#section-50",
+        "https://www.phppan.com/tag/rag#section-52"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 2 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-032",
+      "category": "cross_source_synthesis",
+      "language": "zh-CN",
+      "query": "Agent、RAG、memory 和 harness 的共同工程趋势是什么？",
+      "status": 200,
+      "latency_ms": 393.259,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 28,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+      "top_titles": [
+        "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+        "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+        "Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词"
+      ],
+      "title_term_hits": [
+        "Agent",
+        "RAG"
+      ],
+      "evidence_term_hits": [
+        "agent"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 28,
+      "top_evidence_sources": [
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-2",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-6",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-7",
+        "https://docs.mem0.ai/overview#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-10",
+        "https://eastondev.com/blog/zh/posts/ai/20260413-ai-agent-memory#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-18",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-033",
+      "category": "cross_source_synthesis",
+      "language": "zh-CN",
+      "query": "知识治理、证据追溯和可观测性为什么应该放进同一个长期知识系统？",
+      "status": 200,
+      "latency_ms": 274.225,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 25,
+      "primary_facts_count": 0,
+      "warnings": [
+        "section_retrieval_empty"
+      ],
+      "top_title": "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节",
+      "top_titles": [
+        "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节",
+        "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+        "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环"
+      ],
+      "title_term_hits": [
+        "知识",
+        "证据"
+      ],
+      "evidence_term_hits": [
+        "knowledge"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 25,
+      "top_evidence_sources": [
+        "https://python.langchain.com/docs/tutorials/rag#section-6",
+        "https://python.langchain.com/docs/tutorials/rag#section-7",
+        "https://python.langchain.com/docs/tutorials/rag#section-8",
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-1",
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-7",
+        "https://python.langchain.com/docs/tutorials/rag#section-2",
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-9",
+        "https://github.com/infiniflow/ragflow#section-9"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 0 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "full-034",
+      "category": "cross_lingual",
+      "language": "en",
+      "query": "Why should long-term memory validate citations before using recalled facts?",
+      "status": 200,
+      "latency_ms": 424.318,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 21,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+      "top_titles": [
+        "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+        "长期记忆召回不能只做相似检索，必须在使用时验证有效性",
+        "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理"
+      ],
+      "title_term_hits": [
+        "长期记忆",
+        "验证"
+      ],
+      "evidence_term_hits": [
+        "memory"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 20,
+      "top_evidence_sources": [
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-8",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+        "https://docs.langchain.com/oss/javascript/concepts/memory#section-7",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-2",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-6",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-7",
+        "https://docs.mem0.ai/overview#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-10"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-035",
+      "category": "cross_lingual",
+      "language": "en",
+      "query": "How should production RAG avoid relying on only vector chunks?",
+      "status": 200,
+      "latency_ms": 509.135,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 27,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "top_titles": [
+        "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+        "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+        "图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断"
+      ],
+      "title_term_hits": [
+        "RAG",
+        "证据"
+      ],
+      "evidence_term_hits": [
+        "retrieval"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 27,
+      "top_evidence_sources": [
+        "https://docs.mem0.ai/overview#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-10",
+        "https://eastondev.com/blog/zh/posts/ai/20260413-ai-agent-memory#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-18",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+        "https://www.phppan.com/tag/rag#section-50",
+        "https://www.flandre.ltd/agent-memory#section-5",
+        "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-43"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 2 baseline factual memories"
+    },
+    {
+      "id": "full-036",
+      "category": "cross_lingual",
+      "language": "en",
+      "query": "What is the role of evidence grounding in a knowledge system?",
+      "status": 200,
+      "latency_ms": 514.231,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 23,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "长期记忆召回不能只做相似检索，必须在使用时验证有效性",
+      "top_titles": [
+        "长期记忆召回不能只做相似检索，必须在使用时验证有效性",
+        "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+        "图谱抽取不等于知识治理，chunk 内路径只能作为图谱候选"
+      ],
+      "title_term_hits": [
+        "证据"
+      ],
+      "evidence_term_hits": [
+        "evidence"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 22,
+      "top_evidence_sources": [
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-8",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+        "https://docs.langchain.com/oss/javascript/concepts/memory#section-7",
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-1",
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-7",
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-9",
+        "https://docs.mem0.ai/overview#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-10"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 3 baseline factual memories"
+    },
+    {
+      "id": "full-037",
+      "category": "intermediate_purge_contract",
+      "language": "zh-CN",
+      "query": "facts、entities、relations 这些中间产物现在是否应该直接参与长期召回？",
+      "status": 200,
+      "latency_ms": 372.011,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 2,
+      "evidence_trace_count": 6,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断",
+      "top_titles": [
+        "图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断",
+        "图谱抽取不等于知识治理，chunk 内路径只能作为图谱候选"
+      ],
+      "title_term_hits": [
+        "结构"
+      ],
+      "evidence_term_hits": [
+        "memory"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 6,
+      "top_evidence_sources": [
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-1",
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-7",
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-9",
+        "https://www.flandre.ltd/agent-memory#section-5",
+        "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-43",
+        "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-42"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 2 derived knowledge objects, 5 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "full-038",
+      "category": "intermediate_purge_contract",
+      "language": "zh-CN",
+      "query": "知识治理后的召回对象应该是知识结论加证据链，而不是原始 fact 吗？",
+      "status": 200,
+      "latency_ms": 363.829,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 24,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "top_titles": [
+        "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+        "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节",
+        "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径"
+      ],
+      "title_term_hits": [
+        "知识",
+        "证据"
+      ],
+      "evidence_term_hits": [
+        "knowledge"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 24,
+      "top_evidence_sources": [
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-8",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+        "https://docs.langchain.com/oss/javascript/concepts/memory#section-7",
+        "https://python.langchain.com/docs/tutorials/rag#section-2",
+        "https://python.langchain.com/docs/tutorials/rag#section-6",
+        "https://python.langchain.com/docs/tutorials/rag#section-7",
+        "https://python.langchain.com/docs/tutorials/rag#section-8",
+        "https://www.phppan.com/tag/rag#section-50"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-039",
+      "category": "specificity",
+      "language": "zh-CN",
+      "query": "RAG 评估怎么拆？",
+      "status": 200,
+      "latency_ms": 317.431,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 4,
+      "evidence_trace_count": 24,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+      "top_titles": [
+        "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+        "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+        "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时"
+      ],
+      "title_term_hits": [
+        "RAG 评估"
+      ],
+      "evidence_term_hits": [
+        "rag"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 24,
+      "top_evidence_sources": [
+        "https://python.langchain.com/docs/tutorials/rag#section-2",
+        "https://python.langchain.com/docs/tutorials/rag#section-6",
+        "https://python.langchain.com/docs/tutorials/rag#section-7",
+        "https://python.langchain.com/docs/tutorials/rag#section-8",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 4 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "full-040",
+      "category": "specificity",
+      "language": "zh-CN",
+      "query": "检索后端抽象契约应该包含哪些能力？",
+      "status": 200,
+      "latency_ms": 247.291,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 1,
+      "evidence_trace_count": 7,
+      "primary_facts_count": 0,
+      "warnings": [
+        "section_retrieval_empty"
+      ],
+      "top_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "top_titles": [
+        "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排"
+      ],
+      "title_term_hits": [
+        "检索基础设施",
+        "可替换后端"
+      ],
+      "evidence_term_hits": [],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 7,
+      "top_evidence_sources": [
+        "https://github.com/FlagOpen/FlagEmbedding#section-19",
+        "https://docs.pinecone.io/guides/search/hybrid-search#section-13",
+        "https://github.com/FlagOpen/FlagEmbedding#section-18",
+        "https://qdrant.tech/documentation/overview#section-15",
+        "https://www.elastic.co/guide/en/elasticsearch/reference/current/rrf.html#section-2",
+        "https://docs.pinecone.io/guides/search/hybrid-search#section-2",
+        "https://docs.pinecone.io/guides/search/hybrid-search#section-14"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 1 derived knowledge objects, 0 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "full-041",
+      "category": "ungoverned_document_boundary",
+      "language": "zh-CN",
+      "query": "Dify 本地部署怎么做？",
+      "status": 200,
+      "latency_ms": 1.08,
+      "passed": true,
+      "expected_no_derived": true,
+      "derived_count": 0,
+      "evidence_trace_count": 0,
+      "primary_facts_count": 0,
+      "warnings": [
+        "unsupported_dynamic_query"
+      ],
+      "top_title": null,
+      "top_titles": [],
+      "title_term_hits": [],
+      "evidence_term_hits": [],
+      "warning_term_hits": [
+        "unsupported_dynamic_query"
+      ],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 0,
+      "top_evidence_sources": [],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval skipped: query appears to require external real-time data outside the long-term knowledge scope."
+    },
+    {
+      "id": "full-042",
+      "category": "ungoverned_document_boundary",
+      "language": "zh-CN",
+      "query": "AutoGen 仓库具体怎么安装？",
+      "status": 200,
+      "latency_ms": 1.29,
+      "passed": true,
+      "expected_no_derived": true,
+      "derived_count": 0,
+      "evidence_trace_count": 0,
+      "primary_facts_count": 0,
+      "warnings": [
+        "unsupported_dynamic_query"
+      ],
+      "top_title": null,
+      "top_titles": [],
+      "title_term_hits": [],
+      "evidence_term_hits": [],
+      "warning_term_hits": [
+        "unsupported_dynamic_query"
+      ],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 0,
+      "top_evidence_sources": [],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval skipped: query appears to require external real-time data outside the long-term knowledge scope."
+    },
+    {
+      "id": "full-043",
+      "category": "ungoverned_document_boundary",
+      "language": "en",
+      "query": "What is the exact command to install Haystack from the repository?",
+      "status": 200,
+      "latency_ms": 0.8,
+      "passed": true,
+      "expected_no_derived": true,
+      "derived_count": 0,
+      "evidence_trace_count": 0,
+      "primary_facts_count": 0,
+      "warnings": [
+        "unsupported_dynamic_query"
+      ],
+      "top_title": null,
+      "top_titles": [],
+      "title_term_hits": [],
+      "evidence_term_hits": [],
+      "warning_term_hits": [
+        "unsupported_dynamic_query"
+      ],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 0,
+      "top_evidence_sources": [],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval skipped: query appears to require external real-time data outside the long-term knowledge scope."
+    },
+    {
+      "id": "full-044",
+      "category": "irrelevant_boundary",
+      "language": "zh-CN",
+      "query": "明天上海天气适合穿什么衣服？",
+      "status": 200,
+      "latency_ms": 0.745,
+      "passed": true,
+      "expected_no_derived": true,
+      "derived_count": 0,
+      "evidence_trace_count": 0,
+      "primary_facts_count": 0,
+      "warnings": [
+        "unsupported_dynamic_query"
+      ],
+      "top_title": null,
+      "top_titles": [],
+      "title_term_hits": [],
+      "evidence_term_hits": [],
+      "warning_term_hits": [
+        "unsupported_dynamic_query"
+      ],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 0,
+      "top_evidence_sources": [],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval skipped: query appears to require external real-time data outside the long-term knowledge scope."
+    },
+    {
+      "id": "full-045",
+      "category": "irrelevant_boundary",
+      "language": "en",
+      "query": "What is the latest price of NVIDIA stock today?",
+      "status": 200,
+      "latency_ms": 0.88,
+      "passed": true,
+      "expected_no_derived": true,
+      "derived_count": 0,
+      "evidence_trace_count": 0,
+      "primary_facts_count": 0,
+      "warnings": [
+        "unsupported_dynamic_query"
+      ],
+      "top_title": null,
+      "top_titles": [],
+      "title_term_hits": [],
+      "evidence_term_hits": [],
+      "warning_term_hits": [
+        "unsupported_dynamic_query"
+      ],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 0,
+      "top_evidence_sources": [],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval skipped: query appears to require external real-time data outside the long-term knowledge scope."
+    },
+    {
+      "id": "full-046",
+      "category": "irrelevant_boundary",
+      "language": "zh-CN",
+      "query": "帮我写一份番茄炒蛋菜谱。",
+      "status": 200,
+      "latency_ms": 1.586,
+      "passed": true,
+      "expected_no_derived": true,
+      "derived_count": 0,
+      "evidence_trace_count": 0,
+      "primary_facts_count": 0,
+      "warnings": [
+        "unsupported_dynamic_query"
+      ],
+      "top_title": null,
+      "top_titles": [],
+      "title_term_hits": [],
+      "evidence_term_hits": [],
+      "warning_term_hits": [
+        "unsupported_dynamic_query"
+      ],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 0,
+      "top_evidence_sources": [],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval skipped: query appears to require external real-time data outside the long-term knowledge scope."
+    },
+    {
+      "id": "full-047",
+      "category": "irrelevant_boundary",
+      "language": "zh-CN",
+      "query": "北京到上海高铁明天几点发车？",
+      "status": 200,
+      "latency_ms": 0.949,
+      "passed": true,
+      "expected_no_derived": true,
+      "derived_count": 0,
+      "evidence_trace_count": 0,
+      "primary_facts_count": 0,
+      "warnings": [
+        "unsupported_dynamic_query"
+      ],
+      "top_title": null,
+      "top_titles": [],
+      "title_term_hits": [],
+      "evidence_term_hits": [],
+      "warning_term_hits": [
+        "unsupported_dynamic_query"
+      ],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 0,
+      "top_evidence_sources": [],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval skipped: query appears to require external real-time data outside the long-term knowledge scope."
+    },
+    {
+      "id": "full-048",
+      "category": "irrelevant_boundary",
+      "language": "en",
+      "query": "Give me a recipe for tomato scrambled eggs.",
+      "status": 200,
+      "latency_ms": 0.736,
+      "passed": true,
+      "expected_no_derived": true,
+      "derived_count": 0,
+      "evidence_trace_count": 0,
+      "primary_facts_count": 0,
+      "warnings": [
+        "unsupported_dynamic_query"
+      ],
+      "top_title": null,
+      "top_titles": [],
+      "title_term_hits": [],
+      "evidence_term_hits": [],
+      "warning_term_hits": [
+        "unsupported_dynamic_query"
+      ],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 0,
+      "top_evidence_sources": [],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval skipped: query appears to require external real-time data outside the long-term knowledge scope."
+    }
+  ]
+}

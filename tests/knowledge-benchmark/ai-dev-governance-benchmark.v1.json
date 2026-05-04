@@ -1,0 +1,82 @@
+{
+  "schema_version": "ai-dev-governance-benchmark.v1",
+  "purpose": "知识治理评测样例。用于评测系统能否在自然语料池中发现正确关系，并拒绝错误关系。",
+  "relation_types": [
+    "same_concept_as",
+    "implements",
+    "supports",
+    "contradicts",
+    "supersedes",
+    "evaluates",
+    "risk_of",
+    "compares_with",
+    "no_relation"
+  ],
+  "cases": [
+    {
+      "id": "dev-governance-001",
+      "description": "中英文长期记忆资料可以建立概念等价或实现关系，但不应合并为同一文档。",
+      "expected_relations": [
+        {
+          "source_match": "LangGraph Memory Overview",
+          "target_match": "Agent 记忆系统设计：从会话到长期记忆",
+          "relation_type": "same_concept_as",
+          "required_evidence_terms": [
+            "long-term memory",
+            "长期记忆"
+          ]
+        }
+      ],
+      "forbidden_relations": [
+        {
+          "source_match": "LangGraph Memory Overview",
+          "target_match": "Agent 记忆系统设计：从会话到长期记忆",
+          "relation_type": "same_document_as"
+        }
+      ]
+    },
+    {
+      "id": "dev-governance-002",
+      "description": "RAGAS 和 RAGVUE 都属于 RAG evaluation，但应保持不同方法定位。",
+      "expected_relations": [
+        {
+          "source_match": "RAGAS Paper",
+          "target_match": "RAGVUE",
+          "relation_type": "compares_with",
+          "required_evidence_terms": [
+            "evaluation",
+            "RAG"
+          ]
+        }
+      ],
+      "forbidden_relations": [
+        {
+          "source_match": "RAGAS Paper",
+          "target_match": "RAGVUE",
+          "relation_type": "same_concept_as"
+        }
+      ]
+    },
+    {
+      "id": "dev-governance-003",
+      "description": "OpenAI Memory FAQ 与 GitHub Copilot Memory 都是 memory 产品资料，但 scope 和产品语境不同，不应合并为同一 fact。",
+      "expected_relations": [
+        {
+          "source_match": "OpenAI Memory FAQ",
+          "target_match": "GitHub Copilot Memory Public Preview",
+          "relation_type": "compares_with",
+          "required_evidence_terms": [
+            "memory"
+          ]
+        }
+      ],
+      "forbidden_relations": [
+        {
+          "source_match": "OpenAI Memory FAQ",
+          "target_match": "GitHub Copilot Memory Public Preview",
+          "relation_type": "same_document_as"
+        }
+      ]
+    }
+  ]
+}

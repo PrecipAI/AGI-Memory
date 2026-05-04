@@ -1,0 +1,48 @@
+import type { paths } from "./generated/internal-api.js";
+
+type JsonContent<T> = T extends { content: { "application/json": infer C } } ? C : never;
+type RequestBody<T> = T extends { requestBody: infer R } ? JsonContent<R> : never;
+type SuccessResponse<T> = T extends { responses: { 200: infer R } } ? JsonContent<R> : never;
+
+export type PlanRequest = RequestBody<paths["/internal/planner/plan"]["post"]>;
+export type PlanResponse = SuccessResponse<paths["/internal/planner/plan"]["post"]>;
+export type ResolveRequest = RequestBody<paths["/internal/resolver/resolve"]["post"]>;
+export type ResolveResponse = SuccessResponse<paths["/internal/resolver/resolve"]["post"]>;
+export type DispatchRequest = RequestBody<paths["/internal/router/dispatch"]["post"]>;
+export type DispatchResponse = SuccessResponse<paths["/internal/router/dispatch"]["post"]>;
+export type VerifyRequest = RequestBody<paths["/internal/verifier/check"]["post"]>;
+export type VerifyResponse = SuccessResponse<paths["/internal/verifier/check"]["post"]>;
+export type CleanupRequest = RequestBody<paths["/internal/cleanup/dispatch"]["post"]>;
+export type CleanupResponse = SuccessResponse<paths["/internal/cleanup/dispatch"]["post"]>;
+export type MemoryQueryRequest = RequestBody<paths["/internal/memory/query"]["post"]>;
+export type MemoryQueryResponse = SuccessResponse<paths["/internal/memory/query"]["post"]>;
+export type MemoryCandidateRequest = RequestBody<paths["/internal/memory/candidates"]["post"]>;
+export type MemoryCandidateResponse = SuccessResponse<paths["/internal/memory/candidates"]["post"]>;
+export type MemoryRetrieveRequest = RequestBody<paths["/internal/memory/retrieve"]["post"]>;
+export type MemoryRetrieveResponse = SuccessResponse<paths["/internal/memory/retrieve"]["post"]>;
+export type RuleGateCheckRequest = RequestBody<paths["/internal/rules/gate/check"]["post"]>;
+export type RuleGateCheckResponse = SuccessResponse<paths["/internal/rules/gate/check"]["post"]>;
+export type GovernanceRunRequest = RequestBody<paths["/internal/memory/governance/run"]["post"]>;
+export type GovernanceRunResponse = SuccessResponse<paths["/internal/memory/governance/run"]["post"]>;
+export type KnowledgeGovernanceJobCreateRequest = RequestBody<paths["/internal/knowledge/governance/jobs"]["post"]>;
+export type KnowledgeGovernanceJobCreateResponse = SuccessResponse<paths["/internal/knowledge/governance/jobs"]["post"]>;
+export type KnowledgeGovernanceJobResponse = SuccessResponse<paths["/internal/knowledge/governance/jobs/{jobId}"]["get"]>;
+export type KnowledgeGovernanceRunRequest = RequestBody<paths["/internal/knowledge/governance/run"]["post"]>;
+export type KnowledgeGovernanceRunResponse = SuccessResponse<paths["/internal/knowledge/governance/run"]["post"]>;
+export type KnowledgeDocumentIngestRequest = RequestBody<paths["/internal/knowledge/documents/ingest"]["post"]>;
+export type KnowledgeDocumentIngestResponse = SuccessResponse<paths["/internal/knowledge/documents/ingest"]["post"]>;
+export type KnowledgeDocumentListResponse = SuccessResponse<paths["/internal/knowledge/documents"]["get"]>;
+export type KnowledgeReviewQueueResponse = SuccessResponse<paths["/internal/knowledge/review-queue"]["get"]>;
+export type KnowledgeReviewActionRequest = RequestBody<paths["/internal/knowledge/review-queue/{reviewQueueId}/actions"]["post"]>;
+export type KnowledgeReviewActionResponse = SuccessResponse<paths["/internal/knowledge/review-queue/{reviewQueueId}/actions"]["post"]>;
+export type KnowledgeContextBundleResponse = SuccessResponse<paths["/internal/knowledge/context-bundles/{bundleId}"]["get"]>;
+export type KnowledgeRetrieveRequest = RequestBody<paths["/internal/knowledge/retrieve"]["post"]>;
+export type KnowledgeRetrieveResponse = SuccessResponse<paths["/internal/knowledge/retrieve"]["post"]>;
+export type KnowledgeGraphListResponse = SuccessResponse<paths["/internal/knowledge/graph/entities"]["get"]>;
+export type KnowledgeGovernanceRunsResponse = SuccessResponse<paths["/internal/knowledge/governance/runs"]["get"]>;
+export type KnowledgeOpsOverviewResponse = SuccessResponse<paths["/internal/knowledge/ops/overview"]["get"]>;
+export type FeedbackCommitRequest = RequestBody<paths["/internal/feedback/commit"]["post"]>;
+export type FeedbackCommitResponse = SuccessResponse<paths["/internal/feedback/commit"]["post"]>;
+
+export * from "./generated/state-machines.js";
+export type { paths };

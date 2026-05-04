@@ -1,0 +1,629 @@
+{
+  "benchmark_name": "knowledge-capability-eval-v1",
+  "generated_at": "2026-04-30T10:07:21.435Z",
+  "service_url": "http://127.0.0.1:3101",
+  "tenant_id": "tenant-local",
+  "scope": "memory.validation",
+  "corpus": {
+    "active_documents": 121,
+    "active_sections": 2401,
+    "active_evidence": 2401,
+    "active_synthesized_knowledge": 16,
+    "fact_count": 0,
+    "entity_count": 0,
+    "relation_count": 0,
+    "intermediate_recall_count": 0
+  },
+  "summary": {
+    "total_cases": 10,
+    "passed_cases": 10,
+    "pass_rate": 1,
+    "positive_pass_rate": 1,
+    "boundary_pass_rate": 1,
+    "avg_latency_ms": 257.059,
+    "avg_derived_count": 3.5,
+    "avg_evidence_trace_count": 19,
+    "p50_latency_ms": 330.092,
+    "p95_latency_ms": 389.414,
+    "max_latency_ms": 389.414,
+    "avg_unique_evidence_sources": 18.3
+  },
+  "categories": [
+    {
+      "category": "agent_observability",
+      "total": 1,
+      "passed": 1,
+      "pass_rate": 1,
+      "avg_latency_ms": 343.859,
+      "avg_derived_count": 5,
+      "avg_unique_evidence_sources": 29
+    },
+    {
+      "category": "cross_lingual",
+      "total": 1,
+      "passed": 1,
+      "pass_rate": 1,
+      "avg_latency_ms": 389.414,
+      "avg_derived_count": 4,
+      "avg_unique_evidence_sources": 21
+    },
+    {
+      "category": "graph_boundary",
+      "total": 1,
+      "passed": 1,
+      "pass_rate": 1,
+      "avg_latency_ms": 266.445,
+      "avg_derived_count": 5,
+      "avg_unique_evidence_sources": 25
+    },
+    {
+      "category": "harness_reliability",
+      "total": 1,
+      "passed": 1,
+      "pass_rate": 1,
+      "avg_latency_ms": 330.092,
+      "avg_derived_count": 4,
+      "avg_unique_evidence_sources": 19
+    },
+    {
+      "category": "irrelevant_boundary",
+      "total": 1,
+      "passed": 1,
+      "pass_rate": 1,
+      "avg_latency_ms": 1.5,
+      "avg_derived_count": 0,
+      "avg_unique_evidence_sources": 0
+    },
+    {
+      "category": "mcp_security",
+      "total": 1,
+      "passed": 1,
+      "pass_rate": 1,
+      "avg_latency_ms": 332.397,
+      "avg_derived_count": 3,
+      "avg_unique_evidence_sources": 14
+    },
+    {
+      "category": "memory_governance",
+      "total": 1,
+      "passed": 1,
+      "pass_rate": 1,
+      "avg_latency_ms": 233.76,
+      "avg_derived_count": 4,
+      "avg_unique_evidence_sources": 19
+    },
+    {
+      "category": "rag_evidence",
+      "total": 1,
+      "passed": 1,
+      "pass_rate": 1,
+      "avg_latency_ms": 340.872,
+      "avg_derived_count": 5,
+      "avg_unique_evidence_sources": 29
+    },
+    {
+      "category": "specificity_ranking",
+      "total": 1,
+      "passed": 1,
+      "pass_rate": 1,
+      "avg_latency_ms": 330.518,
+      "avg_derived_count": 5,
+      "avg_unique_evidence_sources": 27
+    },
+    {
+      "category": "unsupported_domain",
+      "total": 1,
+      "passed": 1,
+      "pass_rate": 1,
+      "avg_latency_ms": 1.738,
+      "avg_derived_count": 0,
+      "avg_unique_evidence_sources": 0
+    }
+  ],
+  "results": [
+    {
+      "id": "cap-001",
+      "category": "memory_governance",
+      "language": "zh-CN",
+      "query": "长期记忆系统为什么不能只靠相似召回？",
+      "status": 200,
+      "latency_ms": 233.76,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 4,
+      "evidence_trace_count": 20,
+      "primary_facts_count": 0,
+      "warnings": [
+        "section_retrieval_empty"
+      ],
+      "top_title": "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+      "top_titles": [
+        "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+        "长期记忆召回不能只做相似检索，必须在使用时验证有效性",
+        "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理"
+      ],
+      "title_term_hits": [
+        "长期记忆",
+        "验证",
+        "相似召回"
+      ],
+      "evidence_term_hits": [
+        "memory"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 19,
+      "top_evidence_sources": [
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-8",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+        "https://docs.langchain.com/oss/javascript/concepts/memory#section-7",
+        "https://docs.mem0.ai/overview#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-10",
+        "https://eastondev.com/blog/zh/posts/ai/20260413-ai-agent-memory#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-18",
+        "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-27"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 4 derived knowledge objects, 0 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "cap-002",
+      "category": "mcp_security",
+      "language": "zh-CN",
+      "query": "Agent 工具和 MCP 接入应该如何做权限、沙箱和审计？",
+      "status": 200,
+      "latency_ms": 332.397,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 3,
+      "evidence_trace_count": 15,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+      "top_titles": [
+        "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+        "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+        "Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词"
+      ],
+      "title_term_hits": [
+        "MCP",
+        "授权",
+        "沙箱"
+      ],
+      "evidence_term_hits": [
+        "authorization",
+        "permission"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 14,
+      "top_evidence_sources": [
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-2",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-6",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-7",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-84",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-73",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-47",
+        "https://openai.github.io/openai-agents-js/guides/agents#section-19",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-89"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 3 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "cap-003",
+      "category": "agent_observability",
+      "language": "zh-CN",
+      "query": "Agent 失败治理需要记录哪些观测数据？",
+      "status": 200,
+      "latency_ms": 343.859,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 30,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+      "top_titles": [
+        "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+        "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+        "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环"
+      ],
+      "title_term_hits": [
+        "观测",
+        "工具调用",
+        "上下文"
+      ],
+      "evidence_term_hits": [
+        "trace",
+        "workflow"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 29,
+      "top_evidence_sources": [
+        "https://python.langchain.com/docs/tutorials/rag#section-2",
+        "https://python.langchain.com/docs/tutorials/rag#section-6",
+        "https://python.langchain.com/docs/tutorials/rag#section-7",
+        "https://python.langchain.com/docs/tutorials/rag#section-8",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "cap-004",
+      "category": "rag_evidence",
+      "language": "zh-CN",
+      "query": "RAG 系统如何避免只靠向量 chunk，怎么做证据和上下文装配？",
+      "status": 200,
+      "latency_ms": 340.872,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 29,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+      "top_titles": [
+        "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+        "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节",
+        "RAG 评估必须拆开检索质量、生成忠实度和多轮行为"
+      ],
+      "title_term_hits": [
+        "检索",
+        "证据",
+        "RAG"
+      ],
+      "evidence_term_hits": [
+        "rag",
+        "retrieval"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 29,
+      "top_evidence_sources": [
+        "https://python.langchain.com/docs/tutorials/rag#section-2",
+        "https://python.langchain.com/docs/tutorials/rag#section-6",
+        "https://python.langchain.com/docs/tutorials/rag#section-7",
+        "https://python.langchain.com/docs/tutorials/rag#section-8",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "cap-005",
+      "category": "cross_lingual",
+      "language": "en",
+      "query": "How should agentic tools handle authorization, sandboxing, and audit?",
+      "status": 200,
+      "latency_ms": 389.414,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 4,
+      "evidence_trace_count": 23,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+      "top_titles": [
+        "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+        "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+        "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败"
+      ],
+      "title_term_hits": [
+        "MCP",
+        "授权",
+        "沙箱"
+      ],
+      "evidence_term_hits": [
+        "authorization",
+        "permission"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 21,
+      "top_evidence_sources": [
+        "https://docs.mem0.ai/overview#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-10",
+        "https://eastondev.com/blog/zh/posts/ai/20260413-ai-agent-memory#section-2",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-18",
+        "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-84",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-73",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-47"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 4 derived knowledge objects, 5 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "cap-006",
+      "category": "harness_reliability",
+      "language": "zh-CN",
+      "query": "为什么 Agent 可靠性不能只靠一次提示词，而要靠 harness 闭环？",
+      "status": 200,
+      "latency_ms": 330.092,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 4,
+      "evidence_trace_count": 21,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+      "top_titles": [
+        "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+        "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+        "Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词"
+      ],
+      "title_term_hits": [
+        "harness",
+        "可靠性"
+      ],
+      "evidence_term_hits": [
+        "harness",
+        "agent"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 19,
+      "top_evidence_sources": [
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-2",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-6",
+        "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-7",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-84",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-73",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-47",
+        "https://openai.github.io/openai-agents-js/guides/agents#section-19",
+        "https://github.com/ai-boost/awesome-harness-engineering#section-89"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 4 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    },
+    {
+      "id": "cap-007",
+      "category": "graph_boundary",
+      "language": "zh-CN",
+      "query": "图谱召回适合什么问题，为什么不能替代证据治理？",
+      "status": 200,
+      "latency_ms": 266.445,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 25,
+      "primary_facts_count": 0,
+      "warnings": [
+        "section_retrieval_empty"
+      ],
+      "top_title": "图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断",
+      "top_titles": [
+        "图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断",
+        "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+        "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排"
+      ],
+      "title_term_hits": [
+        "图谱",
+        "证据治理"
+      ],
+      "evidence_term_hits": [
+        "graph",
+        "evidence"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 25,
+      "top_evidence_sources": [
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-1",
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-7",
+        "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-9",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43",
+        "https://genai.owasp.org/llmrisk/llm01-prompt-injection#section-17"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 0 sections, 0 baseline factual memories"
+    },
+    {
+      "id": "cap-008",
+      "category": "irrelevant_boundary",
+      "language": "zh-CN",
+      "query": "明天上海天气适合穿什么衣服？",
+      "status": 200,
+      "latency_ms": 1.5,
+      "passed": true,
+      "expected_no_derived": true,
+      "derived_count": 0,
+      "evidence_trace_count": 0,
+      "primary_facts_count": 0,
+      "warnings": [
+        "unsupported_dynamic_query"
+      ],
+      "top_title": null,
+      "top_titles": [],
+      "title_term_hits": [],
+      "evidence_term_hits": [],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 0,
+      "top_evidence_sources": [],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval skipped: query appears to require external real-time data outside the long-term knowledge scope."
+    },
+    {
+      "id": "cap-009",
+      "category": "unsupported_domain",
+      "language": "en",
+      "query": "What is the latest price of NVIDIA stock today?",
+      "status": 200,
+      "latency_ms": 1.738,
+      "passed": true,
+      "expected_no_derived": true,
+      "derived_count": 0,
+      "evidence_trace_count": 0,
+      "primary_facts_count": 0,
+      "warnings": [
+        "unsupported_dynamic_query"
+      ],
+      "top_title": null,
+      "top_titles": [],
+      "title_term_hits": [],
+      "evidence_term_hits": [],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 0,
+      "top_evidence_sources": [],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval skipped: query appears to require external real-time data outside the long-term knowledge scope."
+    },
+    {
+      "id": "cap-010",
+      "category": "specificity_ranking",
+      "language": "zh-CN",
+      "query": "生产级 RAG 默认应该采用什么检索结构？",
+      "status": 200,
+      "latency_ms": 330.518,
+      "passed": true,
+      "expected_no_derived": false,
+      "derived_count": 5,
+      "evidence_trace_count": 27,
+      "primary_facts_count": 0,
+      "warnings": [],
+      "top_title": "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+      "top_titles": [
+        "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+        "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+        "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束"
+      ],
+      "title_term_hits": [
+        "生产级",
+        "检索"
+      ],
+      "evidence_term_hits": [
+        "retrieval",
+        "rag"
+      ],
+      "warning_term_hits": [],
+      "forbidden_title_hits": [],
+      "unique_evidence_source_count": 27,
+      "top_evidence_sources": [
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+        "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+        "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+        "https://www.phppan.com/tag/rag#section-43",
+        "https://genai.owasp.org/llmrisk/llm01-prompt-injection#section-17",
+        "https://github.com/infiniflow/ragflow#section-9",
+        "https://www.phppan.com/tag/rag#section-50",
+        "https://www.flandre.ltd/agent-memory#section-5"
+      ],
+      "checks": {
+        "derived_count_ok": true,
+        "evidence_count_ok": true,
+        "title_terms_ok": true,
+        "evidence_terms_ok": true,
+        "warning_terms_ok": true,
+        "forbidden_title_ok": true,
+        "source_diversity_ok": true,
+        "latency_ok": true,
+        "primary_facts_ok": true
+      },
+      "summary": "Knowledge retrieval found 5 derived knowledge objects, 5 sections, 1 baseline factual memories"
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+[
+  {
+    "id": "ai-query-001",
+    "theme": "agent_memory",
+    "query": "Why is GitHub Copilot memory scoped to the repository?",
+    "intent_type": "fact_lookup",
+    "expected_document_titles": [
+      "GitHub Copilot Memory Public Preview",
+      "Building an Agentic Memory System for GitHub Copilot"
+    ],
+    "must_have_terms": [
+      "repository",
+      "memory"
+    ]
+  },
+  {
+    "id": "ai-query-002",
+    "theme": "agent_memory",
+    "query": "Why does GitHub Copilot validate memory before using it?",
+    "intent_type": "boundary_or_risk",
+    "expected_document_titles": [
+      "Building an Agentic Memory System for GitHub Copilot"
+    ],
+    "must_have_terms": [
+      "validation",
+      "memory"
+    ]
+  },
+  {
+    "id": "ai-query-003",
+    "theme": "agent_framework",
+    "query": "How does LangGraph distinguish short-term memory from long-term memory?",
+    "intent_type": "definition_lookup",
+    "expected_document_titles": [
+      "LangGraph Memory Overview"
+    ],
+    "must_have_terms": [
+      "short-term",
+      "long-term"
+    ]
+  },
+  {
+    "id": "ai-query-004",
+    "theme": "agent_framework",
+    "query": "How does the LangGraph memory agent bind memory scope to the user?",
+    "intent_type": "fact_lookup",
+    "expected_document_titles": [
+      "LangGraph Memory Agent"
+    ],
+    "must_have_terms": [
+      "user_id",
+      "memory"
+    ]
+  },
+  {
+    "id": "ai-query-005",
+    "theme": "agent_framework",
+    "query": "What is AutoGen's current status and why is it not the default mainline for new systems?",
+    "intent_type": "time_sensitive_change",
+    "expected_document_titles": [
+      "Microsoft AutoGen Repository"
+    ],
+    "must_have_terms": [
+      "maintenance mode"
+    ]
+  },
+  {
+    "id": "ai-query-006",
+    "theme": "agentic_rag",
+    "query": "What core components does Haystack emphasize in RAG and agent systems?",
+    "intent_type": "architecture_relation",
+    "expected_document_titles": [
+      "Haystack Repository"
+    ],
+    "must_have_terms": [
+      "retrieval",
+      "generation"
+    ]
+  },
+  {
+    "id": "ai-query-007",
+    "theme": "agentic_rag",
+    "query": "Why can agentic RAG not be judged only by retrieval without looking at assembly and evaluation?",
+    "intent_type": "boundary_or_risk",
+    "expected_document_titles": [
+      "SoK Agentic RAG"
+    ],
+    "must_have_terms": [
+      "evaluation",
+      "rag"
+    ]
+  },
+  {
+    "id": "ai-query-008",
+    "theme": "eval_harness",
+    "query": "What does RAGalyst focus on beyond whether the final answer is correct?",
+    "intent_type": "evidence_grounding",
+    "expected_document_titles": [
+      "RAGalyst"
+    ],
+    "must_have_terms": [
+      "evaluation",
+      "human-aligned"
+    ]
+  },
+  {
+    "id": "ai-query-009",
+    "theme": "cross_topic",
+    "query": "Why should a long-term knowledge system care about memory, RAG, and evaluation harnesses together?",
+    "intent_type": "cross_section_summary",
+    "expected_document_titles": [
+      "Building an Agentic Memory System for GitHub Copilot",
+      "SoK Agentic RAG",
+      "RAGalyst"
+    ],
+    "must_have_terms": [
+      "memory",
+      "evaluation"
+    ]
+  },
+  {
+    "id": "ai-query-010",
+    "theme": "cross_topic",
+    "query": "Why can an AI agent system not rely only on vector retrieval for evidence and memory governance?",
+    "intent_type": "cross_section_summary",
+    "expected_document_titles": [
+      "SoK Agentic RAG",
+      "Building an Agentic Memory System for GitHub Copilot",
+      "RAGalyst"
+    ],
+    "must_have_terms": [
+      "evidence",
+      "memory"
+    ]
+  }
+]

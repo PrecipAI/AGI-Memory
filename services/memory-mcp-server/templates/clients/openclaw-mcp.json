@@ -1,0 +1,4 @@
+{
+  "command": "cmd",
+  "args": ["/c", "npx", "memory-mcp", "start", "--config", ".memory-mcp/config.json"]
+}

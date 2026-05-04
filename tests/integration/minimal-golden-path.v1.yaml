@@ -1,0 +1,347 @@
+name: minimal-golden-path.v1
+mode: single_tenant_memory_validation
+
+context:
+  tenant_id: tenant-local
+  scope: memory.validation
+  task_type: effectful_demo
+  goal: Create a reversible mock ticket and validate Memory V3 golden path automation.
+  fingerprint_valid: local-dev-v1
+  fingerprint_wrong: wrong-fingerprint
+  trace_prefix: trace-p1-golden
+
+gate:
+  report_path: tests/integration/p1-gate-report.json
+  baselines:
+    contract_requires_fingerprint_status: retrieve_missing_status
+    task_request_projects_task_run: task_run_projection
+    artifact_evidence_persisted: artifact_evidence
+    factual_candidate_persists_to_memory: submit_factual_candidate
+    procedural_candidate_persists_to_skill: submit_procedural_candidate
+    governance_rebuilds_summary_and_snapshot: run_governance
+    matched_fingerprint_enables_procedural_retrieval: retrieve_matched
+    mismatch_or_missing_fingerprint_blocks_procedural_retrieval: retrieve_mismatch
+
+steps:
+  - id: seed_raw_facts
+    action: db.seed
+    assertions:
+      - table_exists: task_request
+      - table_exists: task_run
+      - table_exists: artifact
+      - table_exists: memory_candidate
+      - table_exists: memory_access_log
+
+  - id: planner
+    action: http.post
+    endpoint: /internal/planner/plan
+    body:
+      task_request_id: "{{task_request_id}}"
+      task_type: "{{task_type}}"
+      goal: "{{goal}}"
+      normalized_envelope:
+        source: verify:p1-golden
+      resident_context:
+        mode: single-tenant
+      retrieval_budget:
+        resident: 4
+        factual: 4
+        procedural: 4
+    assertions:
+      - status: 200
+      - exists: body.task_plan_id
+      - eq:
+          path: body.steps.length
+          value: 3
+    save:
+      task_plan_id: body.task_plan_id
+
+  - id: fetch_effectful_step
+    action: db.fetch_one
+    table: task_step
+    select:
+      - id
+      - step_key
+    where:
+      task_plan_id: "{{task_plan_id}}"
+      step_order: 2
+    save:
+      effectful_step_id: row.id
+      effectful_step_key: row.step_key
+
+  - id: task_run_projection
+    action: db.assert
+    assertions:
+      - count_eq:
+          table: task_run
+          where:
+            task_request_id: "{{task_request_id}}"
+          value: 1
+
+  - id: resolver
+    action: http.post
+    endpoint: /internal/resolver/resolve
+    body:
+      task_plan_id: "{{task_plan_id}}"
+      task_step_id: "{{effectful_step_id}}"
+      step_type: effectful_demo
+      risk_level: low
+      side_effect_class: external_resource
+      required_scopes:
+        - "{{scope}}"
+      fingerprint_context:
+        task_type: effectful_demo
+        fingerprint: "{{fingerprint_valid}}"
+    assertions:
+      - status: 200
+      - exists: body.resolved_capability_id
+    save:
+      resolved_capability_id: body.resolved_capability_id
+
+  - id: precheck
+    action: http.post
+    endpoint: /internal/verifier/check
+    body:
+      task_request_id: "{{task_request_id}}"
+      task_plan_id: "{{task_plan_id}}"
+      task_step_id: "{{effectful_step_id}}"
+      verification_phase: precheck
+      expected_state:
+        dispatch_allowed: true
+      observed_state:
+        dispatch_allowed: true
+        fingerprint: "{{fingerprint_valid}}"
+        artifact_tag: environment_fact
+        side_effect_class: external_resource
+    assertions:
+      - status: 200
+      - exists: body.precheck_token
+    save:
+      precheck_token: body.precheck_token
+
+  - id: dispatch
+    action: http.post
+    endpoint: /internal/router/dispatch
+    body:
+      task_request_id: "{{task_request_id}}"
+      task_plan_id: "{{task_plan_id}}"
+      task_step_id: "{{effectful_step_id}}"
+      resolved_capability_id: "{{resolved_capability_id}}"
+      dispatch_payload:
+        title: Memory V3 golden path mock ticket
+      precheck_token: "{{precheck_token}}"
+    assertions:
+      - status: 200
+      - eq:
+          path: body.dispatch_status
+          value: committed
+      - eq:
+          path: body.attempt_no
+          value: 1
+
+  - id: artifact_evidence
+    action: db.assert
+    assertions:
+      - count_gte:
+          table: artifact
+          where:
+            task_request_id: "{{task_request_id}}"
+          value: 1
+
+  - id: postcheck
+    action: http.post
+    endpoint: /internal/verifier/check
+    body:
+      task_request_id: "{{task_request_id}}"
+      task_plan_id: "{{task_plan_id}}"
+      task_step_id: "{{effectful_step_id}}"
+      verification_phase: postcheck
+      expected_state:
+        resource_created: true
+      observed_state:
+        resource_created: true
+        fingerprint: "{{fingerprint_valid}}"
+        artifact_tag: workflow_tag=standard_path
+        error_code: FIX_TIMEOUT_503
+        side_effect_class: external_resource
+    assertions:
+      - status: 200
+      - exists: body.memory_candidate_preview
+
+  - id: submit_factual_candidate
+    action: http.post
+    endpoint: /internal/memory/candidates
+    body:
+      task_request_id: "{{task_request_id}}"
+      task_step_id: "{{effectful_step_id}}"
+      source_type: artifact
+      source_ref: verify://memory/factual/environment
+      artifact_tag: environment_fact
+      verification_status: verified
+      side_effect_class: read_only
+      fingerprint_status: matched_or_na
+      candidate_payload:
+        title: Support environment endpoint
+        content: Mock ticket capability is registered and reachable in the validation environment.
+    assertions:
+      - status: 200
+      - eq:
+          path: body.persist_target
+          value: memory
+
+  - id: submit_procedural_candidate
+    action: http.post
+    endpoint: /internal/memory/candidates
+    body:
+      task_request_id: "{{task_request_id}}"
+      task_step_id: "{{effectful_step_id}}"
+      source_type: verification_result
+      source_ref: verify://memory/procedural-match
+      artifact_tag: workflow_tag=standard_path
+      error_code: FIX_TIMEOUT_503
+      verification_status: verified_fix
+      side_effect_class: external_resource
+      fingerprint: "{{fingerprint_valid}}"
+      fingerprint_status: matched
+      candidate_payload:
+        title: Retry support triage workflow
+        content: Verified fix should persist to skill when fingerprint matches.
+    assertions:
+      - status: 200
+      - eq:
+          path: body.persist_target
+          value: skill
+
+  - id: submit_mismatch_candidate
+    action: http.post
+    endpoint: /internal/memory/candidates
+    body:
+      task_request_id: "{{task_request_id}}"
+      task_step_id: "{{effectful_step_id}}"
+      source_type: verification_result
+      source_ref: verify://memory/procedural-mismatch
+      artifact_tag: workflow_tag=standard_path
+      error_code: FIX_TIMEOUT_503
+      verification_status: verified_fix
+      side_effect_class: external_resource
+      fingerprint: "{{fingerprint_wrong}}"
+      fingerprint_status: mismatch
+      candidate_payload:
+        title: Mismatched procedural memory
+        content: This candidate must not enter skill retrieval because fingerprint mismatches.
+    assertions:
+      - status: 200
+      - eq:
+          path: body.persist_target
+          value: summary_only
+
+  - id: run_governance
+    action: http.post
+    endpoint: /internal/memory/governance/run
+    body:
+      task_request_id: "{{task_request_id}}"
+      task_step_id: "{{effectful_step_id}}"
+      fingerprint: "{{fingerprint_valid}}"
+      rebuild_resident: true
+      sync_index: true
+      run_lifecycle: true
+    assertions:
+      - status: 200
+      - exists: body.rebuilt_snapshot_id
+      - length_gte:
+          path: body.summary_ids
+          value: 1
+
+  - id: retrieve_missing_status
+    action: http.post
+    endpoint: /internal/memory/retrieve
+    body:
+      task_request_id: "{{task_request_id}}"
+      query: What is the retrieval contract?
+      runtime_summary:
+        active_step: "{{effectful_step_key}}"
+      fingerprint: "{{fingerprint_valid}}"
+      include_procedural: true
+      include_factual: true
+      limit: 10
+    assertions:
+      - status: 400
+      - eq:
+          path: body.error_code
+          value: FINGERPRINT_STATUS_REQUIRED
+
+  - id: retrieve_missing_fingerprint
+    action: http.post
+    endpoint: /internal/memory/retrieve
+    body:
+      task_request_id: "{{task_request_id}}"
+      query: What is the retrieval contract?
+      runtime_summary:
+        active_step: "{{effectful_step_key}}"
+      fingerprint_status: matched
+      include_procedural: true
+      include_factual: true
+      limit: 10
+    assertions:
+      - status: 400
+      - eq:
+          path: body.error_code
+          value: FINGERPRINT_REQUIRED
+
+  - id: retrieve_matched
+    action: http.post
+    endpoint: /internal/memory/retrieve
+    body:
+      task_request_id: "{{task_request_id}}"
+      query: How should I handle support triage?
+      runtime_summary:
+        active_step: "{{effectful_step_key}}"
+      fingerprint: "{{fingerprint_valid}}"
+      fingerprint_status: matched
+      include_procedural: true
+      include_factual: true
+      limit: 10
+    assertions:
+      - status: 200
+      - length_gte:
+          path: body.procedural_memory
+          value: 1
+      - length_gte:
+          path: body.factual_memory
+          value: 1
+
+  - id: retrieve_mismatch
+    action: http.post
+    endpoint: /internal/memory/retrieve
+    body:
+      task_request_id: "{{task_request_id}}"
+      query: How should I handle support triage?
+      runtime_summary:
+        active_step: "{{effectful_step_key}}"
+      fingerprint: "{{fingerprint_wrong}}"
+      fingerprint_status: mismatch
+      include_procedural: true
+      include_factual: true
+      limit: 10
+    assertions:
+      - status: 200
+      - length_eq:
+          path: body.procedural_memory
+          value: 0
+      - length_gte:
+          path: body.factual_memory
+          value: 1
+
+  - id: audit_check
+    action: db.assert
+    assertions:
+      - count_gt:
+          table: memory_access_log
+          where:
+            query_kind: retrieve:bundle
+            tenant_id: "{{tenant_id}}"
+            scope: "{{scope}}"
+          value: 0
+
+  - id: report
+    action: report.write

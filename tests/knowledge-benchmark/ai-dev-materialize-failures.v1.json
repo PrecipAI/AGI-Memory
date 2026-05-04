@@ -1,0 +1,1157 @@
+{
+  "generated_at": "2026-04-30T07:33:55.645Z",
+  "items": [
+    {
+      "id": "source-ai-dev-001",
+      "title": "LangGraph Memory Overview",
+      "url": "https://docs.langchain.com/oss/javascript/langgraph/memory",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "agent_memory",
+      "error": "fetch failed"
+    },
+    {
+      "id": "source-ai-dev-003",
+      "title": "LangGraph Memory Concepts",
+      "url": "https://langchain-ai.github.io/langgraph/concepts/memory",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "agent_memory",
+      "error": "fetch failed"
+    },
+    {
+      "id": "source-ai-dev-004",
+      "title": "LangGraph Persistence Concepts",
+      "url": "https://langchain-ai.github.io/langgraph/concepts/persistence",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "knowledge_graph",
+      "error": "extracted markdown too short"
+    },
+    {
+      "id": "source-ai-dev-008",
+      "title": "OpenAI Memory FAQ",
+      "url": "https://help.openai.com/en/articles/8590148-memory-faq",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "agent_memory",
+      "error": "fetch failed: 403"
+    },
+    {
+      "id": "source-ai-dev-011",
+      "title": "Letta Documentation",
+      "url": "https://docs.letta.com",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "agent_memory",
+      "error": "extracted markdown too short"
+    },
+    {
+      "id": "source-ai-dev-015",
+      "title": "OpenAI Agents SDK Guide",
+      "url": "https://platform.openai.com/docs/guides/agents-sdk",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "agent_framework",
+      "error": "fetch failed: 403"
+    },
+    {
+      "id": "source-ai-dev-019",
+      "title": "Microsoft Agent Framework Documentation",
+      "url": "https://learn.microsoft.com/en-us/agent-framework",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "agent_framework",
+      "error": "markdown useful body too short: 450"
+    },
+    {
+      "id": "source-ai-dev-022",
+      "title": "Google Genkit Documentation",
+      "url": "https://firebase.google.com/docs/genkit",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "agent_framework",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-026",
+      "title": "Dify Documentation",
+      "url": "https://docs.dify.ai",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "agent_framework",
+      "error": "markdown useful body too short: 521"
+    },
+    {
+      "id": "source-ai-dev-027",
+      "title": "Dify 中文文档",
+      "url": "https://docs.dify.ai/zh-hans",
+      "language": "zh-CN",
+      "source_type": "official_doc",
+      "topic_hint": "agent_framework",
+      "error": "markdown useful body too short: 189"
+    },
+    {
+      "id": "source-ai-dev-030",
+      "title": "AgentScope Documentation",
+      "url": "https://doc.agentscope.io",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "agent_framework",
+      "error": "markdown useful body too short: 452"
+    },
+    {
+      "id": "source-ai-dev-032",
+      "title": "LlamaIndex Introduction to RAG",
+      "url": "https://docs.llamaindex.ai/en/stable/understanding/rag",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "rag",
+      "error": "fetch failed"
+    },
+    {
+      "id": "source-ai-dev-034",
+      "title": "LlamaIndex Query Engine",
+      "url": "https://docs.llamaindex.ai/en/stable/module_guides/deploying/query_engine",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "rag",
+      "error": "markdown useful body too short: 839"
+    },
+    {
+      "id": "source-ai-dev-036",
+      "title": "LangChain RAG Tutorial",
+      "url": "https://python.langchain.com/docs/tutorials/rag",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "rag",
+      "error": "fetch failed"
+    },
+    {
+      "id": "source-ai-dev-042",
+      "title": "Pinecone Hybrid Search",
+      "url": "https://docs.pinecone.io/guides/search/hybrid-search",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "vector_database",
+      "error": "fetch failed"
+    },
+    {
+      "id": "source-ai-dev-046",
+      "title": "RAGAS Metrics",
+      "url": "https://docs.ragas.io/en/stable/concepts/metrics/available_metrics",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-051",
+      "title": "Promptfoo Documentation",
+      "url": "https://www.promptfoo.dev/docs/intro",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "eval_harness",
+      "error": "fetch failed"
+    },
+    {
+      "id": "source-ai-dev-072",
+      "title": "MCP 中文文档：Tools",
+      "url": "https://mcp.transdocs.org/docs/concepts/tools",
+      "language": "zh-CN",
+      "source_type": "translated_doc",
+      "topic_hint": "mcp_tool_use",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-073",
+      "title": "MCP Security Best Practices",
+      "url": "https://modelcontextprotocol.io/specification/draft/basic/security_best_practices",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "mcp_tool_use",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-076",
+      "title": "Microsoft AI Red Teaming",
+      "url": "https://learn.microsoft.com/en-us/security/ai-red-team",
+      "language": "en",
+      "source_type": "official_doc",
+      "topic_hint": "security",
+      "error": "markdown has too few substantive lines: 1"
+    },
+    {
+      "id": "source-ai-dev-084",
+      "title": "ModelScope 文档",
+      "url": "https://modelscope.cn/docs",
+      "language": "zh-CN",
+      "source_type": "official_doc",
+      "topic_hint": "agent_framework",
+      "error": "extracted markdown too short"
+    },
+    {
+      "id": "source-ai-dev-086",
+      "title": "百度智能云千帆大模型平台",
+      "url": "https://cloud.baidu.com/doc/WENXINWORKSHOP/index.html",
+      "language": "zh-CN",
+      "source_type": "official_doc",
+      "topic_hint": "agent_framework",
+      "error": "markdown useful body too short: 461"
+    },
+    {
+      "id": "source-ai-dev-087",
+      "title": "腾讯云知识引擎原子能力",
+      "url": "https://cloud.tencent.com/document/product/1772",
+      "language": "zh-CN",
+      "source_type": "official_doc",
+      "topic_hint": "rag",
+      "error": "markdown useful body too short: 494"
+    },
+    {
+      "id": "source-ai-dev-091",
+      "title": "向量数据库与 RAG 应用实践",
+      "url": "https://zilliz.com.cn/blog",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "rag",
+      "error": "markdown useful body too short: 481"
+    },
+    {
+      "id": "source-ai-dev-092",
+      "title": "Dify RAG 知识库文档",
+      "url": "https://docs.dify.ai/zh-hans/guides/knowledge-base",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 1"
+    },
+    {
+      "id": "source-ai-dev-093",
+      "title": "Dify 工作流中文文档",
+      "url": "https://docs.dify.ai/zh-hans/guides/workflow",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "agent_framework",
+      "error": "markdown useful body too short: 807"
+    },
+    {
+      "id": "source-ai-dev-094",
+      "title": "Dify Agent 中文文档",
+      "url": "https://docs.dify.ai/zh-hans/guides/agent",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "agent_framework",
+      "error": "markdown useful body too short: 189"
+    },
+    {
+      "id": "source-ai-dev-095",
+      "title": "Dify 监控中文文档",
+      "url": "https://docs.dify.ai/zh-hans/guides/monitoring",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "observability",
+      "error": "markdown useful body too short: 301"
+    },
+    {
+      "id": "source-ai-dev-096",
+      "title": "Dify 工具中文文档",
+      "url": "https://docs.dify.ai/zh-hans/guides/tools",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "tool_use",
+      "error": "markdown useful body too short: 189"
+    },
+    {
+      "id": "source-ai-dev-097",
+      "title": "MCP 协议中文介绍",
+      "url": "https://mcp.transdocs.org",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "mcp_tool_use",
+      "error": "markdown useful body too short: 421"
+    },
+    {
+      "id": "source-ai-dev-098",
+      "title": "MCP 工具中文规范",
+      "url": "https://mcp.transdocs.org/specification/draft/server/tools",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "mcp_tool_use",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-100",
+      "title": "MCP 提示词中文规范",
+      "url": "https://mcp.transdocs.org/specification/draft/server/prompts",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "mcp_tool_use",
+      "error": "markdown has too few substantive lines: 1"
+    },
+    {
+      "id": "source-ai-dev-107",
+      "title": "Python LLM 评估的 DeepEval / RAGAS 框架",
+      "url": "https://www.php.cn/faq/2124695.html",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "rag",
+      "error": "fetch failed: 403"
+    },
+    {
+      "id": "source-ai-dev-113",
+      "title": "AI Agent 智能体技术发展报告",
+      "url": "https://www.sdecu.com/virtual_attach_file.vsb?afc=SoRlzPL4fRnzf2Ml7LiU47DnzN4U47rPn7QfMNLYn778LR90gihFp2hmCIa0L1yinSyiMYyiLmGsMlnfM8nkLRGaL778o7-Yoz94nzL4M4WFnRM7UNlaU4AFLlnVozV2gjfNQmOeo4x4Q2rm6590qIbtpYyYMR7Pg478LzvsLSbw62I8c&e=.pdf&nid=141771&oid=2123883912&tid=2411",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "agent_framework",
+      "error": "markdown contains mojibake markers: 382511"
+    },
+    {
+      "id": "source-ai-dev-114",
+      "title": "大模型上下文工程指南",
+      "url": "https://www.cdut.edu.cn/__local/4/A7/81/EA807C0CAAAF77FDAC03EC61C0B_FF6614F6_68E2A6.pdf",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "agent_memory",
+      "error": "markdown contains mojibake markers: 1276936"
+    },
+    {
+      "id": "source-ai-dev-115",
+      "title": "RAG 方案优化与性能评估",
+      "url": "https://www.calsp.cn/wp-content/uploads/2024/05/3.%E8%83%A1%E4%BA%AE%E3%80%8ARAG%E6%96%B9%E6%A1%88%E4%BC%98%E5%8C%96%E4%B8%8E%E6%80%A7%E8%83%BD%E8%AF%84%E4%BC%B0%E3%80%8B.pdf",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "rag",
+      "error": "markdown contains mojibake markers: 473908"
+    },
+    {
+      "id": "source-ai-dev-116",
+      "title": "仿真领域 Agentic RAG 论文",
+      "url": "https://www.china-simulation.com/EN/article/downloadArticleFile.do?attachType=PDF&id=3837",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "rag",
+      "error": "markdown contains mojibake markers: 196178"
+    },
+    {
+      "id": "source-ai-dev-117",
+      "title": "医学大模型 Agent 综述 PDF",
+      "url": "https://www.biomedrxiv.org.cn/article/pdf/display/10.12201/bmr.202509.00063",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "agent_framework",
+      "error": "markdown contains mojibake markers: 107774"
+    },
+    {
+      "id": "source-ai-dev-119",
+      "title": "ModelScope 文档：快速开始",
+      "url": "https://modelscope.cn/docs/intro/quickstart",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "agent_framework",
+      "error": "extracted markdown too short"
+    },
+    {
+      "id": "source-ai-dev-120",
+      "title": "ModelScope 文档：模型下载",
+      "url": "https://modelscope.cn/docs/models/download",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "agent_framework",
+      "error": "extracted markdown too short"
+    },
+    {
+      "id": "source-ai-dev-123",
+      "title": "智谱 AI 工具调用",
+      "url": "https://open.bigmodel.cn/dev/howuse/functioncall",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "tool_use",
+      "error": "The operation was aborted due to timeout"
+    },
+    {
+      "id": "source-ai-dev-124",
+      "title": "百度千帆应用接入",
+      "url": "https://cloud.baidu.com/doc/WENXINWORKSHOP/s/flfmc9do2",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "agent_framework",
+      "error": "markdown useful body too short: 461"
+    },
+    {
+      "id": "source-ai-dev-125",
+      "title": "百度千帆函数调用",
+      "url": "https://cloud.baidu.com/doc/WENXINWORKSHOP/s/clntwmv7t",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "tool_use",
+      "error": "markdown useful body too short: 461"
+    },
+    {
+      "id": "source-ai-dev-127",
+      "title": "腾讯云大模型知识引擎知识库",
+      "url": "https://cloud.tencent.com/document/product/1772/115970",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "rag",
+      "error": "markdown useful body too short: 387"
+    },
+    {
+      "id": "source-ai-dev-128",
+      "title": "阿里云百炼应用开发",
+      "url": "https://help.aliyun.com/zh/model-studio/user-guide/application-development",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "agent_framework",
+      "error": "extracted markdown too short"
+    },
+    {
+      "id": "source-ai-dev-129",
+      "title": "阿里云百炼知识库",
+      "url": "https://help.aliyun.com/zh/model-studio/user-guide/knowledge-base",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "rag",
+      "error": "extracted markdown too short"
+    },
+    {
+      "id": "source-ai-dev-130",
+      "title": "阿里云百炼插件调用",
+      "url": "https://help.aliyun.com/zh/model-studio/user-guide/plugin",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "tool_use",
+      "error": "extracted markdown too short"
+    },
+    {
+      "id": "source-ai-dev-132",
+      "title": "阿里云百炼应用评测",
+      "url": "https://help.aliyun.com/zh/model-studio/user-guide/application-evaluation",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "eval_harness",
+      "error": "extracted markdown too short"
+    },
+    {
+      "id": "source-ai-dev-133",
+      "title": "腾讯云大模型知识引擎问答",
+      "url": "https://cloud.tencent.com/document/product/1772/115971",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "rag",
+      "error": "markdown useful body too short: 291"
+    },
+    {
+      "id": "source-ai-dev-134",
+      "title": "百度千帆知识库",
+      "url": "https://cloud.baidu.com/doc/WENXINWORKSHOP/s/llq07mec1",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "rag",
+      "error": "markdown useful body too short: 461"
+    },
+    {
+      "id": "source-ai-dev-135",
+      "title": "扣子 Bot 开发文档",
+      "url": "https://www.coze.cn/docs/developer_guides/coze_api_overview",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "agent_framework",
+      "error": "extracted markdown too short"
+    },
+    {
+      "id": "source-ai-dev-136",
+      "title": "扣子知识库文档",
+      "url": "https://www.coze.cn/docs/guides/knowledge",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "rag",
+      "error": "extracted markdown too short"
+    },
+    {
+      "id": "source-ai-dev-137",
+      "title": "扣子插件文档",
+      "url": "https://www.coze.cn/docs/guides/plugin",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "tool_use",
+      "error": "extracted markdown too short"
+    },
+    {
+      "id": "source-ai-dev-146",
+      "title": "InternLM Tutorial",
+      "url": "https://github.com/InternLM/Tutorial",
+      "language": "zh-CN",
+      "source_type": "engineering_blog",
+      "topic_hint": "agent_framework",
+      "error": "markdown has too few substantive lines: 1"
+    },
+    {
+      "id": "source-ai-dev-154",
+      "title": "Spore: Efficient and Training-Free Privacy Extraction Attack on LLMs via Inference-Time Hybrid Probing",
+      "url": "http://arxiv.org/abs/2604.23711v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-155",
+      "title": "Memanto: Typed Semantic Memory with Information-Theoretic Retrieval for Long-Horizon Agents",
+      "url": "http://arxiv.org/abs/2604.22085v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-156",
+      "title": "Self-Aware Vector Embeddings for Retrieval-Augmented Generation: A Neuroscience-Inspired Framework for Temporal, Confidence-Weighted, and Relational Knowledge",
+      "url": "http://arxiv.org/abs/2604.20598v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-157",
+      "title": "FSFM: A Biologically-Inspired Framework for Selective Forgetting of Agent Memory",
+      "url": "http://arxiv.org/abs/2604.20300v2",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-158",
+      "title": "To Know is to Construct: Schema-Constrained Generation for Agent Memory",
+      "url": "http://arxiv.org/abs/2604.20117v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-159",
+      "title": "The Continuity Layer: Why Intelligence Needs an Architecture for What It Carries Forward",
+      "url": "http://arxiv.org/abs/2604.17273v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-160",
+      "title": "Experience Compression Spectrum: Unifying Memory, Skills, and Rules in LLM Agents",
+      "url": "http://arxiv.org/abs/2604.15877v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-162",
+      "title": "GAM: Hierarchical Graph-based Agentic Memory for LLM Agents",
+      "url": "http://arxiv.org/abs/2604.12285v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-163",
+      "title": "When to Forget: A Memory Governance Primitive",
+      "url": "http://arxiv.org/abs/2604.12007v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-164",
+      "title": "Time is Not a Label: Continuous Phase Rotation for Temporal Knowledge Graphs and Agentic Memory",
+      "url": "http://arxiv.org/abs/2604.11544v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-165",
+      "title": "ATANT v1.1: Positioning Continuity Evaluation Against Memory, Long-Context, and Agentic-Memory Benchmarks",
+      "url": "http://arxiv.org/abs/2604.10981v2",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-166",
+      "title": "The AI Codebase Maturity Model: From Assisted Coding to Fully Autonomous Systems",
+      "url": "http://arxiv.org/abs/2604.09388v2",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-167",
+      "title": "ADAM: A Systematic Data Extraction Attack on Agent Memory via Adaptive Querying",
+      "url": "http://arxiv.org/abs/2604.09747v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-168",
+      "title": "StreamMeCo: Long-Term Agent Memory Compression for Efficient Streaming Video Understanding",
+      "url": "http://arxiv.org/abs/2604.09000v2",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-169",
+      "title": "M$^\\star$: Every Task Deserves Its Own Memory Harness",
+      "url": "http://arxiv.org/abs/2604.11811v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-170",
+      "title": "Artifacts as Memory Beyond the Agent Boundary",
+      "url": "http://arxiv.org/abs/2604.08756v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-172",
+      "title": "From Recall to Forgetting: Benchmarking Long-Term Memory for Personalized Agents",
+      "url": "http://arxiv.org/abs/2604.20006v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-173",
+      "title": "Visual Inception: Compromising Long-term Planning in Agentic Recommenders via Multimodal Memory Poisoning",
+      "url": "http://arxiv.org/abs/2604.16966v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-175",
+      "title": "Long-Term Memory for VLA-based Agents in Open-World Task Execution",
+      "url": "http://arxiv.org/abs/2604.15671v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-176",
+      "title": "Dual-Timescale Memory in a Spiking Neuron-Astrocyte Network for Efficient Navigation",
+      "url": "http://arxiv.org/abs/2604.15391v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-177",
+      "title": "MolMem: Memory-Augmented Agentic Reinforcement Learning for Sample-Efficient Molecular Optimization",
+      "url": "http://arxiv.org/abs/2604.12237v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-178",
+      "title": "Thought-Retriever: Don't Just Retrieve Raw Data, Retrieve Thoughts for Memory-Augmented Agentic Systems",
+      "url": "http://arxiv.org/abs/2604.12231v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-179",
+      "title": "AgenticAI-DialogGen: Topic-Guided Conversation Generation for Fine-Tuning and Evaluating Short- and Long-Term Memories of LLMs",
+      "url": "http://arxiv.org/abs/2604.12179v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "eval_harness",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-180",
+      "title": "M2HRI: An LLM-Driven Multimodal Multi-Agent Framework for Personalized Human-Robot Interaction",
+      "url": "http://arxiv.org/abs/2604.11975v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_framework",
+      "error": "fetch failed"
+    },
+    {
+      "id": "source-ai-dev-181",
+      "title": "Synthius-Mem: Brain-Inspired Hallucination-Resistant Persona Memory Achieving 94.4% Memory Accuracy and 99.6% Adversarial Robustness on LoCoMo",
+      "url": "http://arxiv.org/abs/2604.11563v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "fetch failed"
+    },
+    {
+      "id": "source-ai-dev-182",
+      "title": "TrajOnco: a multi-agent framework for temporal reasoning over longitudinal EHR for multi-cancer early detection",
+      "url": "http://arxiv.org/abs/2604.10386v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_framework",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-183",
+      "title": "HyperMem: Hypergraph Memory for Long-Term Conversations",
+      "url": "http://arxiv.org/abs/2604.08256v2",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-184",
+      "title": "PASK: Toward Intent-Aware Proactive Agents with Long-Term Memory",
+      "url": "http://arxiv.org/abs/2604.08000v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-185",
+      "title": "How Far Are Large Multimodal Models from Human-Level Spatial Action? A Benchmark for Goal-Oriented Embodied Navigation in Urban Airspace",
+      "url": "http://arxiv.org/abs/2604.07973v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "eval_harness",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-186",
+      "title": "MemReader: From Passive to Active Extraction for Long-Term Agent Memory",
+      "url": "http://arxiv.org/abs/2604.07877v2",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-187",
+      "title": "HaS: Accelerating RAG through Homology-Aware Speculative Retrieval",
+      "url": "http://arxiv.org/abs/2604.20452v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-188",
+      "title": "Semantic Entanglement in Vector-Based Retrieval: A Formal Framework and Context-Conditioned Disentanglement Pipeline for Agentic RAG Systems",
+      "url": "http://arxiv.org/abs/2604.17677v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "fetch failed"
+    },
+    {
+      "id": "source-ai-dev-189",
+      "title": "AutoSearch: Adaptive Search Depth for Efficient Agentic RAG via Reinforcement Learning",
+      "url": "http://arxiv.org/abs/2604.17337v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-190",
+      "title": "Toward Agentic RAG for Ukrainian",
+      "url": "http://arxiv.org/abs/2604.14896v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown useful body too short: 850"
+    },
+    {
+      "id": "source-ai-dev-191",
+      "title": "Don't Retrieve, Navigate: Distilling Enterprise Knowledge into Navigable Agent Skills for QA and RAG",
+      "url": "http://arxiv.org/abs/2604.14572v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-192",
+      "title": "Adaptive Query Routing: A Tier-Based Framework for Hybrid Retrieval Across Financial, Legal, and Medical Documents",
+      "url": "http://arxiv.org/abs/2604.14222v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-193",
+      "title": "From Context to Rules: Toward Unified Detection Rule Generation",
+      "url": "http://arxiv.org/abs/2604.11078v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agentic_rag",
+      "error": "fetch failed"
+    },
+    {
+      "id": "source-ai-dev-194",
+      "title": "BLUEmed: Retrieval-Augmented Multi-Agent Debate for Clinical Error Detection",
+      "url": "http://arxiv.org/abs/2604.10389v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-195",
+      "title": "Neuro-Oracle: A Trajectory-Aware Agentic RAG Framework for Interpretable Epilepsy Surgical Prognosis",
+      "url": "http://arxiv.org/abs/2604.14216v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-196",
+      "title": "Beyond Relevance: Utility-Centric Retrieval in the LLM Era",
+      "url": "http://arxiv.org/abs/2604.08920v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-197",
+      "title": "MA-IDS: Multi-Agent RAG Framework for IoT Network Intrusion Detection with an Experience Library",
+      "url": "http://arxiv.org/abs/2604.05458v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-198",
+      "title": "Experience as a Compass: Multi-agent RAG with Evolving Orchestration and Agent Prompts",
+      "url": "http://arxiv.org/abs/2604.00901v2",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-199",
+      "title": "Doctor-RAG: Failure-Aware Repair for Agentic Retrieval-Augmented Generation",
+      "url": "http://arxiv.org/abs/2604.00865v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-200",
+      "title": "Do We Still Need GraphRAG? Benchmarking RAG and GraphRAG for Agentic Search Systems",
+      "url": "http://arxiv.org/abs/2604.09666v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-202",
+      "title": "Structured Linked Data as a Memory Layer for Agent-Orchestrated Retrieval",
+      "url": "http://arxiv.org/abs/2603.10700v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-203",
+      "title": "Explainable Innovation Engine: Dual-Tree Agent-RAG with Methods-as-Nodes and Verifiable Write-Back",
+      "url": "http://arxiv.org/abs/2603.09192v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-204",
+      "title": "SPD-RAG: Sub-Agent Per Document Retrieval-Augmented Generation",
+      "url": "http://arxiv.org/abs/2603.08329v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-205",
+      "title": "Navigating Global AI Regulation: A Multi-Jurisdictional Retrieval-Augmented Generation System",
+      "url": "http://arxiv.org/abs/2604.25448v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-206",
+      "title": "GeoSearch: Augmenting Worldwide Geolocalization with Web-Scale Reverse Image Search and Image Matching",
+      "url": "http://arxiv.org/abs/2604.25390v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "eval_harness",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-207",
+      "title": "Faithfulness-QA: A Counterfactual Entity Substitution Dataset for Training Context-Faithful RAG Models",
+      "url": "http://arxiv.org/abs/2604.25313v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-208",
+      "title": "CacheFlow: Efficient LLM Serving with 3D-Parallel KV Cache Restoration",
+      "url": "http://arxiv.org/abs/2604.25080v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "eval_harness",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-209",
+      "title": "XGRAG: A Graph-Native Framework for Explaining KG-based Retrieval-Augmented Generation",
+      "url": "http://arxiv.org/abs/2604.24623v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-210",
+      "title": "Agentic clinical reasoning over longitudinal myeloma records: a retrospective evaluation against expert consensus",
+      "url": "http://arxiv.org/abs/2604.24473v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "eval_harness",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-222",
+      "title": "e2b-dev/awesome-ai-agents",
+      "url": "https://github.com/e2b-dev/awesome-ai-agents",
+      "language": "en",
+      "source_type": "github_repo",
+      "topic_hint": "agent_framework",
+      "error": "markdown useful body too short: 462"
+    },
+    {
+      "id": "source-ai-dev-230",
+      "title": "ragas/ragas",
+      "url": "https://github.com/explodinggradients/ragas",
+      "language": "en",
+      "source_type": "github_repo",
+      "topic_hint": "rag",
+      "error": "fetch failed"
+    },
+    {
+      "id": "source-ai-dev-246",
+      "title": "openai/openai-cookbook",
+      "url": "https://github.com/openai/openai-cookbook",
+      "language": "en",
+      "source_type": "github_repo",
+      "topic_hint": "tool_use",
+      "error": "markdown useful body too short: 472"
+    },
+    {
+      "id": "source-ai-dev-262",
+      "title": "Reducing Redundancy in Retrieval-Augmented Generation through Chunk Filtering",
+      "url": "http://arxiv.org/abs/2604.24334v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "fetch failed"
+    },
+    {
+      "id": "source-ai-dev-263",
+      "title": "MEMCoder: Multi-dimensional Evolving Memory for Private-Library-Oriented Code Generation",
+      "url": "http://arxiv.org/abs/2604.24222v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_memory",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-264",
+      "title": "Domain Fine-Tuning vs. Retrieval-Augmented Generation for Medical Multiple-Choice Question Answering: A Controlled Comparison at the 4B-Parameter Scale",
+      "url": "http://arxiv.org/abs/2604.23801v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-265",
+      "title": "Prism-Reranker: Beyond Relevance Scoring -- Jointly Producing Contributions and Evidence for Agentic Retrieval",
+      "url": "http://arxiv.org/abs/2604.23734v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-267",
+      "title": "CyberCane: Neuro-Symbolic RAG for Privacy-Preserving Phishing Detection with Formal Ontology Reasoning",
+      "url": "http://arxiv.org/abs/2604.23563v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-268",
+      "title": "ragR: Retrieval-Augmented Generation and RAG Assessment in R",
+      "url": "http://arxiv.org/abs/2604.23515v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-269",
+      "title": "PrivacyAssist: A User-Centric Agent Framework for Detecting Privacy Inconsistencies in Android Apps",
+      "url": "http://arxiv.org/abs/2604.23248v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_framework",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-270",
+      "title": "PhySE: A Psychological Framework for Real-Time AR-LLM Social Engineering Attacks",
+      "url": "http://arxiv.org/abs/2604.23148v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "eval_harness",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-271",
+      "title": "From Language to Logic: Bridging LLMs & Formal Representations for RTL Assertion Generation",
+      "url": "http://arxiv.org/abs/2604.23100v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "eval_harness",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-272",
+      "title": "Towards Automated Ontology Generation from Unstructured Text: A Multi-Agent LLM Approach",
+      "url": "http://arxiv.org/abs/2604.23090v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_framework",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-273",
+      "title": "BERAG: Bayesian Ensemble Retrieval-Augmented Generation for Knowledge-based Visual Question Answering",
+      "url": "http://arxiv.org/abs/2604.22678v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "rag",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-274",
+      "title": "FAMA: Failure-Aware Meta-Agentic Framework for Open-Source LLMs in Interactive Tool Use Environments",
+      "url": "http://arxiv.org/abs/2604.25135v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "tool_use",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-275",
+      "title": "FUTURAL: A Metasearch Platform for Empowering Rural Areas with Smart Solutions",
+      "url": "http://arxiv.org/abs/2604.23817v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "tool_use",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-276",
+      "title": "Towards Agentic Test-Driven Quality Assurance for 6G Networks",
+      "url": "http://arxiv.org/abs/2604.23285v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "agent_framework",
+      "error": "fetch failed"
+    },
+    {
+      "id": "source-ai-dev-277",
+      "title": "Uncertainty Quantification for LLM Function-Calling",
+      "url": "http://arxiv.org/abs/2604.22985v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "tool_use",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-278",
+      "title": "Less Is More: Measuring How LLM Involvement affects Chatbot Accuracy in Static Analysis",
+      "url": "http://arxiv.org/abs/2604.21746v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "tool_use",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-279",
+      "title": "SAKE: Self-aware Knowledge Exploitation-Exploration for Grounded Multimodal Named Entity Recognition",
+      "url": "http://arxiv.org/abs/2604.20146v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "tool_use",
+      "error": "markdown has too few substantive lines: 2"
+    },
+    {
+      "id": "source-ai-dev-280",
+      "title": "Visual Reasoning through Tool-supervised Reinforcement Learning",
+      "url": "http://arxiv.org/abs/2604.19945v1",
+      "language": "en",
+      "source_type": "paper",
+      "topic_hint": "tool_use",
+      "error": "markdown has too few substantive lines: 2"
+    }
+  ]
+}

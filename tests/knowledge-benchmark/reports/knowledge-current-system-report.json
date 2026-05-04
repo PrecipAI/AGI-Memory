@@ -1,0 +1,3983 @@
+{
+  "generated_at": "2026-04-30T10:07:21.744Z",
+  "tenant_id": "tenant-local",
+  "scope": "memory.validation",
+  "corpus": {
+    "total_documents": 180,
+    "active_documents": 121,
+    "retired_documents": 59,
+    "active_markdown_documents": 118,
+    "active_sections": 2401,
+    "active_evidence": 2401,
+    "active_synthesized_knowledge": 16,
+    "fact_count": 0,
+    "entity_count": 0,
+    "relation_count": 0,
+    "intermediate_recall_count": 0,
+    "active_review_queue": 5,
+    "pending_change_proposals": 0
+  },
+  "documents": [
+    {
+      "id": "2962fe8f-1944-456f-ada3-23a6949db325",
+      "title": "GitHub Copilot Memory Public Preview",
+      "source_type": "markdown_text",
+      "source_uri": "https://github.blog/changelog/2026-01-15-agentic-memory-for-github-copilot-is-in-public-preview/",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-lite-v1",
+      "markdown_content_hash": "9f60473aca6cfdf622c0c0efef484f186a9c7c639e760278d6c83d339f9929e5",
+      "section_count": 4,
+      "markdown_chars": 1671,
+      "created_at": "2026-04-29T02:37:49.991Z",
+      "updated_at": "2026-04-30T09:51:09.236Z"
+    },
+    {
+      "id": "4b7f0fbf-bf41-4159-a0a3-123997878817",
+      "title": "Building an Agentic Memory System for GitHub Copilot",
+      "source_type": "markdown_text",
+      "source_uri": "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-lite-v1",
+      "markdown_content_hash": "4a5c851d4730b11a0e87c3d2f7c265dd5da2df8566bb0ef827832e2f7d4545f6",
+      "section_count": 18,
+      "markdown_chars": 15826,
+      "created_at": "2026-04-29T02:37:55.583Z",
+      "updated_at": "2026-04-30T09:51:09.234Z"
+    },
+    {
+      "id": "c58de6c1-ee81-4aa7-a145-667c3c44f6ef",
+      "title": "LangGraph Memory Overview",
+      "source_type": "markdown_text",
+      "source_uri": "https://docs.langchain.com/oss/javascript/concepts/memory",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-lite-v1",
+      "markdown_content_hash": "3cd6bd1fd7b5641dad2a51b1b2e50bb4e2b708d6a31f664bd4f6d768813b053c",
+      "section_count": 13,
+      "markdown_chars": 16431,
+      "created_at": "2026-04-29T02:38:07.981Z",
+      "updated_at": "2026-04-30T09:51:09.231Z"
+    },
+    {
+      "id": "c02d0c25-7958-4529-b994-899cacd6a061",
+      "title": "LangGraph Memory Agent",
+      "source_type": "markdown_text",
+      "source_uri": "https://github.com/langchain-ai/memory-agent",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-lite-v1",
+      "markdown_content_hash": "7e01a67b1c6574e660d88186aaf023cc8314ab70c21a495c92dafd96d9a6ca11",
+      "section_count": 20,
+      "markdown_chars": 6272,
+      "created_at": "2026-04-29T02:38:20.544Z",
+      "updated_at": "2026-04-30T09:51:09.227Z"
+    },
+    {
+      "id": "b9540d53-deed-43b0-b9b7-65c8e132dc34",
+      "title": "Microsoft AutoGen Repository",
+      "source_type": "markdown_text",
+      "source_uri": "https://github.com/microsoft/autogen",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-lite-v1",
+      "markdown_content_hash": "703fe501d32280921fb2e9742c71e0f83dc01f97bd78b75c6d2d08bec5ddc61e",
+      "section_count": 30,
+      "markdown_chars": 11666,
+      "created_at": "2026-04-29T02:38:31.581Z",
+      "updated_at": "2026-04-30T09:51:09.225Z"
+    },
+    {
+      "id": "1254caa3-8aee-464a-a3fa-752fc8af7dd4",
+      "title": "Haystack Repository",
+      "source_type": "markdown_text",
+      "source_uri": "https://github.com/deepset-ai/haystack",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-lite-v1",
+      "markdown_content_hash": "3094bc566429511bbe726d8f363504bb3266ef79256a67049e498978a8282957",
+      "section_count": 25,
+      "markdown_chars": 9267,
+      "created_at": "2026-04-29T02:38:43.667Z",
+      "updated_at": "2026-04-30T09:51:09.223Z"
+    },
+    {
+      "id": "a29c2eb9-63f0-44aa-b567-860e09e10b15",
+      "title": "SoK Agentic RAG",
+      "source_type": "markdown_text",
+      "source_uri": "https://arxiv.org/abs/2603.07379",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "arxiv-paper-organizer-v1",
+      "markdown_content_hash": "e3986a0e68497dcdf3a2b2d86b5360c463295e34622cb6bb0d9c28b9362b1197",
+      "section_count": 4,
+      "markdown_chars": 2193,
+      "created_at": "2026-04-29T02:38:55.615Z",
+      "updated_at": "2026-04-30T09:51:09.215Z"
+    },
+    {
+      "id": "e0960d6e-02f2-4274-bd57-3be7c450106f",
+      "title": "RAGalyst",
+      "source_type": "markdown_text",
+      "source_uri": "https://arxiv.org/abs/2511.04502",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "arxiv-paper-organizer-v1",
+      "markdown_content_hash": "f6386a5dc34615b3c4004496932e1099a87ff71d317a12dbc8a20e2cd6fe3c87",
+      "section_count": 4,
+      "markdown_chars": 2160,
+      "created_at": "2026-04-29T02:38:59.129Z",
+      "updated_at": "2026-04-30T09:51:09.213Z"
+    },
+    {
+      "id": "0a89ef3d-174b-4366-806c-896dadc0a8df",
+      "title": "OpenAI Agents SDK JS Agents Guide",
+      "source_type": "markdown_file",
+      "source_uri": "https://openai.github.io/openai-agents-js/guides/agents",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "cadc71486914120c4061c5ab962e5da5f84cc245aa72d74d39a8741236bab23b",
+      "section_count": 21,
+      "markdown_chars": 16679,
+      "created_at": "2026-04-29T06:15:30.428Z",
+      "updated_at": "2026-04-30T09:51:09.211Z"
+    },
+    {
+      "id": "c3ed787c-6d3e-41e2-8873-10162dcdd41a",
+      "title": "GAIA Benchmark",
+      "source_type": "markdown_file",
+      "source_uri": "https://huggingface.co/datasets/gaia-benchmark/GAIA",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "f77979a514bfafbeb2f44618e855f931132ca9568a4aa442338d39946ab55693",
+      "section_count": 11,
+      "markdown_chars": 3588,
+      "created_at": "2026-04-29T06:49:34.718Z",
+      "updated_at": "2026-04-30T09:51:09.209Z"
+    },
+    {
+      "id": "b56222ba-e5aa-4bce-a6e9-28eaed429ba6",
+      "title": "LangGraph Memory Overview",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.langchain.com/oss/javascript/langgraph/memory",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "1c11aff22c66d8616a6232722fed9e3613f7803600afbfdb03634a6bb72b9c58",
+      "section_count": 12,
+      "markdown_chars": 15498,
+      "created_at": "2026-04-29T04:21:08.625Z",
+      "updated_at": "2026-04-30T09:51:09.206Z"
+    },
+    {
+      "id": "0a151a54-5087-4546-a3cd-707371ac6ca9",
+      "title": "LangGraph Persistence",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.langchain.com/oss/javascript/langgraph/persistence",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "f36b12139d99ce0b997b8757fdebd94365504d7218cadb0816985898e1d1f50a",
+      "section_count": 15,
+      "markdown_chars": 20294,
+      "created_at": "2026-04-29T04:21:08.780Z",
+      "updated_at": "2026-04-30T09:51:09.204Z"
+    },
+    {
+      "id": "a7e4b4ca-1f83-434d-a794-c34e0edeed02",
+      "title": "LangMem SDK Launch",
+      "source_type": "markdown_file",
+      "source_uri": "https://www.langchain.com/blog/langmem-sdk-launch",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "c4dbe77d8eb3742a4d02a583d3f2e0a102ebc598eb826906344d1215b6e23616",
+      "section_count": 15,
+      "markdown_chars": 10175,
+      "created_at": "2026-04-29T04:21:08.906Z",
+      "updated_at": "2026-04-30T09:51:09.191Z"
+    },
+    {
+      "id": "98c52e70-e858-4580-acc4-55fd56ee81e2",
+      "title": "Knowledge capability eval defines current system boundary",
+      "source_type": "project_execution",
+      "source_uri": "D:\\workspace\\projects\\SuperAgentSystem-main\\tests\\knowledge-benchmark\\reports\\knowledge-capability-report.md",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "auto_accepted",
+      "markdown_converter": null,
+      "markdown_content_hash": null,
+      "section_count": 1,
+      "markdown_chars": 0,
+      "created_at": "2026-04-30T09:51:09.095Z",
+      "updated_at": "2026-04-30T09:51:09.095Z"
+    },
+    {
+      "id": "080050e0-eb2f-4b78-8c0c-b16fc9ad9d92",
+      "title": "Mem0 Platform Overview",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.mem0.ai/overview",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "f82e0f48af2ed6b2af79e8a7ef06057cb57acec6b507d854414fc2845697fd2c",
+      "section_count": 11,
+      "markdown_chars": 2241,
+      "created_at": "2026-04-29T06:15:29.551Z",
+      "updated_at": "2026-04-30T09:13:45.384Z"
+    },
+    {
+      "id": "7d74d456-dc73-4446-b766-48a24a6db8c1",
+      "title": "Zep Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://help.getzep.com",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "c2b427d05098c3e50ef67cee66a5a97c6efee860d4d3f065f7de9620a042cfb4",
+      "section_count": 2,
+      "markdown_chars": 1009,
+      "created_at": "2026-04-29T06:15:29.621Z",
+      "updated_at": "2026-04-30T09:13:45.382Z"
+    },
+    {
+      "id": "1de2e661-c036-441b-9419-b31cde65bd79",
+      "title": "A memory architecture for agentic system",
+      "source_type": "markdown_file",
+      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "bb8fcfbd55b2f8f9f765e65f43bd31db58e6483f2bbf090e64c4f7b55a8074af",
+      "section_count": 53,
+      "markdown_chars": 35010,
+      "created_at": "2026-04-29T06:15:29.638Z",
+      "updated_at": "2026-04-30T09:13:45.380Z"
+    },
+    {
+      "id": "6664feaa-3f9b-4c1e-aeff-7f86ce867a79",
+      "title": "Agent Memory System Design",
+      "source_type": "markdown_file",
+      "source_uri": "https://eastondev.com/blog/zh/posts/ai/agent-memory-system",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "53ad8ce447447d62a7484154068d7842a265ba23c50535b7077109126c1bc2c4",
+      "section_count": 46,
+      "markdown_chars": 9018,
+      "created_at": "2026-04-29T06:15:29.966Z",
+      "updated_at": "2026-04-30T09:13:45.377Z"
+    },
+    {
+      "id": "857139da-7e67-49bb-9977-c7c0e8b3ff4a",
+      "title": "AI Agent 记忆管理：长期记忆与知识治理实战",
+      "source_type": "markdown_file",
+      "source_uri": "https://eastondev.com/blog/zh/posts/ai/20260413-ai-agent-memory",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "7ec719c9462cb2f25aaf4cb3239087ab9125ba04796c62c4279fab9ea6a388c0",
+      "section_count": 35,
+      "markdown_chars": 12693,
+      "created_at": "2026-04-29T06:15:30.227Z",
+      "updated_at": "2026-04-30T09:13:45.374Z"
+    },
+    {
+      "id": "2d67ef7b-094b-49c6-a34f-087d0ba19f18",
+      "title": "OpenAI Agents SDK Python",
+      "source_type": "markdown_file",
+      "source_uri": "https://openai.github.io/openai-agents-python",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "a193e6ed814fc423057496e6a7d58b37347f5eb4bb772caf49f6a76ebf51eb3b",
+      "section_count": 9,
+      "markdown_chars": 5023,
+      "created_at": "2026-04-29T06:15:30.551Z",
+      "updated_at": "2026-04-30T09:13:45.372Z"
+    },
+    {
+      "id": "eccb7466-0e07-444a-ad40-1debd0aa6330",
+      "title": "Semantic Kernel Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://learn.microsoft.com/en-us/semantic-kernel/overview",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "ca2276cea61023cca2d53dfebc0bb94a8c0ca2244c7eba6694d01f0f3f5bb933",
+      "section_count": 5,
+      "markdown_chars": 2139,
+      "created_at": "2026-04-29T06:15:30.790Z",
+      "updated_at": "2026-04-30T09:13:45.370Z"
+    },
+    {
+      "id": "910b0bc4-a56a-4cc8-b432-629834c71a55",
+      "title": "Google Agent Development Kit",
+      "source_type": "markdown_file",
+      "source_uri": "https://google.github.io/adk-docs",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "59e565602e2eccbdea0a834838cbecb98e4e67f02e9ef7a817d889ae1820a3d0",
+      "section_count": 13,
+      "markdown_chars": 6580,
+      "created_at": "2026-04-29T06:15:30.821Z",
+      "updated_at": "2026-04-30T09:13:45.368Z"
+    },
+    {
+      "id": "1241fda2-9354-4202-bb86-0041bafab5e6",
+      "title": "CrewAI Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.crewai.com",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "da73d1d30d5999e5af08702a644a740ac559ff3ecb1c49a997cbe2b18e3f36d1",
+      "section_count": 15,
+      "markdown_chars": 2082,
+      "created_at": "2026-04-29T06:15:30.989Z",
+      "updated_at": "2026-04-30T09:13:45.366Z"
+    },
+    {
+      "id": "b2e01bba-f3c6-409b-a0b0-24cdeee955a4",
+      "title": "Pydantic AI Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://ai.pydantic.dev",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "a2c24aad2e5bba69d51c85636884074d88794e7783732de291dd5b220d88914b",
+      "section_count": 12,
+      "markdown_chars": 12173,
+      "created_at": "2026-04-29T06:15:31.071Z",
+      "updated_at": "2026-04-30T09:13:45.364Z"
+    },
+    {
+      "id": "eb7adc71-e978-44b0-a3aa-deb7723fbf88",
+      "title": "Agno Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.agno.com",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "40d481c4382bd90143b9e304bb12a907acbfd121577ecac6137eed3a9968c6b2",
+      "section_count": 6,
+      "markdown_chars": 2281,
+      "created_at": "2026-04-29T06:15:31.137Z",
+      "updated_at": "2026-04-30T09:13:45.361Z"
+    },
+    {
+      "id": "4d96d9ff-df98-4901-b597-bbf16935535c",
+      "title": "Qwen Agent Repository",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/QwenLM/Qwen-Agent",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "74dc51b9a1473d35af6b5f8409a34b7f7ec1251261a1cede6fb954b3590cfa9c",
+      "section_count": 39,
+      "markdown_chars": 12806,
+      "created_at": "2026-04-29T06:15:31.243Z",
+      "updated_at": "2026-04-30T09:13:45.359Z"
+    },
+    {
+      "id": "0983ecc8-4320-4b83-a393-df632e43f012",
+      "title": "ModelScope AgentScope",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/modelscope/agentscope",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "733ca859243d082abb1e00907f85c795a66697d410266cc118494e9baaa02ef9",
+      "section_count": 46,
+      "markdown_chars": 9932,
+      "created_at": "2026-04-29T06:15:31.450Z",
+      "updated_at": "2026-04-30T09:13:45.357Z"
+    },
+    {
+      "id": "56b4d17e-bc30-43d3-87dd-612185687503",
+      "title": "CAMEL AI Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.camel-ai.org",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "0e0923734b403b0fc19cf224c5e6794555b7183bfc72aaf9ca7dc805acb33347",
+      "section_count": 9,
+      "markdown_chars": 2337,
+      "created_at": "2026-04-29T06:15:31.712Z",
+      "updated_at": "2026-04-30T09:13:45.355Z"
+    },
+    {
+      "id": "27c1512f-a080-4b66-8f74-8bb1de3e9226",
+      "title": "LlamaIndex Introduction to RAG",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.llamaindex.ai/en/stable/understanding/rag",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "849e54e2c7aea322c54a7c24b549934c3d6d43a629dd6eed8bbbfcc0f9e0207c",
+      "section_count": 6,
+      "markdown_chars": 4285,
+      "created_at": "2026-04-29T06:15:31.765Z",
+      "updated_at": "2026-04-30T09:13:45.353Z"
+    },
+    {
+      "id": "faab8ac8-1c53-444b-a302-14d2af1dcb3a",
+      "title": "LlamaIndex RAG Workflow with Reranking",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.llamaindex.ai/en/stable/examples/workflow/rag",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "11923f34315706c231c25bf95f48ca7e8d0b96ddf845620fbb897b8c59fc240f",
+      "section_count": 17,
+      "markdown_chars": 9941,
+      "created_at": "2026-04-29T06:15:31.801Z",
+      "updated_at": "2026-04-30T09:13:45.351Z"
+    },
+    {
+      "id": "c6d4057c-7774-4e00-b991-49b2ddca2c87",
+      "title": "LlamaIndex Node Parser Modules",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.llamaindex.ai/en/stable/module_guides/loading/node_parsers",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "b8dd5a6432d2b0e3b1ac70629fc5f9d2549c84e4d28b2c0ad02b145f37da8ae9",
+      "section_count": 8,
+      "markdown_chars": 2011,
+      "created_at": "2026-04-29T06:15:31.934Z",
+      "updated_at": "2026-04-30T09:13:45.349Z"
+    },
+    {
+      "id": "56488ffc-150c-4735-b609-e13e9ce3ed6a",
+      "title": "LangChain RAG Tutorial",
+      "source_type": "markdown_file",
+      "source_uri": "https://python.langchain.com/docs/tutorials/rag",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "a1e5dc0de4c1628d6457e20a9b88f7f6b4252ba9791750daf7ccec0829cabf5b",
+      "section_count": 25,
+      "markdown_chars": 28630,
+      "created_at": "2026-04-29T06:36:47.714Z",
+      "updated_at": "2026-04-30T09:13:45.346Z"
+    },
+    {
+      "id": "aa59ea07-355f-4fa7-99fb-8d4e35fce19b",
+      "title": "LangChain Retrieval Concept",
+      "source_type": "markdown_file",
+      "source_uri": "https://python.langchain.com/docs/concepts/retrieval",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "7fc36c0de44cd073d7697a44f30c90da0425949f61bf9c2e9af9ac5c447028ea",
+      "section_count": 7,
+      "markdown_chars": 2834,
+      "created_at": "2026-04-29T06:15:31.984Z",
+      "updated_at": "2026-04-30T09:13:45.344Z"
+    },
+    {
+      "id": "870457f4-af67-42f1-8ea4-5a38291b950d",
+      "title": "Haystack Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.haystack.deepset.ai/docs/intro",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "67e1bf285c86bf12e293db6ec8d8609039c8b64101056775474a876249313d03",
+      "section_count": 3,
+      "markdown_chars": 1848,
+      "created_at": "2026-04-29T06:15:32.157Z",
+      "updated_at": "2026-04-30T09:13:45.342Z"
+    },
+    {
+      "id": "22edffb0-810c-4f6b-9c54-57219b7e4cb4",
+      "title": "Qdrant RAG Guide",
+      "source_type": "markdown_file",
+      "source_uri": "https://qdrant.tech/documentation/overview",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "71642de9aafc7c04cd3786154c49b766b2527c4030448d1a4a7fbc62171d2478",
+      "section_count": 22,
+      "markdown_chars": 10781,
+      "created_at": "2026-04-29T06:15:32.180Z",
+      "updated_at": "2026-04-30T09:13:45.340Z"
+    },
+    {
+      "id": "0208870a-5e48-418b-913a-d22aa2162e44",
+      "title": "Weaviate Hybrid Search",
+      "source_type": "markdown_file",
+      "source_uri": "https://weaviate.io/developers/weaviate/search/hybrid",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "dc01849a4b3a8af28505b81d7996c063315e13a28b45c9148e3ba2d7a30bf4db",
+      "section_count": 29,
+      "markdown_chars": 54287,
+      "created_at": "2026-04-29T06:15:32.310Z",
+      "updated_at": "2026-04-30T09:13:45.336Z"
+    },
+    {
+      "id": "607ecb9e-b813-4ffa-97a4-9a3c2693f913",
+      "title": "Pinecone Hybrid Search",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.pinecone.io/guides/search/hybrid-search",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "9cf1901d502d5aad81d3fc57e6bcc95335ac439016c198235d56b92a6055b03d",
+      "section_count": 42,
+      "markdown_chars": 48323,
+      "created_at": "2026-04-29T06:15:32.501Z",
+      "updated_at": "2026-04-30T09:13:45.333Z"
+    },
+    {
+      "id": "8543515d-b3ff-454a-aee6-7f28fcd78da4",
+      "title": "Elasticsearch BM25",
+      "source_type": "markdown_file",
+      "source_uri": "https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules-similarity.html",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "89fdf8ee1aa89a55dc22a4f0ab473cc1e6d65e2f580515ee01be994f39f9082d",
+      "section_count": 12,
+      "markdown_chars": 7038,
+      "created_at": "2026-04-29T06:15:32.734Z",
+      "updated_at": "2026-04-30T09:13:45.331Z"
+    },
+    {
+      "id": "7cf221d1-3e43-48e2-97a9-d92b71852202",
+      "title": "Elasticsearch Reciprocal Rank Fusion",
+      "source_type": "markdown_file",
+      "source_uri": "https://www.elastic.co/guide/en/elasticsearch/reference/current/rrf.html",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "7fa59336d46b70766936185d318c3bb0342cd0bfadd05abd22758a4977635316",
+      "section_count": 17,
+      "markdown_chars": 14525,
+      "created_at": "2026-04-29T06:15:32.805Z",
+      "updated_at": "2026-04-30T09:13:45.328Z"
+    },
+    {
+      "id": "5f9f9dc8-a43e-4aa8-96bb-7ed675eed545",
+      "title": "RAGAS Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.ragas.io/en/stable/howtos/applications/evaluate-and-improve-rag",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "f4295468488d7b2c0aaedff25a1b969e8b6b12eb172e9f1f605fc03176194fbf",
+      "section_count": 40,
+      "markdown_chars": 16883,
+      "created_at": "2026-04-29T06:15:32.905Z",
+      "updated_at": "2026-04-30T09:13:45.325Z"
+    },
+    {
+      "id": "8cb1e96d-6b73-4e55-8b6c-e23231e18a1d",
+      "title": "DeepEval Introduction",
+      "source_type": "markdown_file",
+      "source_uri": "https://deepeval.com/docs/introduction",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "119780125e9ab444a55b979396be2be05bf03e482b1395f6981bec6bee76d0aa",
+      "section_count": 23,
+      "markdown_chars": 9115,
+      "created_at": "2026-04-29T06:15:33.202Z",
+      "updated_at": "2026-04-30T09:13:45.323Z"
+    },
+    {
+      "id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
+      "title": "DeepEval RAG Evaluation",
+      "source_type": "markdown_file",
+      "source_uri": "https://deepeval.com/docs/guides-rag-evaluation",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "cbf333977860d9042586195f1ab2d661bc71481a1198c86a432b92cb28eb060d",
+      "section_count": 19,
+      "markdown_chars": 15945,
+      "created_at": "2026-04-29T06:15:33.336Z",
+      "updated_at": "2026-04-30T09:13:45.321Z"
+    },
+    {
+      "id": "5bd40f93-59e1-4928-97d4-4f8a014f4452",
+      "title": "OpenAI Evals Repository",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/openai/evals",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "05aec94852d3d081df80cb11302c86426631ac5d80fff053480b25390acff499",
+      "section_count": 18,
+      "markdown_chars": 6793,
+      "created_at": "2026-04-29T06:15:33.451Z",
+      "updated_at": "2026-04-30T09:13:45.319Z"
+    },
+    {
+      "id": "2e773f72-3652-47d1-8fb2-bfd4890d190e",
+      "title": "Inspect AI Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://inspect.aisi.org.uk",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "767b164c50b0e5354518770238092fdd924e3384b07b3dc0a156cd3b0b50e639",
+      "section_count": 14,
+      "markdown_chars": 13393,
+      "created_at": "2026-04-29T06:15:33.556Z",
+      "updated_at": "2026-04-30T09:13:45.316Z"
+    },
+    {
+      "id": "56b68b9c-d4b3-4fe6-9e17-bdc0903f42bd",
+      "title": "Promptfoo Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://www.promptfoo.dev/docs/intro",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "8ffde3ca7484e0af07315555dc7e1debbcfbb5cc3a57ef6d13f1eb7147915ddc",
+      "section_count": 4,
+      "markdown_chars": 2977,
+      "created_at": "2026-04-29T06:49:34.349Z",
+      "updated_at": "2026-04-30T09:13:45.314Z"
+    },
+    {
+      "id": "776d217e-3a6f-4dcf-8078-ae3a7002c007",
+      "title": "LangSmith Evaluation",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.smith.langchain.com/evaluation",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "a5db4b9a68c844915b1195a9f69b7ce16970bf817ffb7229ce23071e432dda5d",
+      "section_count": 12,
+      "markdown_chars": 15638,
+      "created_at": "2026-04-29T06:49:34.418Z",
+      "updated_at": "2026-04-30T09:13:45.312Z"
+    },
+    {
+      "id": "9080cc67-1603-4af0-8de7-1272ba951bf5",
+      "title": "Phoenix Evaluation",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.arize.com/phoenix/evaluation",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "8501e3292e67e83c89bee13b4c46139380fc9c762dd4927acfa1b9746df9d58f",
+      "section_count": 8,
+      "markdown_chars": 9173,
+      "created_at": "2026-04-29T06:49:34.483Z",
+      "updated_at": "2026-04-30T09:13:45.310Z"
+    },
+    {
+      "id": "8d7091a2-9034-4216-9c9a-7554e091d9e5",
+      "title": "Giskard Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.giskard.ai",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "97bbdc5410f14fcf861075ff873400fbeb78782067e1df19b5ca4cf5c8908b2f",
+      "section_count": 5,
+      "markdown_chars": 4119,
+      "created_at": "2026-04-29T06:49:34.533Z",
+      "updated_at": "2026-04-30T09:13:45.307Z"
+    },
+    {
+      "id": "da8b8bf3-94f6-46dd-9ca8-c2289de86aac",
+      "title": "SWE-bench",
+      "source_type": "markdown_file",
+      "source_uri": "https://www.swebench.com",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "3a4b04b04a91cf165a8d45baa143e2968cfea03b021d4632e75e9ca7f710618d",
+      "section_count": 5,
+      "markdown_chars": 2140,
+      "created_at": "2026-04-29T06:49:34.563Z",
+      "updated_at": "2026-04-30T09:13:45.305Z"
+    },
+    {
+      "id": "740e0168-12e6-4c64-ac8c-dfb69e52d289",
+      "title": "SWE-bench Repository",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/SWE-bench/SWE-bench",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "7957ecd9399513f0ab20b0d0af622cf8c9d68b5e105827948ad8a8c4411a4c9e",
+      "section_count": 21,
+      "markdown_chars": 7954,
+      "created_at": "2026-04-29T06:49:34.597Z",
+      "updated_at": "2026-04-30T09:13:45.303Z"
+    },
+    {
+      "id": "0e39fcb9-1b38-4ded-9b39-a296b4c6e2b0",
+      "title": "AgentBench Repository",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/THUDM/AgentBench",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "bba1056ace55a779a12c5a6b953f31d6fe82f0e55a75169eb8f72f324ead2174",
+      "section_count": 32,
+      "markdown_chars": 10005,
+      "created_at": "2026-04-29T06:49:34.782Z",
+      "updated_at": "2026-04-30T09:13:45.301Z"
+    },
+    {
+      "id": "8ed53e1d-3979-4226-aa84-06d4ff8700f0",
+      "title": "AutoHarness Repository",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/aiming-lab/AutoHarness",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "d3c6a13bf7377f4389f55ac4ca4fd3c935bf88d86e3974de1ffafb9f5944cf6f",
+      "section_count": 28,
+      "markdown_chars": 6831,
+      "created_at": "2026-04-29T06:49:34.989Z",
+      "updated_at": "2026-04-30T09:13:45.299Z"
+    },
+    {
+      "id": "c82954ad-b936-467a-bbbf-f191bc2e0cb6",
+      "title": "Awesome Harness Engineering",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "375af8d299beef6fdef84a81835a29f6897f5e0dbbd9c799819c81e1919157ab",
+      "section_count": 108,
+      "markdown_chars": 118073,
+      "created_at": "2026-04-29T06:49:35.143Z",
+      "updated_at": "2026-04-30T09:13:45.294Z"
+    },
+    {
+      "id": "0c45a128-7985-40be-adc8-1732a6fd3596",
+      "title": "Agent Harness: How AI Agents Are Benchmarked",
+      "source_type": "markdown_file",
+      "source_uri": "https://www.envisioning.com/vocab/agent-harness",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "7c0d54e8096f276ec8be5d4f5acf7fe8bf710228dbecb88d78219e0c4fb86968",
+      "section_count": 4,
+      "markdown_chars": 3395,
+      "created_at": "2026-04-29T06:49:35.684Z",
+      "updated_at": "2026-04-30T09:13:45.290Z"
+    },
+    {
+      "id": "f68a1456-4fed-4a6a-ae61-f708f66e7d34",
+      "title": "Harness Engineering: The Discipline That Determines Whether Your AI Agents Actually Work",
+      "source_type": "markdown_file",
+      "source_uri": "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "9c8beac7e549d51458da451ecf3674b70754bc2155a069dd7a371cc492d6e7c9",
+      "section_count": 13,
+      "markdown_chars": 14050,
+      "created_at": "2026-04-29T06:49:35.708Z",
+      "updated_at": "2026-04-30T09:13:45.289Z"
+    },
+    {
+      "id": "9ad99d84-2bbf-4c4f-8113-2161cfd06388",
+      "title": "Harness AI SWE-bench Verified",
+      "source_type": "markdown_file",
+      "source_uri": "https://www.harness.io/blog/harness-excels-in-swe-bench-verified",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "c1a129fa1b6903d8aea634e2e69ac4818dac1fad3945844f563a12b0e1039fa9",
+      "section_count": 9,
+      "markdown_chars": 6133,
+      "created_at": "2026-04-29T06:49:35.780Z",
+      "updated_at": "2026-04-30T09:13:45.286Z"
+    },
+    {
+      "id": "237733c7-0c55-45df-ad5b-d2f0855fe7b3",
+      "title": "AI Engineering Harness Repository",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/adrielp/ai-engineering-harness",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "360fceb05aff482900b4f99ea1f15590a7e149ab592a3cac426114563bf2f5a6",
+      "section_count": 35,
+      "markdown_chars": 8440,
+      "created_at": "2026-04-29T06:49:35.829Z",
+      "updated_at": "2026-04-30T09:13:45.284Z"
+    },
+    {
+      "id": "ccef8376-e17b-4d95-a15f-7702d0d39e88",
+      "title": "Awesome Agent Harness",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/Picrew/awesome-agent-harness",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "8923b0b1e081a177f96f59b6cef9c72d08b8e87ec1ba0f875248438b1ebd44d8",
+      "section_count": 36,
+      "markdown_chars": 26428,
+      "created_at": "2026-04-29T06:49:36.013Z",
+      "updated_at": "2026-04-30T09:13:45.281Z"
+    },
+    {
+      "id": "e1a03c2d-8f28-41a9-81cf-d830df7f99c1",
+      "title": "Model Context Protocol Specification",
+      "source_type": "markdown_file",
+      "source_uri": "https://modelcontextprotocol.io/specification/draft",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "aeac61be9f2c19f985c4deb672ef21e32b48824ac8a90034a42082e3463878e1",
+      "section_count": 4,
+      "markdown_chars": 4360,
+      "created_at": "2026-04-29T06:49:36.200Z",
+      "updated_at": "2026-04-30T09:13:45.279Z"
+    },
+    {
+      "id": "b6887b96-2655-44c7-9b7c-7e6a7a2be91b",
+      "title": "MCP Tools Concept",
+      "source_type": "markdown_file",
+      "source_uri": "https://modelcontextprotocol.io/docs/concepts/tools",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "fd1725701e65856de746a7fdd450790b8a12767388df3c6e12fb7e37dbd3e16d",
+      "section_count": 6,
+      "markdown_chars": 6937,
+      "created_at": "2026-04-29T06:49:36.223Z",
+      "updated_at": "2026-04-30T09:13:45.277Z"
+    },
+    {
+      "id": "b8c6383c-e35f-4b83-9687-852ac57fb088",
+      "title": "MCP Resources Concept",
+      "source_type": "markdown_file",
+      "source_uri": "https://modelcontextprotocol.io/docs/concepts/resources",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "12d94d5d7ffafa001a3d13db248ec8e7d981665d52842d3734dfefd4ac3e9212",
+      "section_count": 5,
+      "markdown_chars": 6398,
+      "created_at": "2026-04-29T06:49:36.254Z",
+      "updated_at": "2026-04-30T09:13:45.275Z"
+    },
+    {
+      "id": "246d1428-cb43-4cda-9325-d4c5c77c7695",
+      "title": "MCP Prompts Concept",
+      "source_type": "markdown_file",
+      "source_uri": "https://modelcontextprotocol.io/docs/concepts/prompts",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "39b604b4675376cd68840ef85280cec00dfa7dd34e5958fc7188766e7ead1019",
+      "section_count": 4,
+      "markdown_chars": 4603,
+      "created_at": "2026-04-29T06:49:36.282Z",
+      "updated_at": "2026-04-30T09:13:45.272Z"
+    },
+    {
+      "id": "9bd1e43f-f855-4a18-98b9-35b760839e52",
+      "title": "MCP Authorization",
+      "source_type": "markdown_file",
+      "source_uri": "https://modelcontextprotocol.io/specification/draft/basic/authorization",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "c450172c4b89246f745b187be1ec18080730f8cb3c5f0921edd2b95f3ee1185b",
+      "section_count": 25,
+      "markdown_chars": 36431,
+      "created_at": "2026-04-29T06:49:36.308Z",
+      "updated_at": "2026-04-30T09:13:45.270Z"
+    },
+    {
+      "id": "ccaca13e-5aa9-4542-a0ba-aadfde89ab80",
+      "title": "OWASP Top 10 for LLM Applications",
+      "source_type": "markdown_file",
+      "source_uri": "https://genai.owasp.org/llm-top-10",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "d538804442d021b62f54c617a68f659fbac40ca3ef791bc4b456f03bb7120bb1",
+      "section_count": 14,
+      "markdown_chars": 3139,
+      "created_at": "2026-04-29T06:49:36.451Z",
+      "updated_at": "2026-04-30T09:13:45.266Z"
+    },
+    {
+      "id": "8eb51ff8-fd5a-4b39-ac1d-a03acbaf744e",
+      "title": "OWASP LLM Prompt Injection",
+      "source_type": "markdown_file",
+      "source_uri": "https://genai.owasp.org/llmrisk/llm01-prompt-injection",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "66ecb25831dd62444d800ca7b3e93a8bed207777640a0edb275601196d4cdc01",
+      "section_count": 35,
+      "markdown_chars": 12611,
+      "created_at": "2026-04-29T06:49:36.532Z",
+      "updated_at": "2026-04-30T09:13:45.263Z"
+    },
+    {
+      "id": "f02d2353-e761-43f3-837b-8e42c45bfb99",
+      "title": "Neo4j GraphRAG",
+      "source_type": "markdown_file",
+      "source_uri": "https://neo4j.com/developer/genai-ecosystem/graphrag-python",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "84f614ae7a397c0459429c65dac489b6aba7381ad40916ae61b3c21c7eae87a2",
+      "section_count": 16,
+      "markdown_chars": 5927,
+      "created_at": "2026-04-29T06:49:36.747Z",
+      "updated_at": "2026-04-30T09:13:45.261Z"
+    },
+    {
+      "id": "ba0f6ec3-e31a-41e4-bd3b-f3b95c35563d",
+      "title": "LlamaIndex Knowledge Graph Index",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "56f999abcb0165813a497b1fe1509e76f719c2b98de9a2edccf669cec780d5af",
+      "section_count": 53,
+      "markdown_chars": 22276,
+      "created_at": "2026-04-29T07:37:37.916Z",
+      "updated_at": "2026-04-30T09:13:45.258Z"
+    },
+    {
+      "id": "4c72f397-1ede-4fe2-b1db-8172549565c0",
+      "title": "Microsoft GraphRAG Repository",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/microsoft/graphrag",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "7522b35e8246d680a17f06a5fb8bc6b8e29dafc08406ca44c7d377d5d9a1459f",
+      "section_count": 20,
+      "markdown_chars": 4152,
+      "created_at": "2026-04-29T06:49:36.837Z",
+      "updated_at": "2026-04-30T09:13:45.256Z"
+    },
+    {
+      "id": "dba2610f-823f-4179-92ef-453b8b7d2369",
+      "title": "Langfuse Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://langfuse.com/docs",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "1047351a0d04ddffd8eea0439769493044661bb4624eb4dc7d54131973d14a99",
+      "section_count": 13,
+      "markdown_chars": 6865,
+      "created_at": "2026-04-29T06:49:36.954Z",
+      "updated_at": "2026-04-30T09:13:45.254Z"
+    },
+    {
+      "id": "6d5f674f-9010-4453-a587-9517eaaeef29",
+      "title": "Arize Phoenix Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.arize.com/phoenix",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "b662c4334c00dca45f3b99e152ecc29b761e6b7967f5112b287707cbd3486fb0",
+      "section_count": 11,
+      "markdown_chars": 4068,
+      "created_at": "2026-04-29T06:49:37.028Z",
+      "updated_at": "2026-04-30T09:13:45.252Z"
+    },
+    {
+      "id": "77bc37b3-77af-4139-9659-774053212b4e",
+      "title": "OpenTelemetry GenAI Semantic Conventions",
+      "source_type": "markdown_file",
+      "source_uri": "https://opentelemetry.io/docs/specs/semconv/gen-ai",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "e41931ac54ba47447a11a934dba431dcd40446b84dff4611e05154773ed2eed7",
+      "section_count": 3,
+      "markdown_chars": 2523,
+      "created_at": "2026-04-29T06:49:37.093Z",
+      "updated_at": "2026-04-30T09:13:45.250Z"
+    },
+    {
+      "id": "755e675b-c775-485a-acda-e70f7dfa55a1",
+      "title": "通义千问 Qwen 文档",
+      "source_type": "markdown_file",
+      "source_uri": "https://qwen.readthedocs.io/zh-cn/latest",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "46e6671efe19ccd53a2130fbeb2e5b19df31bf85b7ff546e9e86a7600c7b0919",
+      "section_count": 5,
+      "markdown_chars": 2090,
+      "created_at": "2026-04-29T06:49:37.112Z",
+      "updated_at": "2026-04-30T09:13:45.248Z"
+    },
+    {
+      "id": "da094609-42e5-41ee-aa0b-c61a0aabe067",
+      "title": "智谱 AI 开放平台文档",
+      "source_type": "markdown_file",
+      "source_uri": "https://open.bigmodel.cn/dev/howuse/introduction",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "7beaebc16c94aec19000446958a8501df149422b5818673daebd3cd008c9b7e1",
+      "section_count": 13,
+      "markdown_chars": 1622,
+      "created_at": "2026-04-29T07:37:38.289Z",
+      "updated_at": "2026-04-30T09:13:45.247Z"
+    },
+    {
+      "id": "ab2c1d16-a12a-485f-b93c-140e597fd3f5",
+      "title": "阿里云百炼文档",
+      "source_type": "markdown_file",
+      "source_uri": "https://help.aliyun.com/zh/model-studio",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "af7996a041d24c4e5a7bc8cf5174c7c40b09b0e4a8f267c8ebeae72b56507c9b",
+      "section_count": 15,
+      "markdown_chars": 4597,
+      "created_at": "2026-04-29T06:49:37.144Z",
+      "updated_at": "2026-04-30T09:13:45.244Z"
+    },
+    {
+      "id": "0ebd6196-a09c-434c-b810-9b3c9d59ce82",
+      "title": "MCP 资源中文规范",
+      "source_type": "markdown_file",
+      "source_uri": "https://mcp.transdocs.org/specification/draft/server/resources",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "d0b53b42f0dfd0b5509e0d82907eaa4dc16db42210da8a747e7af8b1693ff8e2",
+      "section_count": 3,
+      "markdown_chars": 3035,
+      "created_at": "2026-04-29T06:49:37.310Z",
+      "updated_at": "2026-04-30T09:13:45.242Z"
+    },
+    {
+      "id": "3a3bb98f-f0bd-4fd9-a64b-4e693ef67b35",
+      "title": "提示词注入安全风险",
+      "source_type": "markdown_file",
+      "source_uri": "https://owasp.org/www-project-top-10-for-large-language-model-applications",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "71d699f3e7e48479c5214e4cb2ccc4e56c390f6f2a7c3cb4906ba0caa773d24b",
+      "section_count": 26,
+      "markdown_chars": 5749,
+      "created_at": "2026-04-29T07:37:38.420Z",
+      "updated_at": "2026-04-30T09:13:45.240Z"
+    },
+    {
+      "id": "5cde99cb-d8da-42d9-b7d6-643309b59264",
+      "title": "AI Agent 记忆系统设计",
+      "source_type": "markdown_file",
+      "source_uri": "https://jiangren.com.au/en/wiki/ai-agent-guide/section/design-patterns/memory",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "84f15d3ae326adb3b00d132a3076942551f6fd64500d77a5d3166b2e9b22c63e",
+      "section_count": 23,
+      "markdown_chars": 6834,
+      "created_at": "2026-04-29T07:37:38.559Z",
+      "updated_at": "2026-04-30T09:13:45.237Z"
+    },
+    {
+      "id": "7f1d24ed-0ba4-4dd5-b0e0-f0f7f02dcb6d",
+      "title": "AI Agent 记忆管理实战",
+      "source_type": "markdown_file",
+      "source_uri": "https://htmlpage.cn/topics/ai/ai-agent-memory-management-practice",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "1cbd5573564057b5015518a8ef90e3be071ce1886cd1d9c4a9348641afeef0f2",
+      "section_count": 23,
+      "markdown_chars": 5522,
+      "created_at": "2026-04-29T07:37:38.700Z",
+      "updated_at": "2026-04-30T09:13:45.235Z"
+    },
+    {
+      "id": "d4dcbfd7-667d-41bb-8971-07c82b705a50",
+      "title": "agent 长期中期短期记忆调研",
+      "source_type": "markdown_file",
+      "source_uri": "https://www.flandre.ltd/agent-memory",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "8429f9128f81a8b8089184c63750710c34c181e843d512bea2c080bd2ba21d7d",
+      "section_count": 21,
+      "markdown_chars": 12515,
+      "created_at": "2026-04-29T07:37:38.829Z",
+      "updated_at": "2026-04-30T09:13:45.232Z"
+    },
+    {
+      "id": "e0c1fde2-71a4-42ae-be9f-a57a15cce489",
+      "title": "AI Agent 的长期记忆工程取舍",
+      "source_type": "markdown_file",
+      "source_uri": "https://www.phppan.com/tag/rag",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "ba4d8e74a638b0ea7625c07f861c008dd8400349ca4cb2f9446b1974d4db5d5d",
+      "section_count": 53,
+      "markdown_chars": 13816,
+      "created_at": "2026-04-29T07:37:38.953Z",
+      "updated_at": "2026-04-30T09:13:45.229Z"
+    },
+    {
+      "id": "40a517a9-f690-4a55-8d64-84163993e1a1",
+      "title": "Ragas 大模型评测框架深度调研指南",
+      "source_type": "markdown_file",
+      "source_uri": "https://www.cnblogs.com/yangykaifa/p/19616131",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "8dc586f40206cbad8bec0d7d1af3cf7215674f0f676edaad82d7e2d4b3e9c265",
+      "section_count": 107,
+      "markdown_chars": 18700,
+      "created_at": "2026-04-29T07:37:39.256Z",
+      "updated_at": "2026-04-30T09:13:45.226Z"
+    },
+    {
+      "id": "c298c994-57e9-4ddc-ae60-4a273519bd39",
+      "title": "Agentic RAG 中文论文解读",
+      "source_type": "markdown_file",
+      "source_uri": "https://hub.baai.ac.cn/view/41937",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "20eb02731655eb7fd16f8f05cf9dc0dbe3f325bdbf4951a5faed3b7948e33a24",
+      "section_count": 4,
+      "markdown_chars": 1769,
+      "created_at": "2026-04-29T07:37:39.857Z",
+      "updated_at": "2026-04-30T09:13:45.224Z"
+    },
+    {
+      "id": "7dc8834c-f723-4230-ad3d-4fafb20962fb",
+      "title": "大模型 Agent 论文整理",
+      "source_type": "markdown_file",
+      "source_uri": "https://blog.csdn.net/libaiup/article/details/150003750",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "686e048fa7fc56af081abb1eff6264e8c659b81c18e46bdd4a49a49300da5476",
+      "section_count": 25,
+      "markdown_chars": 26121,
+      "created_at": "2026-04-29T07:37:39.890Z",
+      "updated_at": "2026-04-30T09:13:45.220Z"
+    },
+    {
+      "id": "e4a53e75-2781-45c9-90fa-1e4dd46b4f5f",
+      "title": "模型上下文协议中文百科",
+      "source_type": "markdown_file",
+      "source_uri": "https://zh.wikipedia.org/wiki/%E6%A8%A1%E5%9E%8B%E4%B8%8A%E4%B8%8B%E6%96%87%E5%8D%8F%E8%AE%AE",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "d1602f27303a4cf72c9906d8c8526d607765f47f23538d1261c4ab347752d847",
+      "section_count": 19,
+      "markdown_chars": 5885,
+      "created_at": "2026-04-29T07:37:40.040Z",
+      "updated_at": "2026-04-30T09:13:45.218Z"
+    },
+    {
+      "id": "43c18310-6328-4667-86d6-fe5132d7f3d9",
+      "title": "检索增强生成中文百科",
+      "source_type": "markdown_file",
+      "source_uri": "https://zh.wikipedia.org/wiki/%E6%AA%A2%E7%B4%A2%E5%A2%9E%E5%BC%B7%E7%94%9F%E6%88%90",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "f50180a1ac025ab814cfb4b205d3907dbb597d3aeccb09f70289b465be34e87d",
+      "section_count": 18,
+      "markdown_chars": 9894,
+      "created_at": "2026-04-29T07:37:40.153Z",
+      "updated_at": "2026-04-30T09:13:45.215Z"
+    },
+    {
+      "id": "2897bb1d-e8c0-41d0-9b68-c7744fc0946c",
+      "title": "可检索性中文百科",
+      "source_type": "markdown_file",
+      "source_uri": "https://zh.wikipedia.org/wiki/%E5%8F%AF%E6%A3%80%E7%B4%A2%E6%80%A7",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "51ee86b0b2196c18caa3a9561877faea1f50ca242f8503744bc8b521aff399bc",
+      "section_count": 4,
+      "markdown_chars": 1409,
+      "created_at": "2026-04-29T07:37:40.259Z",
+      "updated_at": "2026-04-30T09:13:45.213Z"
+    },
+    {
+      "id": "bc27920a-c516-43d6-8cfd-93900b80be9b",
+      "title": "AgentScope 中文主页",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/agentscope-ai/agentscope",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "bbb4bd92618391f03a70348389b7b9d8277d4f287e2a5bad9f8a71fcc451ff26",
+      "section_count": 46,
+      "markdown_chars": 9935,
+      "created_at": "2026-04-29T07:37:40.404Z",
+      "updated_at": "2026-04-30T09:13:45.211Z"
+    },
+    {
+      "id": "78f3b4aa-b0c0-413a-95eb-3eafbf3d8865",
+      "title": "智谱 AI 智能体开发",
+      "source_type": "markdown_file",
+      "source_uri": "https://open.bigmodel.cn/dev/howuse/agent",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "c2c4e359386b63c95a0132c1d975bd5cec4da692fe16b2ec7ae0f7539b7ca33f",
+      "section_count": 13,
+      "markdown_chars": 1615,
+      "created_at": "2026-04-29T07:37:40.666Z",
+      "updated_at": "2026-04-30T09:13:45.209Z"
+    },
+    {
+      "id": "a9a2c803-991f-4136-84c3-663c199320c1",
+      "title": "腾讯云大模型知识引擎",
+      "source_type": "markdown_file",
+      "source_uri": "https://cloud.tencent.com/document/product/1772/115969",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "6b83767c63e4dae97e9bf5851e997e897b8fcece6e63d2f5808cae1455935837",
+      "section_count": 39,
+      "markdown_chars": 11915,
+      "created_at": "2026-04-29T07:37:40.742Z",
+      "updated_at": "2026-04-30T09:13:45.206Z"
+    },
+    {
+      "id": "48131589-6b05-40fa-8ead-322d86a7bad1",
+      "title": "阿里云百炼模型调用",
+      "source_type": "markdown_file",
+      "source_uri": "https://help.aliyun.com/zh/model-studio/user-guide/model-calling",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "fb5efad1e038f1e82378df45fbbc2948e2157774bcf09cec2c1b17e835a7d934",
+      "section_count": 124,
+      "markdown_chars": 53036,
+      "created_at": "2026-04-29T07:37:40.969Z",
+      "updated_at": "2026-04-30T09:13:45.181Z"
+    },
+    {
+      "id": "2db5029b-3021-4445-b66e-ddfb11d67b94",
+      "title": "RAGFlow 开源项目",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/infiniflow/ragflow",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "47ee1d42c5abd5a219d45ccfbd4da939a591550e678a97d0b273185780506d11",
+      "section_count": 38,
+      "markdown_chars": 11315,
+      "created_at": "2026-04-29T07:37:41.690Z",
+      "updated_at": "2026-04-30T09:13:45.177Z"
+    },
+    {
+      "id": "74c39fd8-faec-4417-bd00-7e682419b9ec",
+      "title": "FastGPT 开源知识库项目",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/labring/FastGPT",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "e03b27a35667c4c4b4dc71a2bec8fc7618fe7b83a60836857c5e72ed55f45364",
+      "section_count": 20,
+      "markdown_chars": 3449,
+      "created_at": "2026-04-29T07:37:41.913Z",
+      "updated_at": "2026-04-30T09:13:45.175Z"
+    },
+    {
+      "id": "8042e53b-97cd-40c9-bc5e-c53de97b31ca",
+      "title": "MaxKB 开源知识库项目",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/1Panel-dev/MaxKB",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "31dd0819fd734bf1d541fb0902fb0d841a6f5bd489d8987a28747f623d40ceb6",
+      "section_count": 14,
+      "markdown_chars": 3895,
+      "created_at": "2026-04-29T07:37:42.037Z",
+      "updated_at": "2026-04-30T09:13:45.172Z"
+    },
+    {
+      "id": "c63f70fd-d3ea-454c-b6f6-746a79cd1143",
+      "title": "QAnything 本地知识库问答",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/netease-youdao/QAnything",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "7548050a5f5c6546075971d7749ec4ca49bbe69b97d17f4b6874044f43e865e8",
+      "section_count": 55,
+      "markdown_chars": 22069,
+      "created_at": "2026-04-29T07:37:42.122Z",
+      "updated_at": "2026-04-30T09:13:45.169Z"
+    },
+    {
+      "id": "51f2ed50-7425-4035-9b00-71d83834fce3",
+      "title": "Datawhale LLM Universe",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/datawhalechina/llm-universe",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "25e3db6ce6adc74cc7144f603289fbf4b082b073bb879c86a707a4e678d13168",
+      "section_count": 20,
+      "markdown_chars": 4953,
+      "created_at": "2026-04-29T07:37:42.436Z",
+      "updated_at": "2026-04-30T09:13:45.167Z"
+    },
+    {
+      "id": "abb81add-07b0-4b86-93bc-c8c5a2c64203",
+      "title": "Datawhale Self LLM",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/datawhalechina/self-llm",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "1411cd151c6bbe7e9be4ea18bd216e7788d1546613987d23b233d90f58dfedf6",
+      "section_count": 24,
+      "markdown_chars": 6346,
+      "created_at": "2026-04-29T07:37:42.572Z",
+      "updated_at": "2026-04-30T09:13:45.164Z"
+    },
+    {
+      "id": "af5c9c18-907a-44e2-b387-09ebbe03d525",
+      "title": "MetaGPT 多智能体框架",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/geekan/MetaGPT",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "073e9bac190122ce88f148edc0a14297bf0bd91ea5f265de3e8f35cc3568b55b",
+      "section_count": 25,
+      "markdown_chars": 6435,
+      "created_at": "2026-04-29T07:37:42.718Z",
+      "updated_at": "2026-04-30T09:13:45.161Z"
+    },
+    {
+      "id": "455316a9-6b21-4dd4-aa87-ad5265e62b5e",
+      "title": "InternLM Lagent",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/InternLM/lagent",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "bbef64ddd400f37a5b65f34a1d3b37bcc72182fe8fdf5769ac1388bfa862a4c3",
+      "section_count": 32,
+      "markdown_chars": 19104,
+      "created_at": "2026-04-29T07:37:42.863Z",
+      "updated_at": "2026-04-30T09:13:45.158Z"
+    },
+    {
+      "id": "ccd057d0-6b0d-47b8-856d-0e2c93a026b7",
+      "title": "OpenBMB AgentVerse",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/OpenBMB/AgentVerse",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "6950cd59a8c1c0425c0aacc44e27acae989a6b1219440de13f8a4e1610716a8a",
+      "section_count": 36,
+      "markdown_chars": 12116,
+      "created_at": "2026-04-29T07:37:43.188Z",
+      "updated_at": "2026-04-30T09:13:45.156Z"
+    },
+    {
+      "id": "59494e92-8fd2-48d5-a029-80ceb8094250",
+      "title": "OpenBMB BMTools",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/OpenBMB/BMTools",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "3edadc756f2c3b2442e40037f7f34836d7d9e43da0b1d5b288cdb7c053cf0348",
+      "section_count": 24,
+      "markdown_chars": 8381,
+      "created_at": "2026-04-29T07:37:43.403Z",
+      "updated_at": "2026-04-30T09:13:45.153Z"
+    },
+    {
+      "id": "ea2dc9e9-1b15-4d62-9806-442388ae90dd",
+      "title": "THUDM ChatGLM3 工具调用",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/THUDM/ChatGLM3",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "15338fbd321182feecc8b5ff21e4915f222de0fae6c88cadbe318bf7f17a7373",
+      "section_count": 36,
+      "markdown_chars": 11119,
+      "created_at": "2026-04-29T07:37:43.554Z",
+      "updated_at": "2026-04-30T09:13:45.150Z"
+    },
+    {
+      "id": "1ab444cf-9fa5-4cf6-92ef-257ec70c6e70",
+      "title": "DB-GPT 开源数据应用开发框架",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/eosphoros-ai/DB-GPT",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "98fafe17a2b2df5baefe34401016702c104166909f318b99d38801e4cdb269ae",
+      "section_count": 44,
+      "markdown_chars": 10819,
+      "created_at": "2026-04-29T07:37:43.771Z",
+      "updated_at": "2026-04-30T09:13:45.147Z"
+    },
+    {
+      "id": "39ab992c-c308-4fe6-bb86-c0acc5c0fe96",
+      "title": "OpenCompass 大模型评测",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/open-compass/opencompass",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "51366560558af4f96a2293278fa96d5b243b5fb64d1bfa76e83ce94009f2a4e8",
+      "section_count": 49,
+      "markdown_chars": 17775,
+      "created_at": "2026-04-29T07:37:44.062Z",
+      "updated_at": "2026-04-30T09:13:45.145Z"
+    },
+    {
+      "id": "c1811e69-1ac0-4691-a11c-34624ac5a970",
+      "title": "ZenBrain: A Neuroscience-Inspired 7-Layer Memory Architecture for Autonomous AI Systems",
+      "source_type": "markdown_file",
+      "source_uri": "http://arxiv.org/abs/2604.23878v1",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "arxiv-metadata-to-markdown-v1",
+      "markdown_content_hash": "ef2a11bd60b4298d86f04e9e5ef9fd9794a64e45b630a37a56e1ad178314ade1",
+      "section_count": 4,
+      "markdown_chars": 2114,
+      "created_at": "2026-04-29T07:37:44.360Z",
+      "updated_at": "2026-04-30T09:13:45.142Z"
+    },
+    {
+      "id": "5c796525-8475-4024-9a96-badbd8179abf",
+      "title": "A Survey on the Security of Long-Term Memory in LLM Agents: Toward Mnemonic Sovereignty",
+      "source_type": "markdown_file",
+      "source_uri": "http://arxiv.org/abs/2604.16548v1",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "arxiv-metadata-to-markdown-v1",
+      "markdown_content_hash": "ee5aee18fa1667e67924c9828276379eb839b4e3a38c92e7b6cb73c9ea437146",
+      "section_count": 4,
+      "markdown_chars": 2236,
+      "created_at": "2026-04-29T07:37:44.388Z",
+      "updated_at": "2026-04-30T09:13:45.140Z"
+    },
+    {
+      "id": "4c4b9749-3a4b-4445-bf3e-85cf348bb9b9",
+      "title": "Automatic Ontology Construction Using LLMs as an External Layer of Memory, Verification, and Planning for Hybrid Intelligent Systems",
+      "source_type": "markdown_file",
+      "source_uri": "http://arxiv.org/abs/2604.20795v1",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "arxiv-metadata-to-markdown-v1",
+      "markdown_content_hash": "eb5971c0c6e582a9cbdae5db4783439b1d64c6cd12028ec0a20f7d8ee36a16a2",
+      "section_count": 4,
+      "markdown_chars": 2073,
+      "created_at": "2026-04-29T07:37:44.413Z",
+      "updated_at": "2026-04-30T09:13:45.138Z"
+    },
+    {
+      "id": "098c386c-e4d9-4a81-869f-27dca2c79d75",
+      "title": "HeLa-Mem: Hebbian Learning and Associative Memory for LLM Agents",
+      "source_type": "markdown_file",
+      "source_uri": "http://arxiv.org/abs/2604.16839v1",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "arxiv-metadata-to-markdown-v1",
+      "markdown_content_hash": "5b0ccfe34d0928c49004c7057079fe3b6d787c861117d72830a2f39178697f21",
+      "section_count": 3,
+      "markdown_chars": 1848,
+      "created_at": "2026-04-29T07:37:44.441Z",
+      "updated_at": "2026-04-30T09:13:45.118Z"
+    },
+    {
+      "id": "3291614c-80e7-44b2-ba2a-8be70422d888",
+      "title": "Console proposal smoke rule updated",
+      "source_type": "console_smoke",
+      "source_uri": "verify://console/proposal-rule-update",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "auto_accepted",
+      "markdown_converter": null,
+      "markdown_content_hash": null,
+      "section_count": 1,
+      "markdown_chars": 0,
+      "created_at": "2026-04-30T09:13:45.097Z",
+      "updated_at": "2026-04-30T09:13:45.097Z"
+    },
+    {
+      "id": "8e16d55a-570f-4bef-99f8-6e2a1d61c696",
+      "title": "Console proposal smoke rule",
+      "source_type": "console_smoke",
+      "source_uri": "verify://console/proposal-rule",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "auto_accepted",
+      "markdown_converter": null,
+      "markdown_content_hash": null,
+      "section_count": 1,
+      "markdown_chars": 0,
+      "created_at": "2026-04-30T09:13:45.052Z",
+      "updated_at": "2026-04-30T09:13:45.052Z"
+    },
+    {
+      "id": "ea73ee84-e900-4512-bc95-b99a578c2771",
+      "title": "FlagEmbedding 检索向量模型",
+      "source_type": "markdown_file",
+      "source_uri": "https://github.com/FlagOpen/FlagEmbedding",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "c15634fdbd5d210ee2c3dcc587352aafd2b18df80e0695dc9f2ed03bb6fdb185",
+      "section_count": 26,
+      "markdown_chars": 12955,
+      "created_at": "2026-04-29T07:37:43.044Z",
+      "updated_at": "2026-04-29T09:36:12.780Z"
+    },
+    {
+      "id": "d843655e-da5e-438a-8f49-61f11fc0c69c",
+      "title": "通义千问文档：快速开始",
+      "source_type": "markdown_file",
+      "source_uri": "https://qwen.readthedocs.io/zh-cn/latest/getting_started/quickstart.html",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "09f9f0e2498e2ae9eb23d469a87e2d0f0a56c91c0d7d289b208d8050f055f2dc",
+      "section_count": 18,
+      "markdown_chars": 10392,
+      "created_at": "2026-04-29T07:37:40.285Z",
+      "updated_at": "2026-04-29T09:36:12.778Z"
+    },
+    {
+      "id": "d05a7a70-4342-4380-adb3-51a6d2128b06",
+      "title": "大模型 RAG 检索增强生成实践",
+      "source_type": "markdown_file",
+      "source_uri": "https://cloud.tencent.com/developer/article/2359818",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "eef94eb33f8c2aa49e827eccb169447b4e3b9b6d7c5f3716eb50405e8c1718eb",
+      "section_count": 10,
+      "markdown_chars": 3295,
+      "created_at": "2026-04-29T06:49:37.251Z",
+      "updated_at": "2026-04-29T09:36:12.775Z"
+    },
+    {
+      "id": "33cb7742-9b4c-4878-bf20-80b0ec58a104",
+      "title": "RAG 技术综述与实践",
+      "source_type": "markdown_file",
+      "source_uri": "https://developer.aliyun.com/article/1500266",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "961277c808bd3ff580993f1e47078a3456b37087f5b09226497ec2b7fdde4de3",
+      "section_count": 2,
+      "markdown_chars": 1146,
+      "created_at": "2026-04-29T06:49:37.235Z",
+      "updated_at": "2026-04-29T09:36:12.773Z"
+    },
+    {
+      "id": "7b375da6-447f-4ddf-948f-2c47bfc5f763",
+      "title": "RAGAS 论文解读",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.ragas.io/en/stable",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "33e55885f9c5845bc788a444239c591d7371d5d5efac381156ced08a338e4fb1",
+      "section_count": 5,
+      "markdown_chars": 1838,
+      "created_at": "2026-04-29T06:49:34.955Z",
+      "updated_at": "2026-04-29T09:36:12.762Z"
+    },
+    {
+      "id": "f7dfe90a-5135-4c77-9696-32565de0e2a7",
+      "title": "Microsoft Agent Framework Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://learn.microsoft.com/en-us/agent-framework",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "quarantined",
+      "review_state": "needs_review",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "dc07862a15da4da253158c50018a36112f86e7d3d4ca8199370323e358f7d0cb",
+      "section_count": 0,
+      "markdown_chars": 647,
+      "created_at": "2026-04-29T06:15:30.756Z",
+      "updated_at": "2026-04-29T06:35:35.208Z"
+    },
+    {
+      "id": "57250349-1758-474c-af7d-a596ed1d1822",
+      "title": "Google Genkit Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://firebase.google.com/docs/genkit",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "quarantined",
+      "review_state": "needs_review",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "16874d6b239582f3771682f75cfa56f85f9c5b0da02013e60b256c83c900bd8e",
+      "section_count": 0,
+      "markdown_chars": 5809,
+      "created_at": "2026-04-29T06:15:30.893Z",
+      "updated_at": "2026-04-29T06:35:35.207Z"
+    },
+    {
+      "id": "e194054c-9794-49c6-a24b-c03a5d4fdb76",
+      "title": "Dify Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.dify.ai",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "quarantined",
+      "review_state": "needs_review",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "bb8f206d83437c9133e7a6ecbc442a10c0d1a9ff2e6a655747fe23c5d9d31ea9",
+      "section_count": 0,
+      "markdown_chars": 688,
+      "created_at": "2026-04-29T06:15:31.172Z",
+      "updated_at": "2026-04-29T06:35:35.204Z"
+    },
+    {
+      "id": "503870cb-4e87-4026-b82f-b1b76360fe6e",
+      "title": "Dify 中文文档",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.dify.ai/zh-hans",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "quarantined",
+      "review_state": "needs_review",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "bbc504929e21ee5168a8ed42b94bdadda150e04d67239cfbbe6fab049528e6cf",
+      "section_count": 0,
+      "markdown_chars": 306,
+      "created_at": "2026-04-29T06:15:31.218Z",
+      "updated_at": "2026-04-29T06:35:35.204Z"
+    },
+    {
+      "id": "42b079c6-0298-4624-8fbe-c5549b360993",
+      "title": "AgentScope Documentation",
+      "source_type": "markdown_file",
+      "source_uri": "https://doc.agentscope.io",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "quarantined",
+      "review_state": "needs_review",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "b7f03cb77fe6f856bfe68ab4ea2d37d61d7b027aab8cef7466ea69d85c4780a7",
+      "section_count": 0,
+      "markdown_chars": 582,
+      "created_at": "2026-04-29T06:15:31.697Z",
+      "updated_at": "2026-04-29T06:35:35.202Z"
+    },
+    {
+      "id": "a5d5bea3-e936-4669-97a0-8415458a7f15",
+      "title": "LlamaIndex Query Engine",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.llamaindex.ai/en/stable/module_guides/deploying/query_engine",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "quarantined",
+      "review_state": "needs_review",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "07a8e651b8e7c21dd74f0c96cd5b4d33bc1af43d30e983515cebbb22e9d05952",
+      "section_count": 0,
+      "markdown_chars": 1023,
+      "created_at": "2026-04-29T06:15:31.901Z",
+      "updated_at": "2026-04-29T06:35:35.199Z"
+    },
+    {
+      "id": "48f6339d-e18e-425a-933d-275743ba915e",
+      "title": "RAGAS Metrics",
+      "source_type": "markdown_file",
+      "source_uri": "https://docs.ragas.io/en/stable/concepts/metrics/available_metrics",
+      "memory_domain": "knowledge",
+      "lifecycle_state": "quarantined",
+      "review_state": "needs_review",
+      "markdown_converter": "html-to-markdown-clean-v1",
+      "markdown_content_hash": "42932913fdac07009e8f7ac979ecfa004a3b23e27d9e98a7514b7a19e7871820",
+      "section_count": 0,
+      "markdown_chars": 1515,
+      "created_at": "2026-04-29T06:15:33.147Z",
+      "updated_at": "2026-04-29T06:35:35.185Z"
+    }
+  ],
+  "synthesized_knowledge": [
+    {
+      "id": "13f4d447-0e71-41f2-9281-2f46e364501f",
+      "knowledge_type": "design_principle",
+      "title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+      "content": "# Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束\n\n只在 prompt 里告诉 agent“不要做危险操作”不够。只要系统允许工具调用、MCP、文件、网络或外部资源，安全边界就必须由 harness 和协议层承担。\n\n最低工程要求：\n\n1. 权限采用 deny/allow/approval 等结构化规则，不依赖模型自觉。\n2. 高风险工具在沙箱或受控环境里执行，外部访问需要显式批准或策略放行。\n3. MCP/工具调用要带身份、作用域、预算、错误语义和审计记录。\n4. 检索到的文档、网页、用户输入和工具返回都应视为不可信上下文，不能直接覆盖系统规则。\n5. 对敏感动作保留 trace，能解释谁触发、用了哪个工具、为什么允许、结果是什么。\n\n适用边界：凡是 agent 能执行动作、访问私有数据或调用外部服务，就应采用这条原则；纯离线问答可以简化。",
+      "reasoning_summary": "Harness engineering materials describe permission architecture, sandboxing, MCP protocol gaps, and authorization standards. MCP Authorization describes transport-level authorization. Prompt injection/RAG facts show retrieved content is an attack surface. These sources support structured security outside prompt text.",
+      "confidence_score": "0.9200",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "fddd0e4d-0517-483b-a666-74d7614559f3",
+        "27f765a1-5c60-4739-8f7f-2ed9f1942af6",
+        "f9081e96-00fa-4d87-a9a7-50fd10422ad4",
+        "9271c7a6-ed9b-48bc-99ab-c9c8d263323c",
+        "4c98e074-48a7-4e58-a3c1-5d833b5f4af4",
+        "1b84839b-0e30-4873-9ada-86e836db4a50"
+      ],
+      "source_object_ids": [
+        "fddd0e4d-0517-483b-a666-74d7614559f3",
+        "27f765a1-5c60-4739-8f7f-2ed9f1942af6",
+        "f9081e96-00fa-4d87-a9a7-50fd10422ad4",
+        "9271c7a6-ed9b-48bc-99ab-c9c8d263323c",
+        "4c98e074-48a7-4e58-a3c1-5d833b5f4af4",
+        "1b84839b-0e30-4873-9ada-86e836db4a50"
+      ],
+      "metadata": {
+        "content_hash": "5cd1a308fe2e4d8e0cca9ed1dbe01a9826952c8cc925602c1fdcd33476cf1a4e",
+        "evidence_bound": true,
+        "source_documents": [
+          {
+            "document_id": "c82954ad-b936-467a-bbbf-f191bc2e0cb6",
+            "document_title": "Awesome Harness Engineering",
+            "evidence_source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-84"
+          },
+          {
+            "document_id": "c82954ad-b936-467a-bbbf-f191bc2e0cb6",
+            "document_title": "Awesome Harness Engineering",
+            "evidence_source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-39"
+          },
+          {
+            "document_id": "56488ffc-150c-4735-b609-e13e9ce3ed6a",
+            "document_title": "LangChain RAG Tutorial",
+            "evidence_source_uri": "https://python.langchain.com/docs/tutorials/rag#section-24"
+          },
+          {
+            "document_id": "9bd1e43f-f855-4a18-98b9-35b760839e52",
+            "document_title": "MCP Authorization",
+            "evidence_source_uri": "https://modelcontextprotocol.io/specification/draft/basic/authorization#section-2"
+          },
+          {
+            "document_id": "c82954ad-b936-467a-bbbf-f191bc2e0cb6",
+            "document_title": "Awesome Harness Engineering",
+            "evidence_source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-31"
+          },
+          {
+            "document_id": "1ab444cf-9fa5-4cf6-92ef-257ec70c6e70",
+            "document_title": "DB-GPT 开源数据应用开发框架",
+            "evidence_source_uri": "https://github.com/eosphoros-ai/DB-GPT#section-30"
+          }
+        ],
+        "source_object_type": "evidence",
+        "model_layer_executor": "codex",
+        "governance_output_type": "derived_knowledge",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T07:18:53.579Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 6,
+      "source_uri_count": 6
+    },
+    {
+      "id": "e9324616-1e7c-4bf2-905a-7c59e672d7ff",
+      "knowledge_type": "derived_rule",
+      "title": "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+      "content": "# 长期记忆必须在使用时验证有效性，而不是只做相似召回\n\n长期记忆系统不能把“曾经写入的记忆”直接等价为“当前可用的事实”。更稳的规则是：只存储带引用、可行动的事实；召回时先检查引用或当前上下文是否仍然成立，再让记忆进入回答或执行计划。\n\n这个规则同时解释了三个工程取舍：\n\n1. 记忆写入应优先记录会影响未来任务的事实和原因，而不是保存完整对话噪声。\n2. 记忆召回必须保留 citation / evidence path，否则旧记忆会在版本、分支、环境变化后误导 agent。\n3. 长上下文直接塞全文并不能替代治理后的记忆，因为 token、延迟和上下文腐烂会扩大成本与错误面。\n\n适用边界：对代码库、项目约束、用户长期偏好、API 版本、运行环境和任务经验尤其重要；对一次性闲聊或短期临时状态不应升级为长期记忆。",
+      "reasoning_summary": "GitHub Copilot memory article provides memory-as-tool, citation-backed facts, just-in-time verification, and measured developer impact. Mem0 and long-term memory engineering materials support continuity and context budget concerns. Together they support a derived rule: memory recall must be evidence-validated at use time.",
+      "confidence_score": "0.9200",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "90895773-02f8-425c-a102-d8cfdda4962c",
+        "ed3a922b-6624-4768-b384-799e293d0e63",
+        "5da1314c-8e4b-41bd-917c-53014eb08c3e",
+        "f4523ddf-7e96-4a0c-816b-d10d43bb14c8",
+        "afdeadd9-c1ab-40c5-83cd-50efe91fc7a2"
+      ],
+      "source_object_ids": [
+        "90895773-02f8-425c-a102-d8cfdda4962c",
+        "ed3a922b-6624-4768-b384-799e293d0e63",
+        "5da1314c-8e4b-41bd-917c-53014eb08c3e",
+        "f4523ddf-7e96-4a0c-816b-d10d43bb14c8",
+        "afdeadd9-c1ab-40c5-83cd-50efe91fc7a2"
+      ],
+      "metadata": {
+        "content_hash": "5f6d755c8010d8c20bbfd8673ea40b650de38948a0d93bfe6fa1d806a1530226",
+        "evidence_bound": true,
+        "source_documents": [
+          {
+            "document_id": "080050e0-eb2f-4b78-8c0c-b16fc9ad9d92",
+            "document_title": "Mem0 Platform Overview",
+            "evidence_source_uri": "https://docs.mem0.ai/overview#section-2"
+          },
+          {
+            "document_id": "4b7f0fbf-bf41-4159-a0a3-123997878817",
+            "document_title": "Building an Agentic Memory System for GitHub Copilot",
+            "evidence_source_uri": "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-10"
+          },
+          {
+            "document_id": "857139da-7e67-49bb-9977-c7c0e8b3ff4a",
+            "document_title": "AI Agent 记忆管理：长期记忆与知识治理实战",
+            "evidence_source_uri": "https://eastondev.com/blog/zh/posts/ai/20260413-ai-agent-memory#section-2"
+          },
+          {
+            "document_id": "4b7f0fbf-bf41-4159-a0a3-123997878817",
+            "document_title": "Building an Agentic Memory System for GitHub Copilot",
+            "evidence_source_uri": "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-18"
+          },
+          {
+            "document_id": "4b7f0fbf-bf41-4159-a0a3-123997878817",
+            "document_title": "Building an Agentic Memory System for GitHub Copilot",
+            "evidence_source_uri": "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9"
+          }
+        ],
+        "source_object_type": "evidence",
+        "model_layer_executor": "codex",
+        "governance_output_type": "derived_knowledge",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T06:54:32.409Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 5,
+      "source_uri_count": 5
+    },
+    {
+      "id": "00b5be19-f96b-4c29-8733-fdf609750796",
+      "knowledge_type": "cross_source_pattern",
+      "title": "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+      "content": "# Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力\n\n多个来源共同指向一个模式：Agent 可靠性要靠 harness 把运行边界、工具调用、评估、轨迹和迭代优化组织起来，而不是只依赖更长提示词或更强模型。\n\n这个模式至少包含：\n\n1. 安全边界：sandbox、权限申请和外部访问控制决定 agent 能安全做什么。\n2. 执行编排：task runner / orchestration 负责队列、并行、进度和多步骤执行。\n3. 工具治理：工具选择、延迟加载、错误返回和 MCP 等协议要可控。\n4. 评估验证：trajectory eval、outcome eval、benchmark 和回归测试决定改动是否真的变好。\n5. 运行观测：trace、span、输入输出和工具调用记录是定位失败的前提。\n6. 自动迭代：meta-harness 可以基于 benchmark 保留或丢弃系统提示、工具配置和路由改动。\n\n适用边界：这条模式适合需要长期运行、自动执行或接入工具的 agent；简单问答 bot 不一定需要完整 harness，但一旦涉及文件、命令、外部资源或多步任务，就应进入 harness 设计。",
+      "reasoning_summary": "Harness engineering resources cover sandboxing, task runners, evals, and meta-harness loops. DeepEval describes traces. OpenAI Agents SDK material covers tool-use behavior. These independent sources support a cross-source pattern that production agent reliability is a harness property.",
+      "confidence_score": "0.9100",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "fddd0e4d-0517-483b-a666-74d7614559f3",
+        "36b0792c-c824-4657-8c55-2189268773fc",
+        "0c942337-c42f-404e-b8c4-180775eeb400",
+        "401ba72f-058b-4b31-986a-9e52121aebfb",
+        "f39ba11e-3a5c-40fd-b29b-ebd4b970b72d",
+        "fe2190fe-2a5c-448c-831c-5617b303fb40"
+      ],
+      "source_object_ids": [
+        "fddd0e4d-0517-483b-a666-74d7614559f3",
+        "36b0792c-c824-4657-8c55-2189268773fc",
+        "0c942337-c42f-404e-b8c4-180775eeb400",
+        "401ba72f-058b-4b31-986a-9e52121aebfb",
+        "f39ba11e-3a5c-40fd-b29b-ebd4b970b72d",
+        "fe2190fe-2a5c-448c-831c-5617b303fb40"
+      ],
+      "metadata": {
+        "content_hash": "613f66b4d4b94eb84605666f6a7093362e664e30d8e5ff94f5ee64995aa63cfe",
+        "evidence_bound": true,
+        "source_documents": [
+          {
+            "document_id": "c82954ad-b936-467a-bbbf-f191bc2e0cb6",
+            "document_title": "Awesome Harness Engineering",
+            "evidence_source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-84"
+          },
+          {
+            "document_id": "c82954ad-b936-467a-bbbf-f191bc2e0cb6",
+            "document_title": "Awesome Harness Engineering",
+            "evidence_source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-73"
+          },
+          {
+            "document_id": "c82954ad-b936-467a-bbbf-f191bc2e0cb6",
+            "document_title": "Awesome Harness Engineering",
+            "evidence_source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-47"
+          },
+          {
+            "document_id": "0a89ef3d-174b-4366-806c-896dadc0a8df",
+            "document_title": "OpenAI Agents SDK JS Agents Guide",
+            "evidence_source_uri": "https://openai.github.io/openai-agents-js/guides/agents#section-19"
+          },
+          {
+            "document_id": "c82954ad-b936-467a-bbbf-f191bc2e0cb6",
+            "document_title": "Awesome Harness Engineering",
+            "evidence_source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-89"
+          },
+          {
+            "document_id": "8cb1e96d-6b73-4e55-8b6c-e23231e18a1d",
+            "document_title": "DeepEval Introduction",
+            "evidence_source_uri": "https://deepeval.com/docs/introduction#section-14"
+          }
+        ],
+        "source_object_type": "evidence",
+        "model_layer_executor": "codex",
+        "governance_output_type": "derived_knowledge",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T06:54:32.409Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 6,
+      "source_uri_count": 6
+    },
+    {
+      "id": "27cb6336-4567-4d8e-94de-f4246b71c30d",
+      "knowledge_type": "derived_rule",
+      "title": "长期记忆召回不能只做相似检索，必须在使用时验证有效性",
+      "content": "长期记忆系统的默认召回规则应是“先召回候选，再验证当前上下文是否仍然适用”。尤其在代码、配置、分支、用户偏好会变化的场景中，历史记忆不能因为相似度高就直接进入上下文；应绑定 evidence，并在使用前检查它是否被更新、取代或与当前任务冲突。\n\n适用场景：agent memory、代码仓库记忆、跨任务经验复用、长期知识召回。\n边界：如果是纯静态事实或用户明确要求追溯原始材料，可以直接展开证据；但默认回答不应把未验证旧记忆当作最终知识。",
+      "reasoning_summary": "GitHub Copilot 记忆系统强调“记住什么与何时遗忘”的核心挑战在于代码演进后记忆是否仍有效，并提出 just-in-time verification；LangGraph 文档也指出 memory update/delete 本身复杂，模型可能过度插入或过度更新。因此治理后的长期记忆应优先保存可验证规则和证据链，而不是直接暴露相似文本。",
+      "confidence_score": "0.9100",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "3de88388-2155-4db1-ae6d-260f48216937",
+        "afdeadd9-c1ab-40c5-83cd-50efe91fc7a2",
+        "a4ddc3b6-52fc-471e-b246-5e5a0b49548d"
+      ],
+      "source_object_ids": [
+        "3de88388-2155-4db1-ae6d-260f48216937",
+        "afdeadd9-c1ab-40c5-83cd-50efe91fc7a2",
+        "a4ddc3b6-52fc-471e-b246-5e5a0b49548d"
+      ],
+      "metadata": {
+        "governor": "codex_manual",
+        "keywords": [
+          "memory",
+          "记忆",
+          "召回",
+          "验证",
+          "有效性",
+          "just-in-time verification",
+          "forget",
+          "update"
+        ],
+        "language": "zh-CN",
+        "evidence_policy": "section/evidence-backed",
+        "source_object_type": "evidence",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T01:52:52.619Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 3,
+      "source_uri_count": 3
+    },
+    {
+      "id": "4ca426c6-0887-4126-b78b-bca632f3c22f",
+      "knowledge_type": "derived_rule",
+      "title": "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+      "content": "# Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败\n\nAgent 系统失败通常不是单点错误，而是上下文、工具、权限、状态、模型输出和外部环境共同作用的结果。没有运行轨迹，就无法判断失败发生在哪一层。\n\n观测规则：\n\n1. 每次运行记录输入、计划、工具调用、模型调用、检索结果、输出和错误。\n2. trace/span 应能串起多步任务，而不是只保存最终回答。\n3. 成本、token、工具耗时、循环次数和预算消耗要进入治理数据。\n4. 失败案例要能回放或至少重建关键证据链，供后续治理、测试和 skill 沉淀使用。\n5. 观测数据不是最终知识，只有稳定模式和修复经验才应升级为 derived knowledge 或 skill。\n\n适用边界：凡是多步 agent、RAG、工具调用或自动化执行，都应保留观测；一次性简单问答可以只保留轻量日志。",
+      "reasoning_summary": "DeepEval traces, Langfuse, Awesome Harness observability resources, event log pattern, and AutoHarness cost attribution all emphasize traceable execution, tool calls, costs, and diagnostics. These facts support observability as a governance prerequisite.",
+      "confidence_score": "0.9100",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "fe2190fe-2a5c-448c-831c-5617b303fb40",
+        "2d72c9b5-82a1-407f-94b6-500c27d25759",
+        "a2d97c43-0f75-4a64-b04c-f044c3ea0342",
+        "a8d4c2c8-2d35-4a7d-b8f5-742ebebe1ef5",
+        "0db04bf2-678a-422d-8aed-b334767bab66",
+        "c65ae60d-a590-49d0-93de-b3fdbcbb3b79"
+      ],
+      "source_object_ids": [
+        "fe2190fe-2a5c-448c-831c-5617b303fb40",
+        "2d72c9b5-82a1-407f-94b6-500c27d25759",
+        "a2d97c43-0f75-4a64-b04c-f044c3ea0342",
+        "a8d4c2c8-2d35-4a7d-b8f5-742ebebe1ef5",
+        "0db04bf2-678a-422d-8aed-b334767bab66",
+        "c65ae60d-a590-49d0-93de-b3fdbcbb3b79"
+      ],
+      "metadata": {
+        "content_hash": "a7a2463a6c7a25f24d2d93aa4c098074c22f53c3b933100455c102fd71a5e6b2",
+        "evidence_bound": true,
+        "source_documents": [
+          {
+            "document_id": "8cb1e96d-6b73-4e55-8b6c-e23231e18a1d",
+            "document_title": "DeepEval Introduction",
+            "evidence_source_uri": "https://deepeval.com/docs/introduction#section-14"
+          },
+          {
+            "document_id": "1de2e661-c036-441b-9419-b31cde65bd79",
+            "document_title": "A memory architecture for agentic system",
+            "evidence_source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-33"
+          },
+          {
+            "document_id": "c82954ad-b936-467a-bbbf-f191bc2e0cb6",
+            "document_title": "Awesome Harness Engineering",
+            "evidence_source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-97"
+          },
+          {
+            "document_id": "8ed53e1d-3979-4226-aa84-06d4ff8700f0",
+            "document_title": "AutoHarness Repository",
+            "evidence_source_uri": "https://github.com/aiming-lab/AutoHarness#section-15"
+          },
+          {
+            "document_id": "dba2610f-823f-4179-92ef-453b8b7d2369",
+            "document_title": "Langfuse Documentation",
+            "evidence_source_uri": "https://langfuse.com/docs#section-12"
+          },
+          {
+            "document_id": "c82954ad-b936-467a-bbbf-f191bc2e0cb6",
+            "document_title": "Awesome Harness Engineering",
+            "evidence_source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-55"
+          }
+        ],
+        "source_object_type": "evidence",
+        "model_layer_executor": "codex",
+        "governance_output_type": "derived_knowledge",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T07:18:53.579Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 6,
+      "source_uri_count": 6
+    },
+    {
+      "id": "bb379f22-d450-40e5-ba02-ed021281ad64",
+      "knowledge_type": "design_principle",
+      "title": "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+      "content": "# 生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径\n\n生产级 RAG 检索不应押注单一路径。更稳的默认形态是：用多种信号生成候选，再用统一重排和证据边界控制最终进入上下文的材料。\n\n可落地的检索原则：\n\n1. BM25/关键词负责专有名词、编号、字段、短语和硬命中兜底。\n2. 向量负责同义表达、语义相近问题和模糊意图。\n3. 元数据、版本、权限、时间和范围负责过滤边界，防止召回旧材料或越权内容。\n4. rerank 负责统一裁决候选相关性，但要控制候选 K 和成本。\n5. 上下文增强负责解决孤句误读和 chunk 切碎，但不能把摘要当成唯一证据。\n\n适用边界：这条原则适合普通文档问答和知识库助手；如果治理层已经产出高质量 derived knowledge 或图谱规则，召回入口可以优先命中治理产物，再按需回落到原始 evidence。",
+      "reasoning_summary": "Chinese RAG engineering notes identify recall/ranking as separate tasks and list failure modes for semantic-only search. They recommend BM25 plus dense retrieval, normalization or rerank, context enhancement, and scalar controls. Rerank cost data adds the operational boundary that candidate size must be controlled.",
+      "confidence_score": "0.9100",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "4c47cc9f-528d-470d-9b15-b268afe3654e",
+        "7c07a115-10a8-4b03-9cfb-e1bb0b41df2c",
+        "966c496d-9e82-40e2-9977-72c97e3ba5f2",
+        "d83822a8-1ba0-4658-9b42-a20964d5dd57",
+        "87da615b-dde6-4c20-8275-40aee50ad3c2",
+        "a25c79d7-b0c9-42b9-9c49-69c7ae27eda3"
+      ],
+      "source_object_ids": [
+        "4c47cc9f-528d-470d-9b15-b268afe3654e",
+        "7c07a115-10a8-4b03-9cfb-e1bb0b41df2c",
+        "966c496d-9e82-40e2-9977-72c97e3ba5f2",
+        "d83822a8-1ba0-4658-9b42-a20964d5dd57",
+        "87da615b-dde6-4c20-8275-40aee50ad3c2",
+        "a25c79d7-b0c9-42b9-9c49-69c7ae27eda3"
+      ],
+      "metadata": {
+        "content_hash": "028e0429265b1663255401bb43078e2db4250555d4fa123f977c55b874028b5a",
+        "evidence_bound": true,
+        "source_documents": [
+          {
+            "document_id": "e0c1fde2-71a4-42ae-be9f-a57a15cce489",
+            "document_title": "AI Agent 的长期记忆工程取舍",
+            "evidence_source_uri": "https://www.phppan.com/tag/rag#section-50"
+          },
+          {
+            "document_id": "e0c1fde2-71a4-42ae-be9f-a57a15cce489",
+            "document_title": "AI Agent 的长期记忆工程取舍",
+            "evidence_source_uri": "https://www.phppan.com/tag/rag#section-52"
+          },
+          {
+            "document_id": "e0c1fde2-71a4-42ae-be9f-a57a15cce489",
+            "document_title": "AI Agent 的长期记忆工程取舍",
+            "evidence_source_uri": "https://www.phppan.com/tag/rag#section-32"
+          },
+          {
+            "document_id": "1de2e661-c036-441b-9419-b31cde65bd79",
+            "document_title": "A memory architecture for agentic system",
+            "evidence_source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-19"
+          },
+          {
+            "document_id": "e0c1fde2-71a4-42ae-be9f-a57a15cce489",
+            "document_title": "AI Agent 的长期记忆工程取舍",
+            "evidence_source_uri": "https://www.phppan.com/tag/rag#section-53"
+          },
+          {
+            "document_id": "e0c1fde2-71a4-42ae-be9f-a57a15cce489",
+            "document_title": "AI Agent 的长期记忆工程取舍",
+            "evidence_source_uri": "https://www.phppan.com/tag/rag#section-51"
+          }
+        ],
+        "source_object_type": "evidence",
+        "model_layer_executor": "codex",
+        "governance_output_type": "derived_knowledge",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T07:13:08.339Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 6,
+      "source_uri_count": 6
+    },
+    {
+      "id": "185404b1-4d6b-48ea-8365-e2f05e806748",
+      "knowledge_type": "derived_rule",
+      "title": "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+      "content": "# RAG 评估必须拆开检索质量、生成忠实度和多轮行为\n\nRAG 系统不能只用“回答看起来对不对”做验收。工程评估应拆成检索、生成和多轮行为三层，否则无法判断问题出在召回、排序、证据装配、提示词还是模型生成。\n\n推荐的评估拆分：\n\n1. 检索层：评估相关证据是否被找全、相关节点是否排在无关节点之前。\n2. 生成层：评估回答是否基于 retrieval_context、是否和证据矛盾、是否回答了问题。\n3. 端到端层：组合 retrieval + generation 指标，验证用户最终体验。\n4. 多轮层：单轮指标不能覆盖对话状态、追问、省略和历史依赖，需要专门的 multi-turn case。\n5. CI 层：把关键测试集接入回归流程，防止索引、模型、chunk、rerank 或提示词调整后静默退化。\n\n适用边界：适合任何要长期迭代的 RAG/Agent 知识系统；早期探索可以先用小测试集，但必须保留可扩展到 CI 的数据结构。",
+      "reasoning_summary": "DeepEval RAG materials separate retrieval metrics, generation metrics, E2E evaluation, multi-turn RAG evaluation, hyperparameter optimization, simulation, and CI unit testing. These facts jointly support a governance rule for evaluation decomposition.",
+      "confidence_score": "0.9000",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "e4108e4d-e814-43b0-a9d5-c0abd6fa4279",
+        "0ad19f34-5432-4095-9fe5-c11266b0bfb6",
+        "c67c710c-37ef-47f6-85df-23ca204e22d9",
+        "a4700168-e3fc-43a4-852a-bd6752eb644a",
+        "ea76f855-c710-41e9-8283-2d8743ee6075",
+        "8bd033e9-5a1c-4fb9-9cde-ac31ef482ff8"
+      ],
+      "source_object_ids": [
+        "e4108e4d-e814-43b0-a9d5-c0abd6fa4279",
+        "0ad19f34-5432-4095-9fe5-c11266b0bfb6",
+        "c67c710c-37ef-47f6-85df-23ca204e22d9",
+        "a4700168-e3fc-43a4-852a-bd6752eb644a",
+        "ea76f855-c710-41e9-8283-2d8743ee6075",
+        "8bd033e9-5a1c-4fb9-9cde-ac31ef482ff8"
+      ],
+      "metadata": {
+        "content_hash": "e7a8459b6619b7b0d4369584662d4c26f0da73f928c686a65b09c62385507e16",
+        "evidence_bound": true,
+        "source_documents": [
+          {
+            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
+            "document_title": "DeepEval RAG Evaluation",
+            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-16"
+          },
+          {
+            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
+            "document_title": "DeepEval RAG Evaluation",
+            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-12"
+          },
+          {
+            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
+            "document_title": "DeepEval RAG Evaluation",
+            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-18"
+          },
+          {
+            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
+            "document_title": "DeepEval RAG Evaluation",
+            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-11"
+          },
+          {
+            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
+            "document_title": "DeepEval RAG Evaluation",
+            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-6"
+          },
+          {
+            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
+            "document_title": "DeepEval RAG Evaluation",
+            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-8"
+          }
+        ],
+        "source_object_type": "evidence",
+        "model_layer_executor": "codex",
+        "governance_output_type": "derived_knowledge",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T07:13:08.339Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 6,
+      "source_uri_count": 6
+    },
+    {
+      "id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
+      "knowledge_type": "design_principle",
+      "title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "content": "# 检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排\n\nMilvus、Qdrant、Pinecone、Weaviate、Elasticsearch、FlagEmbedding 等组件解决的是不同层面的检索能力，不应把某一个后端直接写死成知识系统本体。\n\n稳定的工程契约应包括：\n\n1. dense 向量召回：解决语义相近和改写问题。\n2. sparse/BM25 召回：解决关键词、术语、编号、字段和短文本硬命中。\n3. metadata/payload 过滤：解决用户、版本、权限、时间和来源边界。\n4. fusion/RRF：把多路候选合并为统一排序，避免直接比较异构分数。\n5. rerank：在有限候选集上做最终相关性裁决。\n6. backend adapter：向上暴露统一接口，方便后续替换 Milvus、Elasticsearch 或其他存储。\n\n适用边界：这条原则服务普通召回路线和证据定位路线；当图谱治理产物足够成熟时，检索后端仍作为 evidence fallback 和校验通道。",
+      "reasoning_summary": "Pinecone hybrid search shows dense and sparse vector combination. Elasticsearch RRF shows rank fusion. Qdrant facts cover filtering and scaling. BGE/FlagEmbedding supports embedding/rerank model choices. Together these sources support a backend-agnostic retrieval contract.",
+      "confidence_score": "0.9000",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "701780e1-a4ca-4402-bcde-1928e2313162",
+        "f5b1516b-d857-4b6b-abcb-9b618646d50e",
+        "6396b215-f6e7-462f-b577-5d6e98c8cec3",
+        "451360ef-fe35-488d-8a6d-bce2e62b23fb",
+        "dc5733be-02f4-46a7-a63a-6064ff85923f",
+        "cd2b0773-b78c-4b6f-a93b-f54f3a5bae46",
+        "b228c036-a8c3-4bcf-8095-84e1677bf324"
+      ],
+      "source_object_ids": [
+        "701780e1-a4ca-4402-bcde-1928e2313162",
+        "f5b1516b-d857-4b6b-abcb-9b618646d50e",
+        "6396b215-f6e7-462f-b577-5d6e98c8cec3",
+        "451360ef-fe35-488d-8a6d-bce2e62b23fb",
+        "dc5733be-02f4-46a7-a63a-6064ff85923f",
+        "cd2b0773-b78c-4b6f-a93b-f54f3a5bae46",
+        "b228c036-a8c3-4bcf-8095-84e1677bf324"
+      ],
+      "metadata": {
+        "content_hash": "60276831efb345ad23d80f172fd32784395eb1b9fe6f403e9fa0d09fcf395ef4",
+        "evidence_bound": true,
+        "source_documents": [
+          {
+            "document_id": "ea73ee84-e900-4512-bc95-b99a578c2771",
+            "document_title": "FlagEmbedding 检索向量模型",
+            "evidence_source_uri": "https://github.com/FlagOpen/FlagEmbedding#section-19"
+          },
+          {
+            "document_id": "607ecb9e-b813-4ffa-97a4-9a3c2693f913",
+            "document_title": "Pinecone Hybrid Search",
+            "evidence_source_uri": "https://docs.pinecone.io/guides/search/hybrid-search#section-13"
+          },
+          {
+            "document_id": "ea73ee84-e900-4512-bc95-b99a578c2771",
+            "document_title": "FlagEmbedding 检索向量模型",
+            "evidence_source_uri": "https://github.com/FlagOpen/FlagEmbedding#section-18"
+          },
+          {
+            "document_id": "22edffb0-810c-4f6b-9c54-57219b7e4cb4",
+            "document_title": "Qdrant RAG Guide",
+            "evidence_source_uri": "https://qdrant.tech/documentation/overview#section-15"
+          },
+          {
+            "document_id": "7cf221d1-3e43-48e2-97a9-d92b71852202",
+            "document_title": "Elasticsearch Reciprocal Rank Fusion",
+            "evidence_source_uri": "https://www.elastic.co/guide/en/elasticsearch/reference/current/rrf.html#section-2"
+          },
+          {
+            "document_id": "607ecb9e-b813-4ffa-97a4-9a3c2693f913",
+            "document_title": "Pinecone Hybrid Search",
+            "evidence_source_uri": "https://docs.pinecone.io/guides/search/hybrid-search#section-2"
+          },
+          {
+            "document_id": "607ecb9e-b813-4ffa-97a4-9a3c2693f913",
+            "document_title": "Pinecone Hybrid Search",
+            "evidence_source_uri": "https://docs.pinecone.io/guides/search/hybrid-search#section-14"
+          }
+        ],
+        "source_object_type": "evidence",
+        "model_layer_executor": "codex",
+        "governance_output_type": "derived_knowledge",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T07:18:53.579Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 7,
+      "source_uri_count": 7
+    },
+    {
+      "id": "0a0a6d5d-9471-49cd-8803-5379393a3481",
+      "knowledge_type": "derived_rule",
+      "title": "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理",
+      "content": "# 长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理\n\n长期记忆系统的核心不是“把更多文本放进向量库”，而是把可复用知识组织成有结构、有时间语义、可更新、可遗忘、可验证的对象。\n\n治理规则应至少包含：\n\n1. 结构化：把事实、关系、规则、经验和用户画像区分开，避免所有内容都变成不可解释的 chunk。\n2. 时间性：记录形成时间、最后验证时间、衰减或过期条件，避免旧记忆长期污染未来任务。\n3. 重要性：召回排序不能只依赖相似度，还应考虑重要性、使用频率、时效和当前上下文相关性。\n4. 巩固与遗忘：治理层需要合并重复知识、替换旧结论、归档低价值内容，而不是只追加。\n5. 可追溯：任何长期结论都应能回到 evidence，否则不能升级为稳定记忆。\n\n适用边界：这条规则适用于 agent 长期记忆、项目知识库和跨会话偏好；短期任务状态可以保留在运行层，不应全部进入长期记忆。",
+      "reasoning_summary": "Memory architecture materials criticize vector-store-as-memory and emphasize temporal dynamics, consolidation, forgetting, and weighted retrieval. Graphiti and ACT-R-inspired memory materials show concrete directions for temporal graph and dynamic activation. Together they support a rule that long-term memory must be governed structured knowledge, not flat vector snippets.",
+      "confidence_score": "0.9000",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "1e7f06e7-a076-43dd-adf2-697fe3d61746",
+        "b85790a2-a08f-489c-be76-4823dab8c752",
+        "491607ce-0e85-4be8-a61b-10b6ed56d38a",
+        "b63f4792-f6e7-4468-ac36-d1f2ed1ff421"
+      ],
+      "source_object_ids": [
+        "1e7f06e7-a076-43dd-adf2-697fe3d61746",
+        "b85790a2-a08f-489c-be76-4823dab8c752",
+        "491607ce-0e85-4be8-a61b-10b6ed56d38a",
+        "b63f4792-f6e7-4468-ac36-d1f2ed1ff421"
+      ],
+      "metadata": {
+        "content_hash": "8d09af3a60c7b7976ca171a7adc9b9998f45ff59a75f5e38b397272d659a2bc9",
+        "evidence_bound": true,
+        "source_documents": [
+          {
+            "document_id": "1de2e661-c036-441b-9419-b31cde65bd79",
+            "document_title": "A memory architecture for agentic system",
+            "evidence_source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-27"
+          },
+          {
+            "document_id": "1de2e661-c036-441b-9419-b31cde65bd79",
+            "document_title": "A memory architecture for agentic system",
+            "evidence_source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-28"
+          },
+          {
+            "document_id": "1de2e661-c036-441b-9419-b31cde65bd79",
+            "document_title": "A memory architecture for agentic system",
+            "evidence_source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-43"
+          },
+          {
+            "document_id": "1de2e661-c036-441b-9419-b31cde65bd79",
+            "document_title": "A memory architecture for agentic system",
+            "evidence_source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-41"
+          }
+        ],
+        "source_object_type": "evidence",
+        "model_layer_executor": "codex",
+        "governance_output_type": "derived_knowledge",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T07:13:08.339Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 4,
+      "source_uri_count": 4
+    },
+    {
+      "id": "560fe851-c746-41f2-9b2a-a8536cad13ba",
+      "knowledge_type": "design_principle",
+      "title": "Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词",
+      "content": "设计 AI agent 时，应把 harness 当成核心工程对象：包括 guide、sensor、权限、上下文生命周期、反馈回路、沙箱、可观测性和架构不变量。单纯增加提示词或依赖模型自我判断不能稳定提升可靠性；更可靠的做法是把约束沉淀为可执行、不易被忽略的工程边界，并用外部传感器/评测验证输出。\n\n适用场景：coding agent、自动化 agent、长期运行 agent、带工具调用的 agent。\n边界：小型一次性任务可以用轻量提示词；但进入生产级或长期任务后，必须把 harness 作为系统设计的一部分。",
+      "reasoning_summary": "Harness Engineering 文档把 guides/sensors 作为核心控制分类，指出冗长提示词不具备规模化稳定性，并警告生成模型自评存在系统性高估。多段证据共同支持：可靠性应来自工程化 harness，而不是单点模型能力。",
+      "confidence_score": "0.9000",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "82e1316f-8dc3-4705-b371-b5fda50e935e",
+        "c4030127-0443-45a4-be63-12e0dcdd8f90",
+        "23b3b7a4-29c1-453f-b425-e59a49b15b32"
+      ],
+      "source_object_ids": [
+        "82e1316f-8dc3-4705-b371-b5fda50e935e",
+        "c4030127-0443-45a4-be63-12e0dcdd8f90",
+        "23b3b7a4-29c1-453f-b425-e59a49b15b32"
+      ],
+      "metadata": {
+        "governor": "codex_manual",
+        "keywords": [
+          "agent",
+          "harness",
+          "guide",
+          "sensor",
+          "提示词",
+          "可靠性",
+          "self-evaluation",
+          "invariants"
+        ],
+        "language": "zh-CN",
+        "evidence_policy": "section/evidence-backed",
+        "source_object_type": "evidence",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T01:52:52.619Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 3,
+      "source_uri_count": 3
+    },
+    {
+      "id": "7a729f07-b6c5-4f62-a321-c3746beea5ad",
+      "knowledge_type": "design_principle",
+      "title": "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+      "content": "# 生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环\n\n生产级 RAG 的关键不是“有没有向量库”，而是能否把候选召回、重排、证据约束、评估、观测和安全治理拆成可审计的闭环。\n\n因此默认设计应包含：\n\n1. 召回层：可以使用向量、关键词、结构化过滤或图谱候选，但不能把相似度当最终可信度。\n2. 重排层：对候选节点二次排序，把问题相关性和上下文预算显式纳入流程。\n3. 证据层：回答必须落回 evidence / source markdown，必要时再展开原文。\n4. 评估层：用 ContextPrecision、Faithfulness 等指标持续测试 RAG 输出。\n5. 观测层：记录 workflow trace，能定位每一步用了哪些节点和工具。\n6. 安全层：把可被攻击者修改的检索文档视为风险入口，不能默认信任召回内容。\n\n适用边界：这是工程系统原则，不要求每个小 demo 都一次性实现全部组件；但面向长期知识系统或生产 agent 时，缺任一环都会降低可解释性和可治理性。",
+      "reasoning_summary": "LlamaIndex RAG workflow shows reranking and tracing; RAGAS material provides evaluation metrics; scalar-enhanced RAG material highlights version/noise/audit controls; OWASP identifies RAG document manipulation as a security risk; RAGFlow positions RAG as a context layer. These sources jointly support the design principle.",
+      "confidence_score": "0.9000",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "8142cbd2-90a4-4af4-a219-99b98f6be20f",
+        "7ca68773-6396-470a-9596-9e6ffaf730a9",
+        "612aa009-dc84-4b04-ab7b-f3717320b2b2",
+        "57f0bf27-ea7e-46b1-b5e2-ee7662caf787",
+        "30db5afc-a716-43eb-9948-3651bce02f80",
+        "160c3669-5847-432b-878f-9deb53d6b797"
+      ],
+      "source_object_ids": [
+        "8142cbd2-90a4-4af4-a219-99b98f6be20f",
+        "7ca68773-6396-470a-9596-9e6ffaf730a9",
+        "612aa009-dc84-4b04-ab7b-f3717320b2b2",
+        "57f0bf27-ea7e-46b1-b5e2-ee7662caf787",
+        "30db5afc-a716-43eb-9948-3651bce02f80",
+        "160c3669-5847-432b-878f-9deb53d6b797"
+      ],
+      "metadata": {
+        "content_hash": "cc8f3190ade56dfa9523b1fa7282573f8da5b0232b6f63a18f16724ac7302ebe",
+        "evidence_bound": true,
+        "source_documents": [
+          {
+            "document_id": "faab8ac8-1c53-444b-a302-14d2af1dcb3a",
+            "document_title": "LlamaIndex RAG Workflow with Reranking",
+            "evidence_source_uri": "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2"
+          },
+          {
+            "document_id": "40a517a9-f690-4a55-8d64-84163993e1a1",
+            "document_title": "Ragas 大模型评测框架深度调研指南",
+            "evidence_source_uri": "https://www.cnblogs.com/yangykaifa/p/19616131#section-63"
+          },
+          {
+            "document_id": "faab8ac8-1c53-444b-a302-14d2af1dcb3a",
+            "document_title": "LlamaIndex RAG Workflow with Reranking",
+            "evidence_source_uri": "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12"
+          },
+          {
+            "document_id": "e0c1fde2-71a4-42ae-be9f-a57a15cce489",
+            "document_title": "AI Agent 的长期记忆工程取舍",
+            "evidence_source_uri": "https://www.phppan.com/tag/rag#section-43"
+          },
+          {
+            "document_id": "8eb51ff8-fd5a-4b39-ac1d-a03acbaf744e",
+            "document_title": "OWASP LLM Prompt Injection",
+            "evidence_source_uri": "https://genai.owasp.org/llmrisk/llm01-prompt-injection#section-17"
+          },
+          {
+            "document_id": "2db5029b-3021-4445-b66e-ddfb11d67b94",
+            "document_title": "RAGFlow 开源项目",
+            "evidence_source_uri": "https://github.com/infiniflow/ragflow#section-9"
+          }
+        ],
+        "source_object_type": "evidence",
+        "model_layer_executor": "codex",
+        "governance_output_type": "derived_knowledge",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T06:54:32.409Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 6,
+      "source_uri_count": 6
+    },
+    {
+      "id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
+      "knowledge_type": "cross_source_pattern",
+      "title": "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时",
+      "content": "# Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时\n\n主流 Agent 框架的共同方向不是只封装一次 LLM 调用，而是把工具、记忆、状态、工作流、多智能体协作、人类介入和评估组合成可运行、可调试、可扩展的运行时。\n\n工程含义：\n\n1. Agent 设计应先明确运行时边界：状态如何保存、工具如何注册、任务如何编排、失败如何恢复。\n2. 多智能体不是默认答案，只有当角色分工、消息路由和停止条件明确时才有价值。\n3. human-in-the-loop、MCP、RAG、长期记忆和评估不应是外挂点缀，而应进入框架能力矩阵。\n4. 选择框架时要看可观测、部署、状态持久化和治理能力，而不是只看 demo 复杂度。\n\n适用边界：适用于生产 agent、自动化工作流和多工具系统；简单单轮聊天不需要完整 runtime。",
+      "reasoning_summary": "AgentScope, CrewAI, Google ADK, InternLM Lagent, MetaGPT, and CAMEL facts show convergence around tools, memory, multi-agent workflows, state, evaluation, and production deployment. This supports a runtime-level pattern for agent framework selection.",
+      "confidence_score": "0.8900",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "80968a46-f75a-4e02-ab71-d4bd65ed84f6",
+        "f09380a9-45c9-48d9-a128-8a288907f118",
+        "d736cfa0-7bf4-40df-9a73-7d8d760decab",
+        "32335c2c-2cfe-4ee2-8f88-b1c52a18ee4f",
+        "2f7badce-e23b-4203-be20-222b137adc62",
+        "74472ff6-0578-47ac-98ee-42de6ca3d83d",
+        "1043fccc-fd11-41c3-a8f1-108e7301b770",
+        "1c5f090f-7a18-45dc-a698-87a7dab03534"
+      ],
+      "source_object_ids": [
+        "80968a46-f75a-4e02-ab71-d4bd65ed84f6",
+        "f09380a9-45c9-48d9-a128-8a288907f118",
+        "d736cfa0-7bf4-40df-9a73-7d8d760decab",
+        "32335c2c-2cfe-4ee2-8f88-b1c52a18ee4f",
+        "2f7badce-e23b-4203-be20-222b137adc62",
+        "74472ff6-0578-47ac-98ee-42de6ca3d83d",
+        "1043fccc-fd11-41c3-a8f1-108e7301b770",
+        "1c5f090f-7a18-45dc-a698-87a7dab03534"
+      ],
+      "metadata": {
+        "content_hash": "5c689c73528d67c941d8acb6faf354c166db7d27e506fe4a65c3cb48ea81de60",
+        "evidence_bound": true,
+        "source_documents": [
+          {
+            "document_id": "bc27920a-c516-43d6-8cfd-93900b80be9b",
+            "document_title": "AgentScope 中文主页",
+            "evidence_source_uri": "https://github.com/agentscope-ai/agentscope#section-10"
+          },
+          {
+            "document_id": "1241fda2-9354-4202-bb86-0041bafab5e6",
+            "document_title": "CrewAI Documentation",
+            "evidence_source_uri": "https://docs.crewai.com#section-6"
+          },
+          {
+            "document_id": "bc27920a-c516-43d6-8cfd-93900b80be9b",
+            "document_title": "AgentScope 中文主页",
+            "evidence_source_uri": "https://github.com/agentscope-ai/agentscope#section-27"
+          },
+          {
+            "document_id": "56b4d17e-bc30-43d3-87dd-612185687503",
+            "document_title": "CAMEL AI Documentation",
+            "evidence_source_uri": "https://docs.camel-ai.org#section-6"
+          },
+          {
+            "document_id": "af5c9c18-907a-44e2-b387-09ebbe03d525",
+            "document_title": "MetaGPT 多智能体框架",
+            "evidence_source_uri": "https://github.com/geekan/MetaGPT#section-8"
+          },
+          {
+            "document_id": "455316a9-6b21-4dd4-aa87-ad5265e62b5e",
+            "document_title": "InternLM Lagent",
+            "evidence_source_uri": "https://github.com/InternLM/lagent#section-12"
+          },
+          {
+            "document_id": "910b0bc4-a56a-4cc8-b432-629834c71a55",
+            "document_title": "Google Agent Development Kit",
+            "evidence_source_uri": "https://google.github.io/adk-docs#section-3"
+          },
+          {
+            "document_id": "1241fda2-9354-4202-bb86-0041bafab5e6",
+            "document_title": "CrewAI Documentation",
+            "evidence_source_uri": "https://docs.crewai.com#section-7"
+          }
+        ],
+        "source_object_type": "evidence",
+        "model_layer_executor": "codex",
+        "governance_output_type": "derived_knowledge",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T07:18:53.579Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 8,
+      "source_uri_count": 8
+    },
+    {
+      "id": "a9947a35-1621-4f30-b48d-60b3b171e86e",
+      "knowledge_type": "cross_source_pattern",
+      "title": "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节",
+      "content": "成熟 RAG 不应被实现成“向量检索后直接拼上下文”。更稳的形态是把流程拆成：索引/入库、候选检索、证据装配、回答约束、过程追踪与评估。检索只负责找候选，证据装配负责控制进入模型的上下文，回答约束负责在证据不足时拒答或降级，可观测性负责定位召回与生成问题。\n\n适用场景：面向真实用户的问题回答、知识库问答、agent 工具检索。\n边界：简单静态 FAQ 可以简化为两步链路；但当来源复杂、需要审计或需要持续改进时，应拆分这些环节。",
+      "reasoning_summary": "LangChain RAG 教程把 indexing 与 retrieval/generation 分开，并提供“证据不足则说不知道”的回答约束；同一教程也强调复杂链路需要 inspect 内部步骤。该模式支持把 RAG 做成可评估、可治理链路，而不是一次性文本拼接。",
+      "confidence_score": "0.8800",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "d40131b9-84f4-49b4-8c10-7cc9c10583d2",
+        "ff653bf5-026d-4107-9136-b8aad893bb5c",
+        "0cca34ef-d866-4266-8575-d97e9a931bcd",
+        "7ab242bb-b2b8-4c68-ac52-dc419768947a"
+      ],
+      "source_object_ids": [
+        "d40131b9-84f4-49b4-8c10-7cc9c10583d2",
+        "ff653bf5-026d-4107-9136-b8aad893bb5c",
+        "0cca34ef-d866-4266-8575-d97e9a931bcd",
+        "7ab242bb-b2b8-4c68-ac52-dc419768947a"
+      ],
+      "metadata": {
+        "governor": "codex_manual",
+        "keywords": [
+          "RAG",
+          "retrieval",
+          "证据",
+          "上下文装配",
+          "observability",
+          "不知道",
+          "inspect"
+        ],
+        "language": "zh-CN",
+        "evidence_policy": "section/evidence-backed",
+        "source_object_type": "evidence",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T01:52:52.619Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 4,
+      "source_uri_count": 4
+    },
+    {
+      "id": "0d11712f-0274-41f3-b781-b8ebe052d360",
+      "knowledge_type": "boundary_condition",
+      "title": "图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断",
+      "content": "# 图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断\n\nGraphRAG 的价值在于利用实体、关系和本体组织候选知识，尤其适合跨文档、多跳、层级引用和语义关系明确的问题。但图谱本身不是可信答案生成器：边的存在不等于事实有效，路径可达不等于证据充分。\n\n因此图谱路线应遵守三个边界：\n\n1. 图谱负责组织候选和扩展关系，不负责单独裁决最终答案。\n2. 关系必须来自治理后的事实和证据，弱相关内容允许保持孤岛，不能强行连边。\n3. 最终上下文仍要落到 evidence / canonical markdown，保证可审查、可回滚、可纠错。\n\n适用边界：当问题涉及因果链、概念演化、跨来源比较、依赖关系、冲突消解时，图谱价值较高；当问题只是精确查找单个字段时，关键词或结构化过滤可能更直接。",
+      "reasoning_summary": "GraphRAG comparison facts show graph retrieval uses semantic relationships and ontologies. Traditional RAG critique shows flat chunk retrieval loses logic and cross-reference paths. Memory architecture critique warns that structured knowledge and confidence calibration are missing from flat vector memory. These facts support a boundary: graph helps organize retrieval, but evidence governance still decides trust.",
+      "confidence_score": "0.8800",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "7b7330e5-6d29-4e7e-a7a2-e9f8bf3e6dae",
+        "491607ce-0e85-4be8-a61b-10b6ed56d38a",
+        "7457b630-9142-4e63-923e-353a3c77dcde"
+      ],
+      "source_object_ids": [
+        "7b7330e5-6d29-4e7e-a7a2-e9f8bf3e6dae",
+        "491607ce-0e85-4be8-a61b-10b6ed56d38a",
+        "7457b630-9142-4e63-923e-353a3c77dcde"
+      ],
+      "metadata": {
+        "content_hash": "f03b686c05021d21d5ce77a3319a32e62d52a51f5806715a6e7ce2b74d853018",
+        "evidence_bound": true,
+        "source_documents": [
+          {
+            "document_id": "d4dcbfd7-667d-41bb-8971-07c82b705a50",
+            "document_title": "agent 长期中期短期记忆调研",
+            "evidence_source_uri": "https://www.flandre.ltd/agent-memory#section-5"
+          },
+          {
+            "document_id": "1de2e661-c036-441b-9419-b31cde65bd79",
+            "document_title": "A memory architecture for agentic system",
+            "evidence_source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-43"
+          },
+          {
+            "document_id": "1de2e661-c036-441b-9419-b31cde65bd79",
+            "document_title": "A memory architecture for agentic system",
+            "evidence_source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-42"
+          }
+        ],
+        "source_object_type": "evidence",
+        "model_layer_executor": "codex",
+        "governance_output_type": "derived_knowledge",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T07:13:08.339Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 3,
+      "source_uri_count": 3
+    },
+    {
+      "id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
+      "knowledge_type": "cross_source_pattern",
+      "title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+      "content": "# 成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统\n\n多个开源产品的共同趋势是：知识库不再只是“上传文档后问答”，而是在向数据处理、RAG 检索、可视化工作流、Agent 编排和多源数据接入融合。\n\n这个趋势对我们的设计有三个含义：\n\n1. 知识系统应提供统一 ingest / governance / recall / evidence trace，而不是只做文档列表。\n2. Ops Console 不是最终产品形态，但必须能解释入库、抽取、治理、召回和证据使用情况。\n3. 知识治理产物应能服务 Agent 和 workflow，不只服务问答页面。\n\n适用边界：这条模式用于产品方向和系统边界判断；具体实现仍应按我们当前路线分层落地，避免一次性复制完整低代码平台。",
+      "reasoning_summary": "FastGPT, RAGFlow, DB-GPT, and related open-source products describe combinations of knowledge bases, RAG retrieval, visual workflow orchestration, multi-source data access, and agent capabilities. The convergence supports a product-level pattern for unified knowledge systems.",
+      "confidence_score": "0.8600",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "3ad0b906-0063-4e20-a9d8-da781298bc2f",
+        "7078bcad-39e9-4003-87dc-74e4e8525c0c",
+        "e870de58-533c-4969-bec7-3d86489ee95b",
+        "19935f83-14d8-409b-8a8f-3459e1a5f556",
+        "d8ce9890-ce73-44a4-b2ea-d53581659d65",
+        "305e63a4-9698-4b16-a818-87bfcf9ff655"
+      ],
+      "source_object_ids": [
+        "3ad0b906-0063-4e20-a9d8-da781298bc2f",
+        "7078bcad-39e9-4003-87dc-74e4e8525c0c",
+        "e870de58-533c-4969-bec7-3d86489ee95b",
+        "19935f83-14d8-409b-8a8f-3459e1a5f556",
+        "d8ce9890-ce73-44a4-b2ea-d53581659d65",
+        "305e63a4-9698-4b16-a818-87bfcf9ff655"
+      ],
+      "metadata": {
+        "content_hash": "7b8169675d54fbd93c89dba30e9a0317ed0ef4287f59e890f332bcf760f5d91e",
+        "evidence_bound": true,
+        "source_documents": [
+          {
+            "document_id": "2db5029b-3021-4445-b66e-ddfb11d67b94",
+            "document_title": "RAGFlow 开源项目",
+            "evidence_source_uri": "https://github.com/infiniflow/ragflow#section-17"
+          },
+          {
+            "document_id": "2db5029b-3021-4445-b66e-ddfb11d67b94",
+            "document_title": "RAGFlow 开源项目",
+            "evidence_source_uri": "https://github.com/infiniflow/ragflow#section-35"
+          },
+          {
+            "document_id": "1ab444cf-9fa5-4cf6-92ef-257ec70c6e70",
+            "document_title": "DB-GPT 开源数据应用开发框架",
+            "evidence_source_uri": "https://github.com/eosphoros-ai/DB-GPT#section-12"
+          },
+          {
+            "document_id": "74c39fd8-faec-4417-bd00-7e682419b9ec",
+            "document_title": "FastGPT 开源知识库项目",
+            "evidence_source_uri": "https://github.com/labring/FastGPT#section-18"
+          },
+          {
+            "document_id": "1ab444cf-9fa5-4cf6-92ef-257ec70c6e70",
+            "document_title": "DB-GPT 开源数据应用开发框架",
+            "evidence_source_uri": "https://github.com/eosphoros-ai/DB-GPT#section-13"
+          },
+          {
+            "document_id": "74c39fd8-faec-4417-bd00-7e682419b9ec",
+            "document_title": "FastGPT 开源知识库项目",
+            "evidence_source_uri": "https://github.com/labring/FastGPT#section-8"
+          }
+        ],
+        "source_object_type": "evidence",
+        "model_layer_executor": "codex",
+        "governance_output_type": "derived_knowledge",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T07:13:08.339Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 6,
+      "source_uri_count": 6
+    },
+    {
+      "id": "1d369420-4e4b-4e1c-bf5c-77a857918c52",
+      "knowledge_type": "boundary_condition",
+      "title": "图谱抽取不等于知识治理，chunk 内路径只能作为图谱候选",
+      "content": "Property graph / KG extractor 可以从 chunk 中抽取实体和关系路径，但这只是图谱候选生成，不等于已经完成跨来源知识治理。真正可召回的知识图谱需要再做跨文档去重、冲突检测、关系合并、适用边界判断和 evidence 绑定；否则图谱只是把 chunk 噪声结构化，并不会自动变聪明。\n\n适用场景：GraphRAG、知识图谱入库、文档关系抽取。\n边界：单文档问答或局部导航可以直接使用 chunk-level path；跨来源推理、长期知识沉淀和默认召回必须经过治理层确认。",
+      "reasoning_summary": "LlamaIndex Property Graph 文档说明 property graph 是带标签节点和关系的集合，construction 阶段通过 kg_extractors 在 chunk 上抽取实体关系并附加到节点。这个机制能生成候选图谱，但证据没有说明它会自动完成跨来源治理，因此应把它放在候选层而不是最终知识层。",
+      "confidence_score": "0.8600",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "217e706d-f488-4ed4-8be3-45aa3ead8b76",
+        "f486d854-9ae0-4770-b6a3-394f75ac366e",
+        "ac9878cf-754e-420b-be6b-dcccd5b6d284"
+      ],
+      "source_object_ids": [
+        "217e706d-f488-4ed4-8be3-45aa3ead8b76",
+        "f486d854-9ae0-4770-b6a3-394f75ac366e",
+        "ac9878cf-754e-420b-be6b-dcccd5b6d284"
+      ],
+      "metadata": {
+        "governor": "codex_manual",
+        "keywords": [
+          "GraphRAG",
+          "knowledge graph",
+          "图谱",
+          "kg extractor",
+          "chunk",
+          "治理",
+          "跨来源"
+        ],
+        "language": "zh-CN",
+        "evidence_policy": "section/evidence-backed",
+        "source_object_type": "evidence",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T01:52:52.619Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 3,
+      "source_uri_count": 3
+    }
+  ],
+  "synthesized_evidence_sample": [
+    {
+      "synthesized_knowledge_id": "e9324616-1e7c-4bf2-905a-7c59e672d7ff",
+      "synthesized_title": "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+      "evidence_id": "90895773-02f8-425c-a102-d8cfdda4962c",
+      "source_uri": "https://docs.mem0.ai/overview#section-2",
+      "source_type": "markdown_file",
+      "content_excerpt": "Managed memory layer for AI agents - production-ready in minutes Mem0 Platform Overview Mem0 is the memory engine that keeps conversations contextual so users never repeat themselves and your agents respond with conti..."
+    },
+    {
+      "synthesized_knowledge_id": "e9324616-1e7c-4bf2-905a-7c59e672d7ff",
+      "synthesized_title": "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+      "evidence_id": "afdeadd9-c1ab-40c5-83cd-50efe91fc7a2",
+      "source_uri": "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+      "source_type": "markdown_text",
+      "content_excerpt": "Information retrieval is an asymmetrical problem: It&rsquo;s hard to solve, but easy to verify. By using real-time verification, we gain the power of pre-stored memories while avoiding the risk of outdated or misleadi..."
+    },
+    {
+      "synthesized_knowledge_id": "e9324616-1e7c-4bf2-905a-7c59e672d7ff",
+      "synthesized_title": "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+      "evidence_id": "f4523ddf-7e96-4a0c-816b-d10d43bb14c8",
+      "source_uri": "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-18",
+      "source_type": "markdown_text",
+      "content_excerpt": "The ultimate test of our memory system was its impact on real developers in their everyday workflows. We ran A/B tests on the first two Copilot agents to deploy memory, Copilot code review and Copilot coding agent, me..."
+    },
+    {
+      "synthesized_knowledge_id": "e9324616-1e7c-4bf2-905a-7c59e672d7ff",
+      "synthesized_title": "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+      "evidence_id": "5da1314c-8e4b-41bd-917c-53014eb08c3e",
+      "source_uri": "https://eastondev.com/blog/zh/posts/ai/20260413-ai-agent-memory#section-2",
+      "source_type": "markdown_file",
+      "content_excerpt": "先看一组数据，来自 LOCOMO 基准测试（专门评测 Agent 记忆能力的权威数据集）： 表面上看，Full-context 准确率更高。但你愿意等 10 秒钟吗？更关键的是，Token 消耗差了 13 倍。按 GPT-4 的定价，每次对话光上下文就要烧掉几毛钱。 打个比方。你在图书馆找一本书。图书馆只有 10 本书的时候，你扫一眼就找到了。图书馆有 10 万本书的时候——哪怕你可以同时看到所有书的封面——你也得花很长时间才能找..."
+    },
+    {
+      "synthesized_knowledge_id": "e9324616-1e7c-4bf2-905a-7c59e672d7ff",
+      "synthesized_title": "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+      "evidence_id": "ed3a922b-6624-4768-b384-799e293d0e63",
+      "source_uri": "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-10",
+      "source_type": "markdown_text",
+      "content_excerpt": "We implemented memory creation as a tool that agents can invoke when they discover something that&rsquo;s likely to have actionable implications for future tasks. How Copilot agents store learnings worth remembering a..."
+    },
+    {
+      "synthesized_knowledge_id": "13f4d447-0e71-41f2-9281-2f46e364501f",
+      "synthesized_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+      "evidence_id": "fddd0e4d-0517-483b-a666-74d7614559f3",
+      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-84",
+      "source_type": "markdown_file",
+      "content_excerpt": "- Implementing a Secure Sandbox for Local Agents — Cursor's cross-platform sandbox implementation (macOS Seatbelt, Linux Landlock + seccomp, Windows WSL2) that lets agents run freely within a boundary and request appr..."
+    },
+    {
+      "synthesized_knowledge_id": "13f4d447-0e71-41f2-9281-2f46e364501f",
+      "synthesized_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+      "evidence_id": "1b84839b-0e30-4873-9ada-86e836db4a50",
+      "source_uri": "https://github.com/eosphoros-ai/DB-GPT#section-30",
+      "source_type": "markdown_file",
+      "content_excerpt": "- sandboxed code execution - controlled tool use - reproducible outputs and artifacts"
+    },
+    {
+      "synthesized_knowledge_id": "13f4d447-0e71-41f2-9281-2f46e364501f",
+      "synthesized_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+      "evidence_id": "27f765a1-5c60-4739-8f7f-2ed9f1942af6",
+      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-39",
+      "source_type": "markdown_file",
+      "content_excerpt": "- Claude Agent SDK — Configure Permissions — The most concrete reference for harness permission architecture: five-layer evaluation order (hooks → deny rules → permission mode → allow rules → canUseTool), allowedTools..."
+    },
+    {
+      "synthesized_knowledge_id": "13f4d447-0e71-41f2-9281-2f46e364501f",
+      "synthesized_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+      "evidence_id": "f9081e96-00fa-4d87-a9a7-50fd10422ad4",
+      "source_uri": "https://python.langchain.com/docs/tutorials/rag#section-24",
+      "source_type": "markdown_file",
+      "content_excerpt": "RAG applications are susceptible to indirect prompt injection . Retrieved documents may contain text that resembles instructions (e.g., “respond in JSON format” or “ignore previous instructions”). Because the retrieve..."
+    },
+    {
+      "synthesized_knowledge_id": "13f4d447-0e71-41f2-9281-2f46e364501f",
+      "synthesized_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+      "evidence_id": "9271c7a6-ed9b-48bc-99ab-c9c8d263323c",
+      "source_uri": "https://modelcontextprotocol.io/specification/draft/basic/authorization#section-2",
+      "source_type": "markdown_file",
+      "content_excerpt": "The Model Context Protocol provides authorization capabilities at the transport level, enabling MCP clients to make requests to restricted MCP servers on behalf of resource owners. This specification defines the autho..."
+    },
+    {
+      "synthesized_knowledge_id": "13f4d447-0e71-41f2-9281-2f46e364501f",
+      "synthesized_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+      "evidence_id": "4c98e074-48a7-4e58-a3c1-5d833b5f4af4",
+      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-31",
+      "source_type": "markdown_file",
+      "content_excerpt": "- Design Patterns for Deploying AI Agents with Model Context Protocol — March 2026 field report from an enterprise MCP deployment identifying three protocol-level gaps that break production: missing identity propagati..."
+    },
+    {
+      "synthesized_knowledge_id": "27cb6336-4567-4d8e-94de-f4246b71c30d",
+      "synthesized_title": "长期记忆召回不能只做相似检索，必须在使用时验证有效性",
+      "evidence_id": "a4ddc3b6-52fc-471e-b246-5e5a0b49548d",
+      "source_uri": "https://docs.langchain.com/oss/javascript/concepts/memory#section-7",
+      "source_type": "markdown_text",
+      "content_excerpt": "However, this shifts some complexity memory updating. The model must now delete or update existing items in the list, which can be tricky. In addition, some models may default to over-inserting and others may default ..."
+    },
+    {
+      "synthesized_knowledge_id": "27cb6336-4567-4d8e-94de-f4246b71c30d",
+      "synthesized_title": "长期记忆召回不能只做相似检索，必须在使用时验证有效性",
+      "evidence_id": "afdeadd9-c1ab-40c5-83cd-50efe91fc7a2",
+      "source_uri": "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
+      "source_type": "markdown_text",
+      "content_excerpt": "Information retrieval is an asymmetrical problem: It&rsquo;s hard to solve, but easy to verify. By using real-time verification, we gain the power of pre-stored memories while avoiding the risk of outdated or misleadi..."
+    },
+    {
+      "synthesized_knowledge_id": "27cb6336-4567-4d8e-94de-f4246b71c30d",
+      "synthesized_title": "长期记忆召回不能只做相似检索，必须在使用时验证有效性",
+      "evidence_id": "3de88388-2155-4db1-ae6d-260f48216937",
+      "source_uri": "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-8",
+      "source_type": "markdown_text",
+      "content_excerpt": "Our agents continuously improve at extracting the context needed for specific tasks. The core challenge for memory systems isn&rsquo;t about information retrieval, but ensuring that any stored knowledge remains valid ..."
+    },
+    {
+      "synthesized_knowledge_id": "00b5be19-f96b-4c29-8733-fdf609750796",
+      "synthesized_title": "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+      "evidence_id": "0c942337-c42f-404e-b8c4-180775eeb400",
+      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-47",
+      "source_type": "markdown_file",
+      "content_excerpt": "- Harness Engineering — How task runners fit into the harness: queueing, parallelism, and progress reporting. - Building a C Compiler with a Team of Parallel Claudes — Anthropic's account of coordinating 16 Claude ins..."
+    },
+    {
+      "synthesized_knowledge_id": "00b5be19-f96b-4c29-8733-fdf609750796",
+      "synthesized_title": "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+      "evidence_id": "36b0792c-c824-4657-8c55-2189268773fc",
+      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-73",
+      "source_type": "markdown_file",
+      "content_excerpt": "- AutoAgent — Open-source library (April 2026) that automates the harness engineering loop itself: give it a task and a benchmark, and it iterates overnight on system prompts, tool configurations, agent orchestration,..."
+    },
+    {
+      "synthesized_knowledge_id": "00b5be19-f96b-4c29-8733-fdf609750796",
+      "synthesized_title": "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+      "evidence_id": "fe2190fe-2a5c-448c-831c-5617b303fb40",
+      "source_uri": "https://deepeval.com/docs/introduction#section-14",
+      "source_type": "markdown_file",
+      "content_excerpt": "Runtime records of your agent's steps, spans, inputs, outputs, tool calls, and component behavior."
+    },
+    {
+      "synthesized_knowledge_id": "00b5be19-f96b-4c29-8733-fdf609750796",
+      "synthesized_title": "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+      "evidence_id": "f39ba11e-3a5c-40fd-b29b-ebd4b970b72d",
+      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-89",
+      "source_type": "markdown_file",
+      "content_excerpt": "- Demystifying Evals for AI Agents — Anthropic's comprehensive guide to agent evaluation: trajectory evals, outcome evals, and how to build eval harnesses that are themselves reliable. - DeepEval — The most complete o..."
+    },
+    {
+      "synthesized_knowledge_id": "00b5be19-f96b-4c29-8733-fdf609750796",
+      "synthesized_title": "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+      "evidence_id": "401ba72f-058b-4b31-986a-9e52121aebfb",
+      "source_uri": "https://openai.github.io/openai-agents-js/guides/agents#section-19",
+      "source_type": "markdown_file",
+      "content_excerpt": "When you use deferred Responses tools such as toolNamespace() , function tools with deferLoading: true , or hosted MCP tools with deferLoading: true , keep modelSettings.toolChoice on 'auto' . The SDK rejects forcing ..."
+    },
+    {
+      "synthesized_knowledge_id": "00b5be19-f96b-4c29-8733-fdf609750796",
+      "synthesized_title": "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+      "evidence_id": "fddd0e4d-0517-483b-a666-74d7614559f3",
+      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-84",
+      "source_type": "markdown_file",
+      "content_excerpt": "- Implementing a Secure Sandbox for Local Agents — Cursor's cross-platform sandbox implementation (macOS Seatbelt, Linux Landlock + seccomp, Windows WSL2) that lets agents run freely within a boundary and request appr..."
+    },
+    {
+      "synthesized_knowledge_id": "bb379f22-d450-40e5-ba02-ed021281ad64",
+      "synthesized_title": "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+      "evidence_id": "4c47cc9f-528d-470d-9b15-b268afe3654e",
+      "source_uri": "https://www.phppan.com/tag/rag#section-50",
+      "source_type": "markdown_file",
+      "content_excerpt": "使用 BM25 集成，把「关键词命中能力」补回来 稠密向量检索（Dense / Embedding） ： 适合语义相近的表达，用户措辞变化大也能匹配到。 稀疏检索（Sparse / BM25） ： 适合精确词匹配，尤其是专有名词、编号、字段名、错误码、产品型号、合同条款号。 用户问了一个带编号/字段名的问题，向量检索给你一堆语义很像的段落，但就是没有那个编号对应的条款；BM25 往往一搜就中。 对“必须精确命中”的问题更稳（例如政..."
+    },
+    {
+      "synthesized_knowledge_id": "bb379f22-d450-40e5-ba02-ed021281ad64",
+      "synthesized_title": "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+      "evidence_id": "a25c79d7-b0c9-42b9-9c49-69c7ae27eda3",
+      "source_uri": "https://www.phppan.com/tag/rag#section-51",
+      "source_type": "markdown_file",
+      "content_excerpt": "方式 A：并行召回 + 合并去重 + 重排 用统一的 rerank（或简单规则）排出最终 TopN 这个方式的优点是直观，问题也直观：候选集会变大，要控制 K 和 rerank 成本。 国内阿里云的向量数据库有多维向量的逻辑，可指定权重召回。 方式 B：BM25 做第一阶段召回，向量做第二阶段精排（两段式） 适合语料特别大、向量检索成本高的场景。BM25 先把范围缩小，再在小集合里做语义相似度和重排。"
+    },
+    {
+      "synthesized_knowledge_id": "bb379f22-d450-40e5-ba02-ed021281ad64",
+      "synthesized_title": "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+      "evidence_id": "87da615b-dde6-4c20-8275-40aee50ad3c2",
+      "source_uri": "https://www.phppan.com/tag/rag#section-53",
+      "source_type": "markdown_file",
+      "content_excerpt": "以上的策略也不是一定要一起上，可以按阶段实施： 人工切分打标 ：先把结构、版本、权限、范围做干净 BM25 集成 ：把关键字硬命中能力补齐，减少离谱失败 上下文增强 ：解决「切碎」和「孤句误读」 标量增强 ：把线上结果变得可控、可解释、可审计 多向量检索 ：针对表格/图片/长文档，把跨形态检索打通 这 5 个策略并不冲突，实际生产系统基本是叠加使用： BM25 兜底精确命中，向量负责语义召回，标量负责边界条件，上下文负责可读证据，..."
+    },
+    {
+      "synthesized_knowledge_id": "bb379f22-d450-40e5-ba02-ed021281ad64",
+      "synthesized_title": "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+      "evidence_id": "d83822a8-1ba0-4658-9b42-a20964d5dd57",
+      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-19",
+      "source_type": "markdown_file",
+      "content_excerpt": "$2.00 / 1K searches Cross-encoder, 100+ languages, max 1K docs/call Naive LLM reranking (GPT-4o) ~$162K/day at 10 qps 75 candidates x 500 tokens = 37.5K tokens/query Optimal candidate set: 50-75 documents. Reranking 5..."
+    },
+    {
+      "synthesized_knowledge_id": "bb379f22-d450-40e5-ba02-ed021281ad64",
+      "synthesized_title": "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+      "evidence_id": "966c496d-9e82-40e2-9977-72c97e3ba5f2",
+      "source_uri": "https://www.phppan.com/tag/rag#section-32",
+      "source_type": "markdown_file",
+      "content_excerpt": "RAG 的检索链路，拆开看就两件事： 召回 ：把“可能相关”的材料尽量找全 排序 ：把“真正相关”的材料尽量排前 这两件事对应的常见失败模式也很固定： 同义相似但不相关 ：语义像，但不是答案需要的证据 关键词命中但语义不近 ：专有名词、编号、表格字段，向量不敏感 被切碎 ：答案跨段、跨页，chunk 切断了前后依赖 证据形态不对 ：表格、图片、公式、目录结构，直接 embed 很容易失真 同一问题在不同时间答案不同 ：版本、日期、..."
+    },
+    {
+      "synthesized_knowledge_id": "bb379f22-d450-40e5-ba02-ed021281ad64",
+      "synthesized_title": "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+      "evidence_id": "7c07a115-10a8-4b03-9cfb-e1bb0b41df2c",
+      "source_uri": "https://www.phppan.com/tag/rag#section-52",
+      "source_type": "markdown_file",
+      "content_excerpt": "把 BM25 当主力 ：BM25 对同义改写不敏感，用户表达一变就丢召回 权重拍脑袋 ：BM25 和向量的分数尺度不同，直接线性加权经常不稳定 更稳的做法通常是：先归一化，再做合并；或者交给 rerank 做最终裁决。 分词质量不过关 ：中文 BM25 的效果强依赖分词/词典 词典里把产品名、缩写、字段名补齐，收益很实在。"
+    },
+    {
+      "synthesized_knowledge_id": "4ca426c6-0887-4126-b78b-bca632f3c22f",
+      "synthesized_title": "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+      "evidence_id": "fe2190fe-2a5c-448c-831c-5617b303fb40",
+      "source_uri": "https://deepeval.com/docs/introduction#section-14",
+      "source_type": "markdown_file",
+      "content_excerpt": "Runtime records of your agent's steps, spans, inputs, outputs, tool calls, and component behavior."
+    },
+    {
+      "synthesized_knowledge_id": "4ca426c6-0887-4126-b78b-bca632f3c22f",
+      "synthesized_title": "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+      "evidence_id": "c65ae60d-a590-49d0-93de-b3fdbcbb3b79",
+      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-55",
+      "source_type": "markdown_file",
+      "content_excerpt": "- OpenLLMetry — OpenTelemetry-based instrumentation for LLM calls and agent steps: adds trace spans to every inference and tool call without modifying business logic. The cleanest way to bring the existing OTEL ecosys..."
+    },
+    {
+      "synthesized_knowledge_id": "4ca426c6-0887-4126-b78b-bca632f3c22f",
+      "synthesized_title": "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+      "evidence_id": "0db04bf2-678a-422d-8aed-b334767bab66",
+      "source_uri": "https://langfuse.com/docs#section-12",
+      "source_type": "markdown_file",
+      "content_excerpt": "- Open source: Fully open source with public API for custom integrations - Production optimized: Designed with minimal performance overhead - Best-in-class SDKs: Native SDKs for Python and JavaScript - Framework suppo..."
+    },
+    {
+      "synthesized_knowledge_id": "4ca426c6-0887-4126-b78b-bca632f3c22f",
+      "synthesized_title": "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+      "evidence_id": "a8d4c2c8-2d35-4a7d-b8f5-742ebebe1ef5",
+      "source_uri": "https://github.com/aiming-lab/AutoHarness#section-15",
+      "source_type": "markdown_file",
+      "content_excerpt": "Agent runs rm -rf / , nothing stops it 6-step pipeline blocks it, logs it, explains why Context explodes past token limit Token budget + truncation keeps context under control No idea which tool call cost how much Per..."
+    },
+    {
+      "synthesized_knowledge_id": "4ca426c6-0887-4126-b78b-bca632f3c22f",
+      "synthesized_title": "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+      "evidence_id": "a2d97c43-0f75-4a64-b04c-f044c3ea0342",
+      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-97",
+      "source_type": "markdown_file",
+      "content_excerpt": "- FinOps for Agents: Loop Limits, Tool-Call Caps, and the New Unit Economics of Agentic SaaS — Defines five concrete budget guardrails enforced at the infrastructure gateway: loop/step limits, tool-call caps, per-run ..."
+    },
+    {
+      "synthesized_knowledge_id": "4ca426c6-0887-4126-b78b-bca632f3c22f",
+      "synthesized_title": "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
+      "evidence_id": "2d72c9b5-82a1-407f-94b6-500c27d25759",
+      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-33",
+      "source_type": "markdown_file",
+      "content_excerpt": "Described as an ordered timeline -- observations, tool calls, decisions, and outcomes -- like a \"flight recorder\" for agent workflows: - Capture concise per-step breadcrumbs: what happened, when, which tool/model, lin..."
+    },
+    {
+      "synthesized_knowledge_id": "560fe851-c746-41f2-9b2a-a8536cad13ba",
+      "synthesized_title": "Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词",
+      "evidence_id": "82e1316f-8dc3-4705-b371-b5fda50e935e",
+      "source_uri": "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-2",
+      "source_type": "markdown_file",
+      "content_excerpt": "The most useful framework for thinking about harness design distinguishes two fundamentally different kinds of controls. Guides are feedforward — they steer the agent before it acts. An AGENTS.md file is a guide. Arch..."
+    },
+    {
+      "synthesized_knowledge_id": "560fe851-c746-41f2-9b2a-a8536cad13ba",
+      "synthesized_title": "Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词",
+      "evidence_id": "c4030127-0443-45a4-be63-12e0dcdd8f90",
+      "source_uri": "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-6",
+      "source_type": "markdown_file",
+      "content_excerpt": "One of the most counterintuitive lessons from teams running agents at scale: trying to control agent behavior through verbose instructions in prompts doesn't scale. Instructions get long, agents start ignoring the one..."
+    },
+    {
+      "synthesized_knowledge_id": "560fe851-c746-41f2-9b2a-a8536cad13ba",
+      "synthesized_title": "Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词",
+      "evidence_id": "23b3b7a4-29c1-453f-b425-e59a49b15b32",
+      "source_uri": "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-7",
+      "source_type": "markdown_file",
+      "content_excerpt": "Any harness that asks the generating agent to judge its own output gets confidence without accuracy. This is not a subtle failure mode — it's a systematic bias. Models consistently overestimate the quality of code the..."
+    },
+    {
+      "synthesized_knowledge_id": "7a729f07-b6c5-4f62-a321-c3746beea5ad",
+      "synthesized_title": "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+      "evidence_id": "57f0bf27-ea7e-46b1-b5e2-ee7662caf787",
+      "source_uri": "https://www.phppan.com/tag/rag#section-43",
+      "source_type": "markdown_file",
+      "content_excerpt": "同一问题， 不同时间 答案不同：检索到旧版本会直接翻车 同一概念， 不同地区/产品线 口径不同：向量相似度分不出来 噪声文档 混进知识库：相似度很高但质量很差 需要 可解释、可审计 ：为什么给出这条证据，要说得清 把这些交给向量相似度，基本靠运气；交给标量逻辑，结果更可控。"
+    },
+    {
+      "synthesized_knowledge_id": "7a729f07-b6c5-4f62-a321-c3746beea5ad",
+      "synthesized_title": "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+      "evidence_id": "8142cbd2-90a4-4af4-a219-99b98f6be20f",
+      "source_uri": "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+      "source_type": "markdown_file",
+      "content_excerpt": "Section titled “[Optional] Set up observability with Llamatrace” Set up tracing to visualize each step in the workflow. % pip install \"openinference-instrumentation-llama-index>=3.0.0\" \"opentelemetry-proto>=1.12.0\" op..."
+    },
+    {
+      "synthesized_knowledge_id": "7a729f07-b6c5-4f62-a321-c3746beea5ad",
+      "synthesized_title": "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+      "evidence_id": "7ca68773-6396-470a-9596-9e6ffaf730a9",
+      "source_uri": "https://www.cnblogs.com/yangykaifa/p/19616131#section-63",
+      "source_type": "markdown_file",
+      "content_excerpt": "metrics = [ ContextPrecision ( ) , Faithfulness ( ) ] , llm = LangchainLLMWrapper ( local_evaluator )"
+    },
+    {
+      "synthesized_knowledge_id": "7a729f07-b6c5-4f62-a321-c3746beea5ad",
+      "synthesized_title": "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+      "evidence_id": "160c3669-5847-432b-878f-9deb53d6b797",
+      "source_uri": "https://github.com/infiniflow/ragflow#section-9",
+      "source_type": "markdown_file",
+      "content_excerpt": "RAGFlow is a leading open-source Retrieval-Augmented Generation ( RAG ) engine that fuses cutting-edge RAG with Agent capabilities to create a superior context layer for LLMs. It offers a streamlined RAG workflow adap..."
+    },
+    {
+      "synthesized_knowledge_id": "7a729f07-b6c5-4f62-a321-c3746beea5ad",
+      "synthesized_title": "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+      "evidence_id": "612aa009-dc84-4b04-ab7b-f3717320b2b2",
+      "source_uri": "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
+      "source_type": "markdown_file",
+      "content_excerpt": "ranker = LLMRerank( choice_batch_size = 5 , top_n = 3 , llm = OpenAI( model = \"gpt-4o-mini\" ) print ( await ctx.store.get( \"query\" , default = None ), flush = True ) new_nodes = ranker.postprocess_nodes( ev.nodes, que..."
+    },
+    {
+      "synthesized_knowledge_id": "7a729f07-b6c5-4f62-a321-c3746beea5ad",
+      "synthesized_title": "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+      "evidence_id": "30db5afc-a716-43eb-9948-3651bce02f80",
+      "source_uri": "https://genai.owasp.org/llmrisk/llm01-prompt-injection#section-17",
+      "source_type": "markdown_file",
+      "content_excerpt": "An attacker modifies a document in a repository used by a Retrieval-Augmented Generation (RAG) application. When a user&#8217;s query returns the modified content, the malicious instructions alter the LLM&#8217;s outp..."
+    },
+    {
+      "synthesized_knowledge_id": "185404b1-4d6b-48ea-8365-e2f05e806748",
+      "synthesized_title": "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+      "evidence_id": "c67c710c-37ef-47f6-85df-23ca204e22d9",
+      "source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-18",
+      "source_type": "markdown_file",
+      "content_excerpt": "For automated benchmarking, use the ConversationSimulator and return retrieval_context from your model callback so the metrics have the data they need: from deepeval.test_case import Turn from deepeval.simulator impor..."
+    },
+    {
+      "synthesized_knowledge_id": "185404b1-4d6b-48ea-8365-e2f05e806748",
+      "synthesized_title": "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+      "evidence_id": "0ad19f34-5432-4095-9fe5-c11266b0bfb6",
+      "source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-12",
+      "source_type": "markdown_file",
+      "content_excerpt": "With deepeval , you can easily unit test RAG applications in CI environments. We'll be using GitHub Actions and GitHub workflow as an example here. First, create a test file: from deepeval import assert_test from deep..."
+    },
+    {
+      "synthesized_knowledge_id": "185404b1-4d6b-48ea-8365-e2f05e806748",
+      "synthesized_title": "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+      "evidence_id": "e4108e4d-e814-43b0-a9d5-c0abd6fa4279",
+      "source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-16",
+      "source_type": "markdown_file",
+      "content_excerpt": "deepeval provides multi-turn equivalents of every single-turn RAG metric. They use a sliding window approach to evaluate retrieval quality in the context of the surrounding conversation: Single-Turn Metric Multi-Turn ..."
+    },
+    {
+      "synthesized_knowledge_id": "0a0a6d5d-9471-49cd-8803-5379393a3481",
+      "synthesized_title": "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理",
+      "evidence_id": "1e7f06e7-a076-43dd-adf2-697fe3d61746",
+      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-27",
+      "source_type": "markdown_file",
+      "content_excerpt": "Hong & He (2025, Frontiers in Psychology ) introduced a unified scoring method: - Recency : Memory decay score decreasing hourly by a decay factor of 0.995 - Importance : LLM-generated score of perceived significance ..."
+    },
+    {
+      "synthesized_knowledge_id": "0a0a6d5d-9471-49cd-8803-5379393a3481",
+      "synthesized_title": "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理",
+      "evidence_id": "b85790a2-a08f-489c-be76-4823dab8c752",
+      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-28",
+      "source_type": "markdown_file",
+      "content_excerpt": "A study at the 13th International Conference on Human-Agent Interaction proposed an Extended Declarative Memory Module computing activation scores dynamically by integrating: - Semantic similarity (vector space) - Fre..."
+    },
+    {
+      "synthesized_knowledge_id": "0a0a6d5d-9471-49cd-8803-5379393a3481",
+      "synthesized_title": "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理",
+      "evidence_id": "491607ce-0e85-4be8-a61b-10b6ed56d38a",
+      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-43",
+      "source_type": "markdown_file",
+      "content_excerpt": "Dan Giannone argues the vector-store-as-memory paradigm has fundamental architectural limitations: - Treats memory as snippet retrieval rather than structured knowledge - Bolts retrieval onto stateless models rather t..."
+    },
+    {
+      "synthesized_knowledge_id": "0a0a6d5d-9471-49cd-8803-5379393a3481",
+      "synthesized_title": "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理",
+      "evidence_id": "b63f4792-f6e7-4468-ac36-d1f2ed1ff421",
+      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-41",
+      "source_type": "markdown_file",
+      "content_excerpt": "Graphiti is a real-time, temporally-aware knowledge graph engine: - Incrementally processes incoming data without batch recomputation - Hybrid indexing: semantic embeddings + keyword search + graph traversal - Retriev..."
+    },
+    {
+      "synthesized_knowledge_id": "185404b1-4d6b-48ea-8365-e2f05e806748",
+      "synthesized_title": "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+      "evidence_id": "a4700168-e3fc-43a4-852a-bd6752eb644a",
+      "source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-11",
+      "source_type": "markdown_file",
+      "content_excerpt": "You can simply combine retrieval and generation metrics to evaluate a RAG pipeline, end-to-end. test_cases = test_cases, contextual_precision, contextual_recall, contextual_relevancy,"
+    },
+    {
+      "synthesized_knowledge_id": "185404b1-4d6b-48ea-8365-e2f05e806748",
+      "synthesized_title": "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+      "evidence_id": "ea76f855-c710-41e9-8283-2d8743ee6075",
+      "source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-6",
+      "source_type": "markdown_file",
+      "content_excerpt": "deepeval offers three LLM evaluation metrics to evaluate retrievals: ContextualPrecisionMetric : evaluates whether the reranker in your retriever ranks more relevant nodes in your retrieval context higher than irrelev..."
+    },
+    {
+      "synthesized_knowledge_id": "185404b1-4d6b-48ea-8365-e2f05e806748",
+      "synthesized_title": "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+      "evidence_id": "8bd033e9-5a1c-4fb9-9cde-ac31ef482ff8",
+      "source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-8",
+      "source_type": "markdown_file",
+      "content_excerpt": "deepeval offers two LLM evaluation metrics to evaluate generic generations: - AnswerRelevancyMetric : evaluates whether the prompt template in your generator is able to instruct your LLM to output relevant and helpful..."
+    },
+    {
+      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
+      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "evidence_id": "b228c036-a8c3-4bcf-8095-84e1677bf324",
+      "source_uri": "https://docs.pinecone.io/guides/search/hybrid-search#section-14",
+      "source_type": "markdown_file",
+      "content_excerpt": "sparse_embeddings = pc.inference.embed( model = \"pinecone-sparse-english-v0\" , Upsert records with dense and sparse vectors Use the upsert operation, specifying dense values in the value parameter and sparse values in..."
+    },
+    {
+      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
+      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "evidence_id": "701780e1-a4ca-4402-bcde-1928e2313162",
+      "source_uri": "https://github.com/FlagOpen/FlagEmbedding#section-19",
+      "source_type": "markdown_file",
+      "content_excerpt": "a cross-encoder model which is suitable for multilingual contexts, performs well in both English and Chinese proficiency, allows freedom to select layers, compress ratio and compress layers for output, facilitating ac..."
+    },
+    {
+      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
+      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "evidence_id": "f5b1516b-d857-4b6b-abcb-9b618646d50e",
+      "source_uri": "https://docs.pinecone.io/guides/search/hybrid-search#section-13",
+      "source_type": "markdown_file",
+      "content_excerpt": "dense_embeddings = pc.inference.embed( model = \"llama-text-embed-v2\" , inputs = [d[ 'chunk_text' ] for d in data], parameters = { \"input_type\" : \"passage\" , \"truncate\" : \"END\" }"
+    },
+    {
+      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
+      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "evidence_id": "6396b215-f6e7-462f-b577-5d6e98c8cec3",
+      "source_uri": "https://github.com/FlagOpen/FlagEmbedding#section-18",
+      "source_type": "markdown_file",
+      "content_excerpt": "bge is short for BAAI general embedding . query instruction for retrieval A LLM-based embedding model with in-context learning capabilities, which can fully leverage the model's potential based on a few shot examples ..."
+    },
+    {
+      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
+      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "evidence_id": "451360ef-fe35-488d-8a6d-bce2e62b23fb",
+      "source_uri": "https://qdrant.tech/documentation/overview#section-15",
+      "source_type": "markdown_file",
+      "content_excerpt": "Vector search alone can provide a decent search experience to your users; however, semantic similarity is rarely the only factor you have to consider. Embeddings won’t capture attributes such as price, and typically, ..."
+    },
+    {
+      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
+      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "evidence_id": "dc5733be-02f4-46a7-a63a-6064ff85923f",
+      "source_uri": "https://www.elastic.co/guide/en/elasticsearch/reference/current/rrf.html#section-2",
+      "source_type": "markdown_file",
+      "content_excerpt": "Reciprocal rank fusion (RRF) is a method for combining multiple result sets with different relevance indicators into a single result set. RRF requires no tuning, and the different relevance indicators do not have to b..."
+    },
+    {
+      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
+      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "evidence_id": "cd2b0773-b78c-4b6f-a93b-f54f3a5bae46",
+      "source_uri": "https://docs.pinecone.io/guides/search/hybrid-search#section-2",
+      "source_type": "markdown_file",
+      "content_excerpt": "Combine semantic and lexical search for better results. Semantic search and lexical search are powerful information retrieval techniques, but each has notable limitations. For example: - Semantic search can miss resul..."
+    },
+    {
+      "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
+      "synthesized_title": "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时",
+      "evidence_id": "2f7badce-e23b-4203-be20-222b137adc62",
+      "source_uri": "https://github.com/geekan/MetaGPT#section-8",
+      "source_type": "markdown_file",
+      "content_excerpt": "Assign different roles to GPTs to form a collaborative entity for complex tasks."
+    },
+    {
+      "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
+      "synthesized_title": "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时",
+      "evidence_id": "74472ff6-0578-47ac-98ee-42de6ca3d83d",
+      "source_uri": "https://github.com/InternLM/lagent#section-12",
+      "source_type": "markdown_file",
+      "content_excerpt": "Both input and output messages will be added to the memory of Agent in each forward pass. This is performed in __call__ rather than forward . See the following pseudo code def __call__ ( self , * message ): message = ..."
+    },
+    {
+      "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
+      "synthesized_title": "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时",
+      "evidence_id": "1043fccc-fd11-41c3-a8f1-108e7301b770",
+      "source_uri": "https://google.github.io/adk-docs#section-3",
+      "source_type": "markdown_file",
+      "content_excerpt": "Start building ADK agents with prompts and tool calls, then grow to multi-agent orchestration, graph-based workflows, performance evaluation, and deployment to world class enterprise services for scalability, reliabil..."
+    },
+    {
+      "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
+      "synthesized_title": "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时",
+      "evidence_id": "1c5f090f-7a18-45dc-a698-87a7dab03534",
+      "source_uri": "https://docs.crewai.com#section-7",
+      "source_type": "markdown_file",
+      "content_excerpt": "Orchestrate start/listen/router steps, manage state, persist execution, and resume long-running workflows."
+    },
+    {
+      "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
+      "synthesized_title": "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时",
+      "evidence_id": "80968a46-f75a-4e02-ab71-d4bd65ed84f6",
+      "source_uri": "https://github.com/agentscope-ai/agentscope#section-10",
+      "source_type": "markdown_file",
+      "content_excerpt": "- Simple : start building your agents in 5 minutes with built-in ReAct agent, tools, skills, human-in-the-loop steering, memory, planning, realtime voice, evaluation and model finetuning - Extensible : large number of..."
+    },
+    {
+      "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
+      "synthesized_title": "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时",
+      "evidence_id": "f09380a9-45c9-48d9-a128-8a288907f118",
+      "source_uri": "https://docs.crewai.com#section-6",
+      "source_type": "markdown_file",
+      "content_excerpt": "Compose agents with tools, memory, knowledge, and structured outputs using Pydantic. Includes templates and best practices."
+    },
+    {
+      "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
+      "synthesized_title": "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时",
+      "evidence_id": "d736cfa0-7bf4-40df-9a73-7d8d760decab",
+      "source_uri": "https://github.com/agentscope-ai/agentscope#section-27",
+      "source_type": "markdown_file",
+      "content_excerpt": "AgentScope provides MsgHub and pipelines to streamline multi-agent conversations, offering efficient message routing and seamless information sharing from agentscope . pipeline import MsgHub , sequential_pipeline from..."
+    },
+    {
+      "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
+      "synthesized_title": "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时",
+      "evidence_id": "32335c2c-2cfe-4ee2-8f88-b1c52a18ee4f",
+      "source_uri": "https://docs.camel-ai.org#section-6",
+      "source_type": "markdown_file",
+      "content_excerpt": "OWL (Optimized Workforce Learning) is a multi-agent automation framework for real-world tasks. Built on CAMEL-AI, it enables dynamic agent collaboration using tools like browsers, code interpreters, and multimodal mod..."
+    },
+    {
+      "synthesized_knowledge_id": "a9947a35-1621-4f30-b48d-60b3b171e86e",
+      "synthesized_title": "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节",
+      "evidence_id": "0cca34ef-d866-4266-8575-d97e9a931bcd",
+      "source_uri": "https://python.langchain.com/docs/tutorials/rag#section-7",
+      "source_type": "markdown_file",
+      "content_excerpt": "\"You have access to a tool that retrieves context from a blog post. \" \"Use the tool to help answer user queries. \" \"If the retrieved context does not contain relevant information to answer \" \"the query, say that you d..."
+    },
+    {
+      "synthesized_knowledge_id": "a9947a35-1621-4f30-b48d-60b3b171e86e",
+      "synthesized_title": "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节",
+      "evidence_id": "d40131b9-84f4-49b4-8c10-7cc9c10583d2",
+      "source_uri": "https://python.langchain.com/docs/tutorials/rag#section-2",
+      "source_type": "markdown_file",
+      "content_excerpt": "One of the most powerful applications enabled by LLMs is sophisticated question-answering (Q&A) chatbots. These are applications that can answer questions about specific source information. These applications use a te..."
+    },
+    {
+      "synthesized_knowledge_id": "a9947a35-1621-4f30-b48d-60b3b171e86e",
+      "synthesized_title": "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节",
+      "evidence_id": "ff653bf5-026d-4107-9136-b8aad893bb5c",
+      "source_uri": "https://python.langchain.com/docs/tutorials/rag#section-6",
+      "source_type": "markdown_file",
+      "content_excerpt": "@tool ( response_format = \"content_and_artifact\" ) def retrieve_context ( query : str ): \"\"\"Retrieve information to help answer a query.\"\"\" retrieved_docs = vector_store . similarity_search ( query , k = 2 ) serialize..."
+    },
+    {
+      "synthesized_knowledge_id": "a9947a35-1621-4f30-b48d-60b3b171e86e",
+      "synthesized_title": "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节",
+      "evidence_id": "7ab242bb-b2b8-4c68-ac52-dc419768947a",
+      "source_uri": "https://python.langchain.com/docs/tutorials/rag#section-8",
+      "source_type": "markdown_file",
+      "content_excerpt": "Many of the applications you build with LangChain will contain multiple steps with multiple invocations of LLM calls. As these applications get more complex, it becomes crucial to be able to inspect what exactly is go..."
+    },
+    {
+      "synthesized_knowledge_id": "0d11712f-0274-41f3-b781-b8ebe052d360",
+      "synthesized_title": "图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断",
+      "evidence_id": "7b7330e5-6d29-4e7e-a7a2-e9f8bf3e6dae",
+      "source_uri": "https://www.flandre.ltd/agent-memory#section-5",
+      "source_type": "markdown_file",
+      "content_excerpt": "1.逻辑断裂问题：为适配模型上下文窗口，需将文档暴力切分为512词或1000词的碎片（Hard Chunking),导致原本连贯的语义逻辑被切断，关键信息分散在不同碎片中； 2.匹配偏差问题：依赖语义相似度检索，仅能实现“字面相似”匹配，无法精准捕捉用户“提问意图”与文档“核心内容”的深层关联，常出现“答非所问”； 3.跨域溯源问题：无法理解文档中的跨页参考(如“详见附录G”“参考第2章”)，无法像人类一样顺着线索层级溯源，在复杂..."
+    },
+    {
+      "synthesized_knowledge_id": "0d11712f-0274-41f3-b781-b8ebe052d360",
+      "synthesized_title": "图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断",
+      "evidence_id": "491607ce-0e85-4be8-a61b-10b6ed56d38a",
+      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-43",
+      "source_type": "markdown_file",
+      "content_excerpt": "Dan Giannone argues the vector-store-as-memory paradigm has fundamental architectural limitations: - Treats memory as snippet retrieval rather than structured knowledge - Bolts retrieval onto stateless models rather t..."
+    },
+    {
+      "synthesized_knowledge_id": "0d11712f-0274-41f3-b781-b8ebe052d360",
+      "synthesized_title": "图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断",
+      "evidence_id": "7457b630-9142-4e63-923e-353a3c77dcde",
+      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-42",
+      "source_type": "markdown_file",
+      "content_excerpt": "- Standard RAG: Vector similarity search over flat text chunks - GraphRAG: Leverages semantic relationships between entities via ontologies - Performance: GraphRAG implementations show ~5x query speed improvement over..."
+    },
+    {
+      "synthesized_knowledge_id": "1d369420-4e4b-4e1c-bf5c-77a857918c52",
+      "synthesized_title": "图谱抽取不等于知识治理，chunk 内路径只能作为图谱候选",
+      "evidence_id": "ac9878cf-754e-420b-be6b-dcccd5b6d284",
+      "source_uri": "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-9",
+      "source_type": "markdown_file",
+      "content_excerpt": "Section titled “(default) SimpleLLMPathExtractor” Extract short statements using an LLM to prompt and parse single-hop paths in the format ( entity1 , relation , entity2 ) from llama_index.core.indices.property_graph ..."
+    },
+    {
+      "synthesized_knowledge_id": "1d369420-4e4b-4e1c-bf5c-77a857918c52",
+      "synthesized_title": "图谱抽取不等于知识治理，chunk 内路径只能作为图谱候选",
+      "evidence_id": "217e706d-f488-4ed4-8be3-45aa3ead8b76",
+      "source_uri": "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-1",
+      "source_type": "markdown_file",
+      "content_excerpt": "Source URL: https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide A property graph is a knowledge collection of labeled nodes (i.e. entity categories, text labels, etc.) with properties (i.e. met..."
+    },
+    {
+      "synthesized_knowledge_id": "1d369420-4e4b-4e1c-bf5c-77a857918c52",
+      "synthesized_title": "图谱抽取不等于知识治理，chunk 内路径只能作为图谱候选",
+      "evidence_id": "f486d854-9ae0-4770-b6a3-394f75ac366e",
+      "source_uri": "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-7",
+      "source_type": "markdown_file",
+      "content_excerpt": "Section titled “Construction” Property graph construction in LlamaIndex works by performing a series of kg_extractors on each chunk, and attaching entities and relations as metadata to each llama-index node. You can u..."
+    },
+    {
+      "synthesized_knowledge_id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
+      "synthesized_title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+      "evidence_id": "e870de58-533c-4969-bec7-3d86489ee95b",
+      "source_uri": "https://github.com/eosphoros-ai/DB-GPT#section-12",
+      "source_type": "markdown_file",
+      "content_excerpt": "Work across structured and unstructured sources, including databases, spreadsheets, documents, and knowledge bases."
+    },
+    {
+      "synthesized_knowledge_id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
+      "synthesized_title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+      "evidence_id": "19935f83-14d8-409b-8a8f-3459e1a5f556",
+      "source_uri": "https://github.com/labring/FastGPT#section-18",
+      "source_type": "markdown_file",
+      "content_excerpt": "FastGPT is a knowledge-based platform built on the LLMs, offers a comprehensive suite of out-of-the-box capabilities such as data processing, RAG retrieval, and visual AI workflow orchestration, letting you easily dev..."
+    },
+    {
+      "synthesized_knowledge_id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
+      "synthesized_title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+      "evidence_id": "d8ce9890-ce73-44a4-b2ea-d53581659d65",
+      "source_uri": "https://github.com/eosphoros-ai/DB-GPT#section-13",
+      "source_type": "markdown_file",
+      "content_excerpt": "Package domain knowledge, analysis methods, and execution workflows into reusable skills."
+    },
+    {
+      "synthesized_knowledge_id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
+      "synthesized_title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+      "evidence_id": "305e63a4-9698-4b16-a818-87bfcf9ff655",
+      "source_uri": "https://github.com/labring/FastGPT#section-8",
+      "source_type": "markdown_file",
+      "content_excerpt": "Bahasa Indonesia | FastGPT 是一个 AI Agent 构建平台，提供开箱即用的数据处理、模型调用等能力，同时可以通过 Flow 可视化进行工作流编排，从而实现复杂的应用场景！"
+    },
+    {
+      "synthesized_knowledge_id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
+      "synthesized_title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+      "evidence_id": "3ad0b906-0063-4e20-a9d8-da781298bc2f",
+      "source_uri": "https://github.com/infiniflow/ragflow#section-17",
+      "source_type": "markdown_file",
+      "content_excerpt": "- Streamlined RAG orchestration catered to both personal and large businesses. - Configurable LLMs as well as embedding models. - Multiple recall paired with fused re-ranking. - Intuitive APIs for seamless integration..."
+    },
+    {
+      "synthesized_knowledge_id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
+      "synthesized_title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+      "evidence_id": "7078bcad-39e9-4003-87dc-74e4e8525c0c",
+      "source_uri": "https://github.com/infiniflow/ragflow#section-35",
+      "source_type": "markdown_file",
+      "content_excerpt": "RAGFlow is a leading open-source Retrieval-Augmented Generation (RAG) engine that fuses cutting-edge RAG with Agent capabilities to create a superior context layer for LLMs"
+    }
+  ],
+  "evidence_sources": [
+    {
+      "source_type": "markdown_file",
+      "source_host": "github.com",
+      "evidence_count": 872
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "help.aliyun.com",
+      "evidence_count": 139
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "www.cnblogs.com",
+      "evidence_count": 107
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "docs.llamaindex.ai",
+      "evidence_count": 84
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "eastondev.com",
+      "evidence_count": 81
+    },
+    {
+      "source_type": "markdown_text",
+      "source_host": "github.com",
+      "evidence_count": 75
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "gist.github.com",
+      "evidence_count": 53
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "www.phppan.com",
+      "evidence_count": 53
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "genai.owasp.org",
+      "evidence_count": 49
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "cloud.tencent.com",
+      "evidence_count": 49
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "docs.ragas.io",
+      "evidence_count": 45
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "modelcontextprotocol.io",
+      "evidence_count": 44
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "docs.pinecone.io",
+      "evidence_count": 42
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "deepeval.com",
+      "evidence_count": 42
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "zh.wikipedia.org",
+      "evidence_count": 41
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "python.langchain.com",
+      "evidence_count": 32
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "openai.github.io",
+      "evidence_count": 30
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "weaviate.io",
+      "evidence_count": 29
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "www.elastic.co",
+      "evidence_count": 29
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "docs.langchain.com",
+      "evidence_count": 27
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "owasp.org",
+      "evidence_count": 26
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "open.bigmodel.cn",
+      "evidence_count": 26
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "blog.csdn.net",
+      "evidence_count": 25
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "htmlpage.cn",
+      "evidence_count": 23
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "qwen.readthedocs.io",
+      "evidence_count": 23
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "jiangren.com.au",
+      "evidence_count": 23
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "qdrant.tech",
+      "evidence_count": 22
+    },
+    {
+      "source_type": "markdown_text",
+      "source_host": "github.blog",
+      "evidence_count": 22
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "www.flandre.ltd",
+      "evidence_count": 21
+    },
+    {
+      "source_type": "markdown_file",
+      "source_host": "docs.arize.com",
+      "evidence_count": 19
+    }
+  ],
+  "governance_jobs": [
+    {
+      "id": "64c54da4-e30e-4e7c-982b-fb03869bf6d3",
+      "job_type": "knowledge_governance_run",
+      "trigger_type": "manual_run",
+      "run_status": "completed",
+      "created_at": "2026-04-30T09:51:09.075Z",
+      "started_at": "2026-04-30T09:51:09.085Z",
+      "finished_at": "2026-04-30T09:51:09.267Z",
+      "warnings": [],
+      "synthesized_knowledge_ids": [],
+      "intermediate_artifact_purge": {
+        "deletedFactRows": 1,
+        "deletedEntityRows": 1,
+        "deletedRelationRows": 6,
+        "deletedRecallSurfaceRows": 7,
+        "relinkedSynthesizedEvidenceRows": 0,
+        "rewrittenSynthesizedKnowledgeRows": 16
+      }
+    },
+    {
+      "id": "cfb96c80-cdd5-4df5-94bd-5dde3e3c80e1",
+      "job_type": "knowledge_governance_run",
+      "trigger_type": "manual_run",
+      "run_status": "completed",
+      "created_at": "2026-04-30T09:13:45.027Z",
+      "started_at": "2026-04-30T09:13:45.037Z",
+      "finished_at": "2026-04-30T09:13:45.414Z",
+      "warnings": [
+        "synthesis_skipped:not_enough_evidence_bound_facts"
+      ],
+      "synthesized_knowledge_ids": [],
+      "intermediate_artifact_purge": {
+        "deletedFactRows": 2,
+        "deletedEntityRows": 2,
+        "deletedRelationRows": 12,
+        "deletedRecallSurfaceRows": 14,
+        "relinkedSynthesizedEvidenceRows": 0,
+        "rewrittenSynthesizedKnowledgeRows": 16
+      }
+    },
+    {
+      "id": "b63ef394-1ad6-43c3-8e72-cbc56558ee48",
+      "job_type": "codex_model_layer_governance",
+      "trigger_type": "manual_codex_model_layer",
+      "run_status": "completed",
+      "created_at": "2026-04-30T07:18:53.579Z",
+      "started_at": "2026-04-30T07:18:53.579Z",
+      "finished_at": "2026-04-30T07:18:53.579Z",
+      "warnings": null,
+      "synthesized_knowledge_ids": [
+        "e9324616-1e7c-4bf2-905a-7c59e672d7ff",
+        "7a729f07-b6c5-4f62-a321-c3746beea5ad",
+        "00b5be19-f96b-4c29-8733-fdf609750796",
+        "0a0a6d5d-9471-49cd-8803-5379393a3481",
+        "0d11712f-0274-41f3-b781-b8ebe052d360",
+        "bb379f22-d450-40e5-ba02-ed021281ad64",
+        "185404b1-4d6b-48ea-8365-e2f05e806748",
+        "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
+        "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
+        "13f4d447-0e71-41f2-9281-2f46e364501f",
+        "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
+        "4ca426c6-0887-4126-b78b-bca632f3c22f"
+      ],
+      "intermediate_artifact_purge": null
+    },
+    {
+      "id": "38cc42d9-f2ea-4867-8c16-5424cfea8e94",
+      "job_type": "codex_model_layer_governance",
+      "trigger_type": "manual_codex_model_layer",
+      "run_status": "completed",
+      "created_at": "2026-04-30T07:13:08.339Z",
+      "started_at": "2026-04-30T07:13:08.339Z",
+      "finished_at": "2026-04-30T07:13:08.339Z",
+      "warnings": null,
+      "synthesized_knowledge_ids": [
+        "e9324616-1e7c-4bf2-905a-7c59e672d7ff",
+        "7a729f07-b6c5-4f62-a321-c3746beea5ad",
+        "00b5be19-f96b-4c29-8733-fdf609750796",
+        "0a0a6d5d-9471-49cd-8803-5379393a3481",
+        "0d11712f-0274-41f3-b781-b8ebe052d360",
+        "bb379f22-d450-40e5-ba02-ed021281ad64",
+        "185404b1-4d6b-48ea-8365-e2f05e806748",
+        "f9b1a087-5141-4b52-8d46-c7c19cfb9d02"
+      ],
+      "intermediate_artifact_purge": null
+    },
+    {
+      "id": "fb261617-10f1-49e6-810e-465698c3c8a8",
+      "job_type": "codex_model_layer_governance",
+      "trigger_type": "manual_codex_model_layer",
+      "run_status": "completed",
+      "created_at": "2026-04-30T06:54:32.409Z",
+      "started_at": "2026-04-30T06:54:32.409Z",
+      "finished_at": "2026-04-30T06:54:32.409Z",
+      "warnings": null,
+      "synthesized_knowledge_ids": [
+        "e9324616-1e7c-4bf2-905a-7c59e672d7ff",
+        "7a729f07-b6c5-4f62-a321-c3746beea5ad",
+        "00b5be19-f96b-4c29-8733-fdf609750796"
+      ],
+      "intermediate_artifact_purge": null
+    },
+    {
+      "id": "63821cfd-f94d-4c08-8745-53710954b31d",
+      "job_type": "knowledge_governance_run",
+      "trigger_type": "manual_run",
+      "run_status": "completed",
+      "created_at": "2026-04-30T06:48:31.212Z",
+      "started_at": "2026-04-30T06:48:31.223Z",
+      "finished_at": "2026-04-30T06:48:31.266Z",
+      "warnings": [
+        "synthesis_skipped:model_not_configured"
+      ],
+      "synthesized_knowledge_ids": [],
+      "intermediate_artifact_purge": null
+    },
+    {
+      "id": "20a71837-1f9c-4fd3-ade6-b454677d1437",
+      "job_type": "knowledge_governance_run",
+      "trigger_type": "manual_run",
+      "run_status": "completed",
+      "created_at": "2026-04-30T06:47:26.376Z",
+      "started_at": "2026-04-30T06:47:26.378Z",
+      "finished_at": "2026-04-30T06:47:26.425Z",
+      "warnings": [
+        "synthesis_skipped:not_enough_evidence_bound_facts"
+      ],
+      "synthesized_knowledge_ids": [],
+      "intermediate_artifact_purge": null
+    },
+    {
+      "id": "e29f8a37-8082-4749-a3a5-b0c29530905d",
+      "job_type": "knowledge_governance_run",
+      "trigger_type": "manual_run",
+      "run_status": "completed",
+      "created_at": "2026-04-30T06:46:27.713Z",
+      "started_at": "2026-04-30T06:46:27.715Z",
+      "finished_at": "2026-04-30T06:46:27.737Z",
+      "warnings": [
+        "synthesis_skipped:not_enough_evidence_bound_facts"
+      ],
+      "synthesized_knowledge_ids": [],
+      "intermediate_artifact_purge": null
+    },
+    {
+      "id": "e4e54038-7323-40f5-a986-0b72c4c15758",
+      "job_type": "knowledge_governance_run",
+      "trigger_type": "manual_run",
+      "run_status": "completed",
+      "created_at": "2026-04-30T06:45:57.066Z",
+      "started_at": "2026-04-30T06:45:57.069Z",
+      "finished_at": "2026-04-30T06:45:57.088Z",
+      "warnings": [
+        "synthesis_skipped:not_enough_evidence_bound_facts"
+      ],
+      "synthesized_knowledge_ids": [],
+      "intermediate_artifact_purge": null
+    },
+    {
+      "id": "dc303a5e-9d7b-4a98-a4dd-549c1df874ba",
+      "job_type": "knowledge_governance_run",
+      "trigger_type": "manual_run",
+      "run_status": "completed",
+      "created_at": "2026-04-30T06:44:45.007Z",
+      "started_at": "2026-04-30T06:44:45.009Z",
+      "finished_at": "2026-04-30T06:44:45.018Z",
+      "warnings": [],
+      "synthesized_knowledge_ids": [],
+      "intermediate_artifact_purge": null
+    }
+  ],
+  "governance_decisions": [
+    {
+      "governance_type": "source_cleaning_governance",
+      "decision": "model_accepted",
+      "target_object_type": "document",
+      "risk_level": "low",
+      "count": 108
+    },
+    {
+      "governance_type": "cross_source_synthesis_governance",
+      "decision": "model_accepted",
+      "target_object_type": "synthesized_knowledge",
+      "risk_level": "low",
+      "count": 23
+    },
+    {
+      "governance_type": "object_quality_governance",
+      "decision": "needs_human_review",
+      "target_object_type": "document",
+      "risk_level": "medium",
+      "count": 5
+    },
+    {
+      "governance_type": "cross_source_synthesis",
+      "decision": "accept_active_recall",
+      "target_object_type": "synthesized_knowledge",
+      "risk_level": "low",
+      "count": 4
+    },
+    {
+      "governance_type": "intermediate_artifact_governance",
+      "decision": "purged",
+      "target_object_type": "knowledge_intermediate_artifacts",
+      "risk_level": "low",
+      "count": 2
+    },
+    {
+      "governance_type": "corpus_noise_governance",
+      "decision": "retire_low_value_noise",
+      "target_object_type": "fact_batch",
+      "risk_level": "low",
+      "count": 1
+    }
+  ],
+  "review_queue": [
+    {
+      "id": "fa4bf298-7f27-4d91-9cf4-5108effc9e74",
+      "target_object_type": "document",
+      "review_reason": "missing_canonical_markdown",
+      "priority": 80,
+      "status": "active",
+      "created_at": "2026-04-30T09:51:09.188Z"
+    },
+    {
+      "id": "13cfa99d-c730-417a-95e5-5203edbcac57",
+      "target_object_type": "document",
+      "review_reason": "missing_canonical_markdown",
+      "priority": 80,
+      "status": "active",
+      "created_at": "2026-04-30T09:51:09.188Z"
+    },
+    {
+      "id": "c91125e7-6a2d-425e-ad5c-fc165a59775b",
+      "target_object_type": "document",
+      "review_reason": "missing_canonical_markdown",
+      "priority": 80,
+      "status": "active",
+      "created_at": "2026-04-30T09:51:09.136Z"
+    },
+    {
+      "id": "82be4733-8423-46cb-9b47-f2693c0e3614",
+      "target_object_type": "document",
+      "review_reason": "missing_canonical_markdown",
+      "priority": 80,
+      "status": "active",
+      "created_at": "2026-04-30T09:13:45.113Z"
+    },
+    {
+      "id": "e857d0b8-1c6c-46a8-902b-25803dfad9a5",
+      "target_object_type": "document",
+      "review_reason": "missing_canonical_markdown",
+      "priority": 80,
+      "status": "active",
+      "created_at": "2026-04-30T09:13:45.111Z"
+    }
+  ],
+  "pending_change_proposals": [],
+  "memory_status": [
+    {
+      "status": "active",
+      "count": 3
+    }
+  ],
+  "rule_status": [],
+  "skill_status": [
+    {
+      "status": "active",
+      "count": 1
+    }
+  ],
+  "capability_eval": {
+    "total_cases": 10,
+    "passed_cases": 10,
+    "pass_rate": 1,
+    "positive_pass_rate": 1,
+    "boundary_pass_rate": 1,
+    "avg_latency_ms": 257.059,
+    "avg_derived_count": 3.5,
+    "avg_evidence_trace_count": 19,
+    "p50_latency_ms": 330.092,
+    "p95_latency_ms": 389.414,
+    "max_latency_ms": 389.414,
+    "avg_unique_evidence_sources": 18.3
+  },
+  "capability_failures": []
+}

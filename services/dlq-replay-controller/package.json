@@ -1,0 +1,18 @@
+{
+  "name": "@super-agent/dlq-replay-controller",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/services/dlq-replay-controller/src/index.js",
+  "types": "dist/services/dlq-replay-controller/src/index.d.ts",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "node ../../scripts/clean-dist.mjs dist && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@super-agent/contracts": "file:../../libs/contracts",
+    "@super-agent/db": "file:../../libs/db",
+    "fastify": "^5.3.0"
+  }
+}

@@ -1,0 +1,5170 @@
+[
+  {
+    "id": "ingest-source-ai-dev-002",
+    "source_candidate_id": "source-ai-dev-002",
+    "theme": "knowledge_graph",
+    "title": "LangGraph Persistence",
+    "source_kind": "official_doc",
+    "url": "https://docs.langchain.com/oss/javascript/langgraph/persistence",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-002-LangGraph-Persistence\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 20424,
+      "heading_count": 2,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 20072,
+      "substantive_line_count": 64,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "knowledge_graph"
+      ]
+    },
+    "expected_signals": [
+      "knowledge_graph",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-005",
+    "source_candidate_id": "source-ai-dev-005",
+    "theme": "agent_memory",
+    "title": "LangMem SDK Launch",
+    "source_kind": "product_blog",
+    "url": "https://www.langchain.com/blog/langmem-sdk-launch",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-005-LangMem-SDK-Launch\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 10177,
+      "heading_count": 14,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 9502,
+      "substantive_line_count": 26,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "product_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-006",
+    "source_candidate_id": "source-ai-dev-006",
+    "theme": "agent_memory",
+    "title": "GitHub Copilot Memory Public Preview",
+    "source_kind": "product_changelog",
+    "url": "https://github.blog/changelog/2026-01-15-agentic-memory-for-github-copilot-is-in-public-preview",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-006-GitHub-Copilot-Memory-Public-Preview\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 1566,
+      "heading_count": 4,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1276,
+      "substantive_line_count": 9,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "product_changelog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-007",
+    "source_candidate_id": "source-ai-dev-007",
+    "theme": "agent_memory",
+    "title": "Building an Agentic Memory System for GitHub Copilot",
+    "source_kind": "engineering_blog",
+    "url": "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-007-Building-an-Agentic-Memory-System-for-GitHub-Copilot\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 9388,
+      "heading_count": 13,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 8818,
+      "substantive_line_count": 32,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-009",
+    "source_candidate_id": "source-ai-dev-009",
+    "theme": "agent_memory",
+    "title": "Mem0 Platform Overview",
+    "source_kind": "official_doc",
+    "url": "https://docs.mem0.ai/overview",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-009-Mem0-Platform-Overview\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 2240,
+      "heading_count": 12,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1865,
+      "substantive_line_count": 10,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-010",
+    "source_candidate_id": "source-ai-dev-010",
+    "theme": "agent_memory",
+    "title": "Zep Documentation",
+    "source_kind": "official_doc",
+    "url": "https://help.getzep.com",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-010-Zep-Documentation\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 1008,
+      "heading_count": 2,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 905,
+      "substantive_line_count": 3,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-012",
+    "source_candidate_id": "source-ai-dev-012",
+    "theme": "agent_memory",
+    "title": "A memory architecture for agentic system",
+    "source_kind": "engineering_blog",
+    "url": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-012-A-memory-architecture-for-agentic-system\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 34983,
+      "heading_count": 62,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 32149,
+      "substantive_line_count": 125,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-013",
+    "source_candidate_id": "source-ai-dev-013",
+    "theme": "agent_memory",
+    "title": "Agent Memory System Design",
+    "source_kind": "engineering_blog",
+    "url": "https://eastondev.com/blog/zh/posts/ai/agent-memory-system",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-013-Agent-Memory-System-Design\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 9017,
+      "heading_count": 51,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 7718,
+      "substantive_line_count": 26,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-014",
+    "source_candidate_id": "source-ai-dev-014",
+    "theme": "agent_memory",
+    "title": "AI Agent 记忆管理：长期记忆与知识治理实战",
+    "source_kind": "engineering_blog",
+    "url": "https://eastondev.com/blog/zh/posts/ai/20260413-ai-agent-memory",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-014-AI-Agent\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 12702,
+      "heading_count": 42,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 11450,
+      "substantive_line_count": 28,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-016",
+    "source_candidate_id": "source-ai-dev-016",
+    "theme": "agent_framework",
+    "title": "OpenAI Agents SDK JS Agents Guide",
+    "source_kind": "official_doc",
+    "url": "https://openai.github.io/openai-agents-js/guides/agents",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-016-OpenAI-Agents-SDK-JS-Agents-Guide\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 16678,
+      "heading_count": 19,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 15944,
+      "substantive_line_count": 58,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-017",
+    "source_candidate_id": "source-ai-dev-017",
+    "theme": "agent_framework",
+    "title": "OpenAI Agents SDK Python",
+    "source_kind": "official_doc",
+    "url": "https://openai.github.io/openai-agents-python",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-017-OpenAI-Agents-SDK-Python\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4978,
+      "heading_count": 9,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 4642,
+      "substantive_line_count": 24,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-018",
+    "source_candidate_id": "source-ai-dev-018",
+    "theme": "agent_framework",
+    "title": "Microsoft AutoGen Repository",
+    "source_kind": "github_repo",
+    "url": "https://github.com/microsoft/autogen",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-018-Microsoft-AutoGen-Repository\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 9126,
+      "heading_count": 27,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 8321,
+      "substantive_line_count": 36,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-020",
+    "source_candidate_id": "source-ai-dev-020",
+    "theme": "agent_framework",
+    "title": "Semantic Kernel Documentation",
+    "source_kind": "official_doc",
+    "url": "https://learn.microsoft.com/en-us/semantic-kernel/overview",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-020-Semantic-Kernel-Documentation\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 2138,
+      "heading_count": 5,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1925,
+      "substantive_line_count": 7,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-021",
+    "source_candidate_id": "source-ai-dev-021",
+    "theme": "agent_framework",
+    "title": "Google Agent Development Kit",
+    "source_kind": "official_doc",
+    "url": "https://google.github.io/adk-docs",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-021-Google-Agent-Development-Kit\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 6530,
+      "heading_count": 11,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 6080,
+      "substantive_line_count": 15,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-023",
+    "source_candidate_id": "source-ai-dev-023",
+    "theme": "agent_framework",
+    "title": "CrewAI Documentation",
+    "source_kind": "official_doc",
+    "url": "https://docs.crewai.com",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-023-CrewAI-Documentation\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 1981,
+      "heading_count": 14,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1642,
+      "substantive_line_count": 13,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-024",
+    "source_candidate_id": "source-ai-dev-024",
+    "theme": "agent_framework",
+    "title": "Pydantic AI Documentation",
+    "source_kind": "official_doc",
+    "url": "https://ai.pydantic.dev",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-024-Pydantic-AI-Documentation\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 12291,
+      "heading_count": 7,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 11951,
+      "substantive_line_count": 49,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-025",
+    "source_candidate_id": "source-ai-dev-025",
+    "theme": "agent_framework",
+    "title": "Agno Documentation",
+    "source_kind": "official_doc",
+    "url": "https://docs.agno.com",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-025-Agno-Documentation\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 2280,
+      "heading_count": 5,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 2085,
+      "substantive_line_count": 7,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-028",
+    "source_candidate_id": "source-ai-dev-028",
+    "theme": "agent_framework",
+    "title": "Qwen Agent Repository",
+    "source_kind": "github_repo",
+    "url": "https://github.com/QwenLM/Qwen-Agent",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-028-Qwen-Agent-Repository\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 11531,
+      "heading_count": 71,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 7929,
+      "substantive_line_count": 36,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-029",
+    "source_candidate_id": "source-ai-dev-029",
+    "theme": "agent_framework",
+    "title": "ModelScope AgentScope",
+    "source_kind": "github_repo",
+    "url": "https://github.com/modelscope/agentscope",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-029-ModelScope-AgentScope\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 8706,
+      "heading_count": 47,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 7398,
+      "substantive_line_count": 19,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-031",
+    "source_candidate_id": "source-ai-dev-031",
+    "theme": "agent_framework",
+    "title": "CAMEL AI Documentation",
+    "source_kind": "official_doc",
+    "url": "https://docs.camel-ai.org",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-031-CAMEL-AI-Documentation\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 2252,
+      "heading_count": 8,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 2037,
+      "substantive_line_count": 13,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-033",
+    "source_candidate_id": "source-ai-dev-033",
+    "theme": "rag",
+    "title": "LlamaIndex RAG Workflow with Reranking",
+    "source_kind": "official_doc",
+    "url": "https://docs.llamaindex.ai/en/stable/examples/workflow/rag",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-033-LlamaIndex-RAG-Workflow-with-Reranking\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 9940,
+      "heading_count": 15,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 9327,
+      "substantive_line_count": 13,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-035",
+    "source_candidate_id": "source-ai-dev-035",
+    "theme": "rag",
+    "title": "LlamaIndex Node Parser Modules",
+    "source_kind": "official_doc",
+    "url": "https://docs.llamaindex.ai/en/stable/module_guides/loading/node_parsers",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-035-LlamaIndex-Node-Parser-Modules\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 2010,
+      "heading_count": 8,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1751,
+      "substantive_line_count": 4,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-037",
+    "source_candidate_id": "source-ai-dev-037",
+    "theme": "rag",
+    "title": "LangChain Retrieval Concept",
+    "source_kind": "official_doc",
+    "url": "https://python.langchain.com/docs/concepts/retrieval",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-037-LangChain-Retrieval-Concept\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 2784,
+      "heading_count": 6,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 2509,
+      "substantive_line_count": 11,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-038",
+    "source_candidate_id": "source-ai-dev-038",
+    "theme": "rag",
+    "title": "Haystack Repository",
+    "source_kind": "github_repo",
+    "url": "https://github.com/deepset-ai/haystack",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-038-Haystack-Repository\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 6334,
+      "heading_count": 22,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 5472,
+      "substantive_line_count": 18,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-039",
+    "source_candidate_id": "source-ai-dev-039",
+    "theme": "rag",
+    "title": "Haystack Documentation",
+    "source_kind": "official_doc",
+    "url": "https://docs.haystack.deepset.ai/docs/intro",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-039-Haystack-Documentation\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 1850,
+      "heading_count": 2,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1703,
+      "substantive_line_count": 8,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-040",
+    "source_candidate_id": "source-ai-dev-040",
+    "theme": "rag",
+    "title": "Qdrant RAG Guide",
+    "source_kind": "official_doc",
+    "url": "https://qdrant.tech/documentation/overview",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-040-Qdrant-RAG-Guide\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 10782,
+      "heading_count": 21,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 10292,
+      "substantive_line_count": 39,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-041",
+    "source_candidate_id": "source-ai-dev-041",
+    "theme": "vector_database",
+    "title": "Weaviate Hybrid Search",
+    "source_kind": "official_doc",
+    "url": "https://weaviate.io/developers/weaviate/search/hybrid",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-041-Weaviate-Hybrid-Search\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 54286,
+      "heading_count": 25,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 53316,
+      "substantive_line_count": 55,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "vector_database"
+      ]
+    },
+    "expected_signals": [
+      "vector_database",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-043",
+    "source_candidate_id": "source-ai-dev-043",
+    "theme": "lexical_retrieval",
+    "title": "Elasticsearch BM25",
+    "source_kind": "official_doc",
+    "url": "https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules-similarity.html",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-043-Elasticsearch-BM25\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 7037,
+      "heading_count": 12,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 6516,
+      "substantive_line_count": 28,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "lexical_retrieval"
+      ]
+    },
+    "expected_signals": [
+      "lexical_retrieval",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-044",
+    "source_candidate_id": "source-ai-dev-044",
+    "theme": "hybrid_retrieval",
+    "title": "Elasticsearch Reciprocal Rank Fusion",
+    "source_kind": "official_doc",
+    "url": "https://www.elastic.co/guide/en/elasticsearch/reference/current/rrf.html",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-044-Elasticsearch-Reciprocal-Rank-Fusion\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 14524,
+      "heading_count": 20,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 13569,
+      "substantive_line_count": 55,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "hybrid_retrieval"
+      ]
+    },
+    "expected_signals": [
+      "hybrid_retrieval",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-045",
+    "source_candidate_id": "source-ai-dev-045",
+    "theme": "rag",
+    "title": "RAGAS Documentation",
+    "source_kind": "official_doc",
+    "url": "https://docs.ragas.io/en/stable/howtos/applications/evaluate-and-improve-rag",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-045-RAGAS-Documentation\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 16837,
+      "heading_count": 41,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 15086,
+      "substantive_line_count": 63,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-047",
+    "source_candidate_id": "source-ai-dev-047",
+    "theme": "eval_harness",
+    "title": "DeepEval Introduction",
+    "source_kind": "official_doc",
+    "url": "https://deepeval.com/docs/introduction",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-047-DeepEval-Introduction\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 9114,
+      "heading_count": 28,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 8278,
+      "substantive_line_count": 25,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "eval_harness"
+      ]
+    },
+    "expected_signals": [
+      "eval_harness",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-048",
+    "source_candidate_id": "source-ai-dev-048",
+    "theme": "rag",
+    "title": "DeepEval RAG Evaluation",
+    "source_kind": "official_doc",
+    "url": "https://deepeval.com/docs/guides-rag-evaluation",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-048-DeepEval-RAG-Evaluation\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 16243,
+      "heading_count": 27,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 15025,
+      "substantive_line_count": 62,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-049",
+    "source_candidate_id": "source-ai-dev-049",
+    "theme": "eval_harness",
+    "title": "OpenAI Evals Repository",
+    "source_kind": "github_repo",
+    "url": "https://github.com/openai/evals",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-049-OpenAI-Evals-Repository\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 6193,
+      "heading_count": 18,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 5719,
+      "substantive_line_count": 22,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "eval_harness"
+      ]
+    },
+    "expected_signals": [
+      "eval_harness",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-050",
+    "source_candidate_id": "source-ai-dev-050",
+    "theme": "eval_harness",
+    "title": "Inspect AI Documentation",
+    "source_kind": "official_doc",
+    "url": "https://inspect.aisi.org.uk",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-050-Inspect-AI-Documentation\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 12779,
+      "heading_count": 7,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 12503,
+      "substantive_line_count": 73,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "eval_harness"
+      ]
+    },
+    "expected_signals": [
+      "eval_harness",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-052",
+    "source_candidate_id": "source-ai-dev-052",
+    "theme": "eval_harness",
+    "title": "LangSmith Evaluation",
+    "source_kind": "official_doc",
+    "url": "https://docs.smith.langchain.com/evaluation",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-052-LangSmith-Evaluation\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 15637,
+      "heading_count": 2,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 15368,
+      "substantive_line_count": 72,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "eval_harness"
+      ]
+    },
+    "expected_signals": [
+      "eval_harness",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-053",
+    "source_candidate_id": "source-ai-dev-053",
+    "theme": "eval_harness",
+    "title": "Phoenix Evaluation",
+    "source_kind": "official_doc",
+    "url": "https://docs.arize.com/phoenix/evaluation",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-053-Phoenix-Evaluation\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 9172,
+      "heading_count": 4,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 8871,
+      "substantive_line_count": 27,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "eval_harness"
+      ]
+    },
+    "expected_signals": [
+      "eval_harness",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-054",
+    "source_candidate_id": "source-ai-dev-054",
+    "theme": "eval_harness",
+    "title": "Giskard Documentation",
+    "source_kind": "official_doc",
+    "url": "https://docs.giskard.ai",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-054-Giskard-Documentation\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4118,
+      "heading_count": 5,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 3886,
+      "substantive_line_count": 24,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "eval_harness"
+      ]
+    },
+    "expected_signals": [
+      "eval_harness",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-055",
+    "source_candidate_id": "source-ai-dev-055",
+    "theme": "eval_harness",
+    "title": "SWE-bench",
+    "source_kind": "benchmark",
+    "url": "https://www.swebench.com",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-055-SWE-bench\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 2139,
+      "heading_count": 5,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1970,
+      "substantive_line_count": 7,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "eval_harness"
+      ]
+    },
+    "expected_signals": [
+      "eval_harness",
+      "benchmark"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-056",
+    "source_candidate_id": "source-ai-dev-056",
+    "theme": "eval_harness",
+    "title": "SWE-bench Repository",
+    "source_kind": "github_repo",
+    "url": "https://github.com/SWE-bench/SWE-bench",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-056-SWE-bench-Repository\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 7078,
+      "heading_count": 21,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 6437,
+      "substantive_line_count": 31,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "eval_harness"
+      ]
+    },
+    "expected_signals": [
+      "eval_harness",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-057",
+    "source_candidate_id": "source-ai-dev-057",
+    "theme": "eval_harness",
+    "title": "GAIA Benchmark",
+    "source_kind": "benchmark",
+    "url": "https://huggingface.co/datasets/gaia-benchmark/GAIA",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-057-GAIA-Benchmark\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 3587,
+      "heading_count": 15,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 2913,
+      "substantive_line_count": 13,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "eval_harness"
+      ]
+    },
+    "expected_signals": [
+      "eval_harness",
+      "benchmark"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-058",
+    "source_candidate_id": "source-ai-dev-058",
+    "theme": "agent_framework",
+    "title": "AgentBench Repository",
+    "source_kind": "github_repo",
+    "url": "https://github.com/THUDM/AgentBench",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-058-AgentBench-Repository\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 8732,
+      "heading_count": 29,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 7813,
+      "substantive_line_count": 42,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-059",
+    "source_candidate_id": "source-ai-dev-059",
+    "theme": "rag",
+    "title": "RAGAS 论文解读",
+    "source_kind": "official_doc",
+    "url": "https://docs.ragas.io/en/stable",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-059-RAGAS\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 1838,
+      "heading_count": 5,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1665,
+      "substantive_line_count": 10,
+      "relevance_signal_count": 0,
+      "relevance_matched_signals": []
+    },
+    "expected_signals": [
+      "rag",
+      "official_doc"
+    ],
+    "governance_flags": [
+      "topic_relevance_missing:rag,official_doc"
+    ]
+  },
+  {
+    "id": "ingest-source-ai-dev-060",
+    "source_candidate_id": "source-ai-dev-060",
+    "theme": "harness_engineering",
+    "title": "AutoHarness Repository",
+    "source_kind": "github_repo",
+    "url": "https://github.com/aiming-lab/AutoHarness",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-060-AutoHarness-Repository\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 6190,
+      "heading_count": 33,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 5166,
+      "substantive_line_count": 14,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "harness_engineering"
+      ]
+    },
+    "expected_signals": [
+      "harness_engineering",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-061",
+    "source_candidate_id": "source-ai-dev-061",
+    "theme": "harness_engineering",
+    "title": "Awesome Harness Engineering",
+    "source_kind": "github_repo",
+    "url": "https://github.com/ai-boost/awesome-harness-engineering",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-061-Awesome-Harness-Engineering\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 117717,
+      "heading_count": 39,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 116248,
+      "substantive_line_count": 296,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "harness_engineering"
+      ]
+    },
+    "expected_signals": [
+      "harness_engineering",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-062",
+    "source_candidate_id": "source-ai-dev-062",
+    "theme": "eval_harness",
+    "title": "Agent Harness: How AI Agents Are Benchmarked",
+    "source_kind": "reference_article",
+    "url": "https://www.envisioning.com/vocab/agent-harness",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-062-Agent-Harness-How-AI-Agents-Are-Benchmarked\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 3394,
+      "heading_count": 3,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 3243,
+      "substantive_line_count": 9,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "eval_harness"
+      ]
+    },
+    "expected_signals": [
+      "eval_harness",
+      "reference_article"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-063",
+    "source_candidate_id": "source-ai-dev-063",
+    "theme": "harness_engineering",
+    "title": "Harness Engineering: The Discipline That Determines Whether Your AI Agents Actually Work",
+    "source_kind": "engineering_blog",
+    "url": "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-063-Harness-Engineering-The-Discipline-That-Determines-Whether-Your-AI-Agents-Actually-Work\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 14355,
+      "heading_count": 10,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 13741,
+      "substantive_line_count": 44,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "harness_engineering"
+      ]
+    },
+    "expected_signals": [
+      "harness_engineering",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-064",
+    "source_candidate_id": "source-ai-dev-064",
+    "theme": "harness_engineering",
+    "title": "Harness AI SWE-bench Verified",
+    "source_kind": "product_blog",
+    "url": "https://www.harness.io/blog/harness-excels-in-swe-bench-verified",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-064-Harness-AI-SWE-bench-Verified\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 6132,
+      "heading_count": 10,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 5537,
+      "substantive_line_count": 21,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "harness_engineering"
+      ]
+    },
+    "expected_signals": [
+      "harness_engineering",
+      "product_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-065",
+    "source_candidate_id": "source-ai-dev-065",
+    "theme": "harness_engineering",
+    "title": "AI Engineering Harness Repository",
+    "source_kind": "github_repo",
+    "url": "https://github.com/adrielp/ai-engineering-harness",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-065-AI-Engineering-Harness-Repository\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 7679,
+      "heading_count": 39,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 6475,
+      "substantive_line_count": 11,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "harness_engineering"
+      ]
+    },
+    "expected_signals": [
+      "harness_engineering",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-066",
+    "source_candidate_id": "source-ai-dev-066",
+    "theme": "harness_engineering",
+    "title": "Awesome Agent Harness",
+    "source_kind": "github_repo",
+    "url": "https://github.com/Picrew/awesome-agent-harness",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-066-Awesome-Agent-Harness\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 25679,
+      "heading_count": 26,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 24379,
+      "substantive_line_count": 102,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "harness_engineering"
+      ]
+    },
+    "expected_signals": [
+      "harness_engineering",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-067",
+    "source_candidate_id": "source-ai-dev-067",
+    "theme": "mcp_tool_use",
+    "title": "Model Context Protocol Specification",
+    "source_kind": "official_doc",
+    "url": "https://modelcontextprotocol.io/specification/draft",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-067-Model-Context-Protocol-Specification\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4359,
+      "heading_count": 7,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 4068,
+      "substantive_line_count": 12,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "mcp_tool_use"
+      ]
+    },
+    "expected_signals": [
+      "mcp_tool_use",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-068",
+    "source_candidate_id": "source-ai-dev-068",
+    "theme": "mcp_tool_use",
+    "title": "MCP Tools Concept",
+    "source_kind": "official_doc",
+    "url": "https://modelcontextprotocol.io/docs/concepts/tools",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-068-MCP-Tools-Concept\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 6936,
+      "heading_count": 2,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 6696,
+      "substantive_line_count": 20,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "mcp_tool_use"
+      ]
+    },
+    "expected_signals": [
+      "mcp_tool_use",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-069",
+    "source_candidate_id": "source-ai-dev-069",
+    "theme": "mcp_tool_use",
+    "title": "MCP Resources Concept",
+    "source_kind": "official_doc",
+    "url": "https://modelcontextprotocol.io/docs/concepts/resources",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-069-MCP-Resources-Concept\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 6417,
+      "heading_count": 2,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 6176,
+      "substantive_line_count": 22,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "mcp_tool_use"
+      ]
+    },
+    "expected_signals": [
+      "mcp_tool_use",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-070",
+    "source_candidate_id": "source-ai-dev-070",
+    "theme": "mcp_tool_use",
+    "title": "MCP Prompts Concept",
+    "source_kind": "official_doc",
+    "url": "https://modelcontextprotocol.io/docs/concepts/prompts",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-070-MCP-Prompts-Concept\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4602,
+      "heading_count": 2,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 4404,
+      "substantive_line_count": 18,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "mcp_tool_use"
+      ]
+    },
+    "expected_signals": [
+      "mcp_tool_use",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-071",
+    "source_candidate_id": "source-ai-dev-071",
+    "theme": "mcp_tool_use",
+    "title": "MCP Authorization",
+    "source_kind": "official_doc",
+    "url": "https://modelcontextprotocol.io/specification/draft/basic/authorization",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-071-MCP-Authorization\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 36430,
+      "heading_count": 2,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 35822,
+      "substantive_line_count": 170,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "mcp_tool_use"
+      ]
+    },
+    "expected_signals": [
+      "mcp_tool_use",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-074",
+    "source_candidate_id": "source-ai-dev-074",
+    "theme": "security",
+    "title": "OWASP Top 10 for LLM Applications",
+    "source_kind": "official_doc",
+    "url": "https://genai.owasp.org/llm-top-10",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-074-OWASP-Top-10-for-LLM-Applications\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 3111,
+      "heading_count": 17,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 2385,
+      "substantive_line_count": 5,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "security"
+      ]
+    },
+    "expected_signals": [
+      "security",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-075",
+    "source_candidate_id": "source-ai-dev-075",
+    "theme": "security",
+    "title": "OWASP LLM Prompt Injection",
+    "source_kind": "official_doc",
+    "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-075-OWASP-LLM-Prompt-Injection\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 12583,
+      "heading_count": 37,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 11009,
+      "substantive_line_count": 47,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "security"
+      ]
+    },
+    "expected_signals": [
+      "security",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-077",
+    "source_candidate_id": "source-ai-dev-077",
+    "theme": "rag",
+    "title": "Neo4j GraphRAG",
+    "source_kind": "official_doc",
+    "url": "https://neo4j.com/developer/genai-ecosystem/graphrag-python",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-077-Neo4j-GraphRAG\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 5926,
+      "heading_count": 19,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 5279,
+      "substantive_line_count": 19,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-078",
+    "source_candidate_id": "source-ai-dev-078",
+    "theme": "knowledge_graph",
+    "title": "LlamaIndex Knowledge Graph Index",
+    "source_kind": "official_doc",
+    "url": "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-078-LlamaIndex-Knowledge-Graph-Index\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 22198,
+      "heading_count": 63,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 19477,
+      "substantive_line_count": 52,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "knowledge_graph"
+      ]
+    },
+    "expected_signals": [
+      "knowledge_graph",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-079",
+    "source_candidate_id": "source-ai-dev-079",
+    "theme": "rag",
+    "title": "Microsoft GraphRAG Repository",
+    "source_kind": "github_repo",
+    "url": "https://github.com/microsoft/graphrag",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-079-Microsoft-GraphRAG-Repository\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 3443,
+      "heading_count": 23,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 2911,
+      "substantive_line_count": 14,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-080",
+    "source_candidate_id": "source-ai-dev-080",
+    "theme": "observability",
+    "title": "Langfuse Documentation",
+    "source_kind": "official_doc",
+    "url": "https://langfuse.com/docs",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-080-Langfuse-Documentation\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 6867,
+      "heading_count": 16,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 6409,
+      "substantive_line_count": 31,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "observability"
+      ]
+    },
+    "expected_signals": [
+      "observability",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-081",
+    "source_candidate_id": "source-ai-dev-081",
+    "theme": "observability",
+    "title": "Arize Phoenix Documentation",
+    "source_kind": "official_doc",
+    "url": "https://docs.arize.com/phoenix",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-081-Arize-Phoenix-Documentation\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 3870,
+      "heading_count": 9,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 3552,
+      "substantive_line_count": 10,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "observability"
+      ]
+    },
+    "expected_signals": [
+      "observability",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-082",
+    "source_candidate_id": "source-ai-dev-082",
+    "theme": "observability",
+    "title": "OpenTelemetry GenAI Semantic Conventions",
+    "source_kind": "official_doc",
+    "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-082-OpenTelemetry-GenAI-Semantic-Conventions\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 2522,
+      "heading_count": 2,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 2360,
+      "substantive_line_count": 7,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "observability"
+      ]
+    },
+    "expected_signals": [
+      "observability",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-083",
+    "source_candidate_id": "source-ai-dev-083",
+    "theme": "agent_framework",
+    "title": "通义千问 Qwen 文档",
+    "source_kind": "official_doc",
+    "url": "https://qwen.readthedocs.io/zh-cn/latest",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-083-Qwen\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 2089,
+      "heading_count": 5,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1935,
+      "substantive_line_count": 6,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-085",
+    "source_candidate_id": "source-ai-dev-085",
+    "theme": "agent_framework",
+    "title": "智谱 AI 开放平台文档",
+    "source_kind": "official_doc",
+    "url": "https://open.bigmodel.cn/dev/howuse/introduction",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-085-AI\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 1621,
+      "heading_count": 14,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1302,
+      "substantive_line_count": 6,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-088",
+    "source_candidate_id": "source-ai-dev-088",
+    "theme": "agent_framework",
+    "title": "阿里云百炼文档",
+    "source_kind": "official_doc",
+    "url": "https://help.aliyun.com/zh/model-studio",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-088-source\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4513,
+      "heading_count": 19,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 3971,
+      "substantive_line_count": 12,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "official_doc"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-089",
+    "source_candidate_id": "source-ai-dev-089",
+    "theme": "rag",
+    "title": "RAG 技术综述与实践",
+    "source_kind": "engineering_blog",
+    "url": "https://developer.aliyun.com/article/1500266",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-089-RAG\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 1145,
+      "heading_count": 2,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 987,
+      "substantive_line_count": 6,
+      "relevance_signal_count": 0,
+      "relevance_matched_signals": []
+    },
+    "expected_signals": [
+      "rag",
+      "engineering_blog"
+    ],
+    "governance_flags": [
+      "topic_relevance_missing:rag,engineering_blog"
+    ]
+  },
+  {
+    "id": "ingest-source-ai-dev-090",
+    "source_candidate_id": "source-ai-dev-090",
+    "theme": "rag",
+    "title": "大模型 RAG 检索增强生成实践",
+    "source_kind": "engineering_blog",
+    "url": "https://cloud.tencent.com/developer/article/2359818",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-090-RAG\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 3294,
+      "heading_count": 10,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 2971,
+      "substantive_line_count": 12,
+      "relevance_signal_count": 0,
+      "relevance_matched_signals": []
+    },
+    "expected_signals": [
+      "rag",
+      "engineering_blog"
+    ],
+    "governance_flags": [
+      "topic_relevance_missing:rag,engineering_blog"
+    ]
+  },
+  {
+    "id": "ingest-source-ai-dev-099",
+    "source_candidate_id": "source-ai-dev-099",
+    "theme": "mcp_tool_use",
+    "title": "MCP 资源中文规范",
+    "source_kind": "engineering_blog",
+    "url": "https://mcp.transdocs.org/specification/draft/server/resources",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-099-MCP\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 3092,
+      "heading_count": 2,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 2881,
+      "substantive_line_count": 3,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "mcp_tool_use"
+      ]
+    },
+    "expected_signals": [
+      "mcp_tool_use",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-101",
+    "source_candidate_id": "source-ai-dev-101",
+    "theme": "security",
+    "title": "提示词注入安全风险",
+    "source_kind": "engineering_blog",
+    "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-101-source\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 5612,
+      "heading_count": 30,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 4476,
+      "substantive_line_count": 19,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "security"
+      ]
+    },
+    "expected_signals": [
+      "security",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-102",
+    "source_candidate_id": "source-ai-dev-102",
+    "theme": "agent_memory",
+    "title": "AI Agent 记忆系统设计",
+    "source_kind": "engineering_blog",
+    "url": "https://jiangren.com.au/en/wiki/ai-agent-guide/section/design-patterns/memory",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-102-AI-Agent\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 6833,
+      "heading_count": 37,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 5863,
+      "substantive_line_count": 19,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-103",
+    "source_candidate_id": "source-ai-dev-103",
+    "theme": "agent_memory",
+    "title": "AI Agent 记忆管理实战",
+    "source_kind": "engineering_blog",
+    "url": "https://htmlpage.cn/topics/ai/ai-agent-memory-management-practice",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-103-AI-Agent\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 5521,
+      "heading_count": 26,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 4567,
+      "substantive_line_count": 3,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-104",
+    "source_candidate_id": "source-ai-dev-104",
+    "theme": "agent_memory",
+    "title": "agent 长期中期短期记忆调研",
+    "source_kind": "engineering_blog",
+    "url": "https://www.flandre.ltd/agent-memory",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-104-agent\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 12518,
+      "heading_count": 23,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 11773,
+      "substantive_line_count": 25,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-105",
+    "source_candidate_id": "source-ai-dev-105",
+    "theme": "rag",
+    "title": "AI Agent 的长期记忆工程取舍",
+    "source_kind": "engineering_blog",
+    "url": "https://www.phppan.com/tag/rag",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-105-AI-Agent\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 13815,
+      "heading_count": 58,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 12607,
+      "substantive_line_count": 32,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-106",
+    "source_candidate_id": "source-ai-dev-106",
+    "theme": "rag",
+    "title": "Ragas 大模型评测框架深度调研指南",
+    "source_kind": "engineering_blog",
+    "url": "https://www.cnblogs.com/yangykaifa/p/19616131",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-106-Ragas\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 18505,
+      "heading_count": 133,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 16152,
+      "substantive_line_count": 10,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-108",
+    "source_candidate_id": "source-ai-dev-108",
+    "theme": "rag",
+    "title": "Agentic RAG 中文论文解读",
+    "source_kind": "engineering_blog",
+    "url": "https://hub.baai.ac.cn/view/41937",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-108-Agentic-RAG\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 1768,
+      "heading_count": 4,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1482,
+      "substantive_line_count": 3,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-109",
+    "source_candidate_id": "source-ai-dev-109",
+    "theme": "agent_framework",
+    "title": "大模型 Agent 论文整理",
+    "source_kind": "engineering_blog",
+    "url": "https://blog.csdn.net/libaiup/article/details/150003750",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-109-Agent\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 26040,
+      "heading_count": 11,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 25320,
+      "substantive_line_count": 113,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-110",
+    "source_candidate_id": "source-ai-dev-110",
+    "theme": "mcp_tool_use",
+    "title": "模型上下文协议中文百科",
+    "source_kind": "engineering_blog",
+    "url": "https://zh.wikipedia.org/wiki/%E6%A8%A1%E5%9E%8B%E4%B8%8A%E4%B8%8B%E6%96%87%E5%8D%8F%E8%AE%AE",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-110-source\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 5884,
+      "heading_count": 19,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 5380,
+      "substantive_line_count": 22,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "mcp_tool_use"
+      ]
+    },
+    "expected_signals": [
+      "mcp_tool_use",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-111",
+    "source_candidate_id": "source-ai-dev-111",
+    "theme": "rag",
+    "title": "检索增强生成中文百科",
+    "source_kind": "engineering_blog",
+    "url": "https://zh.wikipedia.org/wiki/%E6%AA%A2%E7%B4%A2%E5%A2%9E%E5%BC%B7%E7%94%9F%E6%88%90",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-111-source\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 9893,
+      "heading_count": 16,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 9437,
+      "substantive_line_count": 38,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-112",
+    "source_candidate_id": "source-ai-dev-112",
+    "theme": "rag",
+    "title": "可检索性中文百科",
+    "source_kind": "engineering_blog",
+    "url": "https://zh.wikipedia.org/wiki/%E5%8F%AF%E6%A3%80%E7%B4%A2%E6%80%A7",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-112-source\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 1408,
+      "heading_count": 4,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1263,
+      "substantive_line_count": 5,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-118",
+    "source_candidate_id": "source-ai-dev-118",
+    "theme": "agent_framework",
+    "title": "通义千问文档：快速开始",
+    "source_kind": "engineering_blog",
+    "url": "https://qwen.readthedocs.io/zh-cn/latest/getting_started/quickstart.html",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-118-source\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 10391,
+      "heading_count": 19,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 9585,
+      "substantive_line_count": 47,
+      "relevance_signal_count": 0,
+      "relevance_matched_signals": []
+    },
+    "expected_signals": [
+      "agent_framework",
+      "engineering_blog"
+    ],
+    "governance_flags": [
+      "topic_relevance_missing:agent_framework,engineering_blog"
+    ]
+  },
+  {
+    "id": "ingest-source-ai-dev-121",
+    "source_candidate_id": "source-ai-dev-121",
+    "theme": "agent_framework",
+    "title": "AgentScope 中文主页",
+    "source_kind": "engineering_blog",
+    "url": "https://github.com/agentscope-ai/agentscope",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-121-AgentScope\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 8706,
+      "heading_count": 47,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 7398,
+      "substantive_line_count": 19,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-122",
+    "source_candidate_id": "source-ai-dev-122",
+    "theme": "agent_framework",
+    "title": "智谱 AI 智能体开发",
+    "source_kind": "engineering_blog",
+    "url": "https://open.bigmodel.cn/dev/howuse/agent",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-122-AI\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 1614,
+      "heading_count": 14,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1302,
+      "substantive_line_count": 6,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-126",
+    "source_candidate_id": "source-ai-dev-126",
+    "theme": "rag",
+    "title": "腾讯云大模型知识引擎",
+    "source_kind": "engineering_blog",
+    "url": "https://cloud.tencent.com/document/product/1772/115969",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-126-source\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 11660,
+      "heading_count": 44,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 10499,
+      "substantive_line_count": 21,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-131",
+    "source_candidate_id": "source-ai-dev-131",
+    "theme": "agent_framework",
+    "title": "阿里云百炼模型调用",
+    "source_kind": "engineering_blog",
+    "url": "https://help.aliyun.com/zh/model-studio/user-guide/model-calling",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-131-source\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 53416,
+      "heading_count": 129,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 50244,
+      "substantive_line_count": 92,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-138",
+    "source_candidate_id": "source-ai-dev-138",
+    "theme": "rag",
+    "title": "RAGFlow 开源项目",
+    "source_kind": "engineering_blog",
+    "url": "https://github.com/infiniflow/ragflow",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-138-RAGFlow\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 10265,
+      "heading_count": 44,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 8697,
+      "substantive_line_count": 35,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-139",
+    "source_candidate_id": "source-ai-dev-139",
+    "theme": "rag",
+    "title": "FastGPT 开源知识库项目",
+    "source_kind": "engineering_blog",
+    "url": "https://github.com/labring/FastGPT",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-139-FastGPT\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 2824,
+      "heading_count": 22,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 2078,
+      "substantive_line_count": 3,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-140",
+    "source_candidate_id": "source-ai-dev-140",
+    "theme": "rag",
+    "title": "MaxKB 开源知识库项目",
+    "source_kind": "engineering_blog",
+    "url": "https://github.com/1Panel-dev/MaxKB",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-140-MaxKB\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 2704,
+      "heading_count": 19,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 2175,
+      "substantive_line_count": 8,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-141",
+    "source_candidate_id": "source-ai-dev-141",
+    "theme": "rag",
+    "title": "QAnything 本地知识库问答",
+    "source_kind": "engineering_blog",
+    "url": "https://github.com/netease-youdao/QAnything",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-141-QAnything\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 19571,
+      "heading_count": 68,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 17195,
+      "substantive_line_count": 63,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-142",
+    "source_candidate_id": "source-ai-dev-142",
+    "theme": "rag",
+    "title": "Datawhale LLM Universe",
+    "source_kind": "engineering_blog",
+    "url": "https://github.com/datawhalechina/llm-universe",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-142-Datawhale-LLM-Universe\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4349,
+      "heading_count": 22,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 3773,
+      "substantive_line_count": 12,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-143",
+    "source_candidate_id": "source-ai-dev-143",
+    "theme": "agent_framework",
+    "title": "Datawhale Self LLM",
+    "source_kind": "engineering_blog",
+    "url": "https://github.com/datawhalechina/self-llm",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-143-Datawhale-Self-LLM\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 5685,
+      "heading_count": 23,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 5079,
+      "substantive_line_count": 13,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-144",
+    "source_candidate_id": "source-ai-dev-144",
+    "theme": "agent_framework",
+    "title": "MetaGPT 多智能体框架",
+    "source_kind": "engineering_blog",
+    "url": "https://github.com/geekan/MetaGPT",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-144-MetaGPT\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4717,
+      "heading_count": 25,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 3824,
+      "substantive_line_count": 14,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-145",
+    "source_candidate_id": "source-ai-dev-145",
+    "theme": "agent_framework",
+    "title": "InternLM Lagent",
+    "source_kind": "engineering_blog",
+    "url": "https://github.com/InternLM/lagent",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-145-InternLM-Lagent\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 18024,
+      "heading_count": 22,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 17164,
+      "substantive_line_count": 60,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-147",
+    "source_candidate_id": "source-ai-dev-147",
+    "theme": "embedding_retrieval",
+    "title": "FlagEmbedding 检索向量模型",
+    "source_kind": "engineering_blog",
+    "url": "https://github.com/FlagOpen/FlagEmbedding",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-147-FlagEmbedding\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 10789,
+      "heading_count": 18,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 10092,
+      "substantive_line_count": 43,
+      "relevance_signal_count": 0,
+      "relevance_matched_signals": []
+    },
+    "expected_signals": [
+      "embedding_retrieval",
+      "engineering_blog"
+    ],
+    "governance_flags": [
+      "topic_relevance_missing:embedding_retrieval,engineering_blog"
+    ]
+  },
+  {
+    "id": "ingest-source-ai-dev-148",
+    "source_candidate_id": "source-ai-dev-148",
+    "theme": "agent_framework",
+    "title": "OpenBMB AgentVerse",
+    "source_kind": "engineering_blog",
+    "url": "https://github.com/OpenBMB/AgentVerse",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-148-OpenBMB-AgentVerse\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 10716,
+      "heading_count": 39,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 9349,
+      "substantive_line_count": 40,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-149",
+    "source_candidate_id": "source-ai-dev-149",
+    "theme": "tool_use",
+    "title": "OpenBMB BMTools",
+    "source_kind": "engineering_blog",
+    "url": "https://github.com/OpenBMB/BMTools",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-149-OpenBMB-BMTools\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 6746,
+      "heading_count": 24,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 6027,
+      "substantive_line_count": 21,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "tool_use"
+      ]
+    },
+    "expected_signals": [
+      "tool_use",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-150",
+    "source_candidate_id": "source-ai-dev-150",
+    "theme": "tool_use",
+    "title": "THUDM ChatGLM3 工具调用",
+    "source_kind": "engineering_blog",
+    "url": "https://github.com/THUDM/ChatGLM3",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-150-THUDM-ChatGLM3\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 10344,
+      "heading_count": 35,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 9598,
+      "substantive_line_count": 24,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "tool_use"
+      ]
+    },
+    "expected_signals": [
+      "tool_use",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-151",
+    "source_candidate_id": "source-ai-dev-151",
+    "theme": "agent_framework",
+    "title": "DB-GPT 开源数据应用开发框架",
+    "source_kind": "engineering_blog",
+    "url": "https://github.com/eosphoros-ai/DB-GPT",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-151-DB-GPT\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 7789,
+      "heading_count": 47,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 6478,
+      "substantive_line_count": 15,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-152",
+    "source_candidate_id": "source-ai-dev-152",
+    "theme": "eval_harness",
+    "title": "OpenCompass 大模型评测",
+    "source_kind": "engineering_blog",
+    "url": "https://github.com/open-compass/opencompass",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-152-OpenCompass\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "zh-CN",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 16775,
+      "heading_count": 50,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 14891,
+      "substantive_line_count": 65,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "eval_harness"
+      ]
+    },
+    "expected_signals": [
+      "eval_harness",
+      "engineering_blog"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-153",
+    "source_candidate_id": "source-ai-dev-153",
+    "theme": "agent_memory",
+    "title": "ZenBrain: A Neuroscience-Inspired 7-Layer Memory Architecture for Autonomous AI Systems",
+    "source_kind": "paper",
+    "url": "http://arxiv.org/abs/2604.23878v1",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-153-ZenBrain-A-Neuroscience-Inspired-7-Layer-Memory-Architecture-for-Autonomous-AI-Systems\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "arxiv-metadata-to-markdown-v1",
+    "markdown_quality": {
+      "char_count": 2113,
+      "heading_count": 4,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1870,
+      "substantive_line_count": 4,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "paper"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-161",
+    "source_candidate_id": "source-ai-dev-161",
+    "theme": "agent_memory",
+    "title": "A Survey on the Security of Long-Term Memory in LLM Agents: Toward Mnemonic Sovereignty",
+    "source_kind": "paper",
+    "url": "http://arxiv.org/abs/2604.16548v1",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-161-A-Survey-on-the-Security-of-Long-Term-Memory-in-LLM-Agents-Toward-Mnemonic-Sovereignty\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "arxiv-metadata-to-markdown-v1",
+    "markdown_quality": {
+      "char_count": 2235,
+      "heading_count": 4,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1976,
+      "substantive_line_count": 5,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "paper"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-171",
+    "source_candidate_id": "source-ai-dev-171",
+    "theme": "agent_memory",
+    "title": "Automatic Ontology Construction Using LLMs as an External Layer of Memory, Verification, and Planning for Hybrid Intelligent Systems",
+    "source_kind": "paper",
+    "url": "http://arxiv.org/abs/2604.20795v1",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-171-Automatic-Ontology-Construction-Using-LLMs-as-an-External-Layer-of-Memory-Verification-and\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "arxiv-metadata-to-markdown-v1",
+    "markdown_quality": {
+      "char_count": 2072,
+      "heading_count": 4,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1766,
+      "substantive_line_count": 5,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "paper"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-174",
+    "source_candidate_id": "source-ai-dev-174",
+    "theme": "agent_memory",
+    "title": "HeLa-Mem: Hebbian Learning and Associative Memory for LLM Agents",
+    "source_kind": "paper",
+    "url": "http://arxiv.org/abs/2604.16839v1",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-174-HeLa-Mem-Hebbian-Learning-and-Associative-Memory-for-LLM-Agents\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "arxiv-metadata-to-markdown-v1",
+    "markdown_quality": {
+      "char_count": 1847,
+      "heading_count": 4,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1575,
+      "substantive_line_count": 3,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "paper"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-201",
+    "source_candidate_id": "source-ai-dev-201",
+    "theme": "rag",
+    "title": "Test-Time Strategies for More Efficient and Accurate Agentic RAG",
+    "source_kind": "paper",
+    "url": "http://arxiv.org/abs/2603.12396v1",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-201-Test-Time-Strategies-for-More-Efficient-and-Accurate-Agentic-RAG\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "arxiv-metadata-to-markdown-v1",
+    "markdown_quality": {
+      "char_count": 1988,
+      "heading_count": 4,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1627,
+      "substantive_line_count": 4,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "paper"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-211",
+    "source_candidate_id": "source-ai-dev-211",
+    "theme": "agent_framework",
+    "title": "langchain-ai/langchain",
+    "source_kind": "github_repo",
+    "url": "https://github.com/langchain-ai/langchain",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-211-langchain-ai-langchain\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4558,
+      "heading_count": 19,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 4093,
+      "substantive_line_count": 19,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-212",
+    "source_candidate_id": "source-ai-dev-212",
+    "theme": "knowledge_graph",
+    "title": "langchain-ai/langgraph",
+    "source_kind": "github_repo",
+    "url": "https://github.com/langchain-ai/langgraph",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-212-langchain-ai-langgraph\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4528,
+      "heading_count": 18,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 4019,
+      "substantive_line_count": 23,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "knowledge_graph"
+      ]
+    },
+    "expected_signals": [
+      "knowledge_graph",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-213",
+    "source_candidate_id": "source-ai-dev-213",
+    "theme": "rag",
+    "title": "run-llama/llama_index",
+    "source_kind": "github_repo",
+    "url": "https://github.com/run-llama/llama_index",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-213-run-llama-llama_index\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 7959,
+      "heading_count": 33,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 7051,
+      "substantive_line_count": 29,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-214",
+    "source_candidate_id": "source-ai-dev-214",
+    "theme": "agent_framework",
+    "title": "microsoft/semantic-kernel",
+    "source_kind": "github_repo",
+    "url": "https://github.com/microsoft/semantic-kernel",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-214-microsoft-semantic-kernel\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 10895,
+      "heading_count": 54,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 8598,
+      "substantive_line_count": 30,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-215",
+    "source_candidate_id": "source-ai-dev-215",
+    "theme": "agent_framework",
+    "title": "google/adk-python",
+    "source_kind": "github_repo",
+    "url": "https://github.com/google/adk-python",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-215-google-adk-python\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 6342,
+      "heading_count": 33,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 5344,
+      "substantive_line_count": 18,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-216",
+    "source_candidate_id": "source-ai-dev-216",
+    "theme": "agent_framework",
+    "title": "crewAIInc/crewAI",
+    "source_kind": "github_repo",
+    "url": "https://github.com/crewAIInc/crewAI",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-216-crewAIInc-crewAI\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 26571,
+      "heading_count": 80,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 23435,
+      "substantive_line_count": 89,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-217",
+    "source_candidate_id": "source-ai-dev-217",
+    "theme": "agent_framework",
+    "title": "pydantic/pydantic-ai",
+    "source_kind": "github_repo",
+    "url": "https://github.com/pydantic/pydantic-ai",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-217-pydantic-pydantic-ai\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 10100,
+      "heading_count": 42,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 7169,
+      "substantive_line_count": 28,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-218",
+    "source_candidate_id": "source-ai-dev-218",
+    "theme": "agent_framework",
+    "title": "agno-agi/agno",
+    "source_kind": "github_repo",
+    "url": "https://github.com/agno-agi/agno",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-218-agno-agi-agno\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 6131,
+      "heading_count": 25,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 5371,
+      "substantive_line_count": 18,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-219",
+    "source_candidate_id": "source-ai-dev-219",
+    "theme": "agent_framework",
+    "title": "camel-ai/camel",
+    "source_kind": "github_repo",
+    "url": "https://github.com/camel-ai/camel",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-219-camel-ai-camel\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 14122,
+      "heading_count": 57,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 12197,
+      "substantive_line_count": 51,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-220",
+    "source_candidate_id": "source-ai-dev-220",
+    "theme": "agent_framework",
+    "title": "Significant-Gravitas/AutoGPT",
+    "source_kind": "github_repo",
+    "url": "https://github.com/Significant-Gravitas/AutoGPT",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-220-Significant-Gravitas-AutoGPT\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 9014,
+      "heading_count": 38,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 7825,
+      "substantive_line_count": 30,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-221",
+    "source_candidate_id": "source-ai-dev-221",
+    "theme": "agent_framework",
+    "title": "yoheinakajima/babyagi",
+    "source_kind": "github_repo",
+    "url": "https://github.com/yoheinakajima/babyagi",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-221-yoheinakajima-babyagi\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 10025,
+      "heading_count": 29,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 9202,
+      "substantive_line_count": 40,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-223",
+    "source_candidate_id": "source-ai-dev-223",
+    "theme": "agent_framework",
+    "title": "openai/openai-agents-python",
+    "source_kind": "github_repo",
+    "url": "https://github.com/openai/openai-agents-python",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-223-openai-openai-agents-python\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4603,
+      "heading_count": 19,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 4012,
+      "substantive_line_count": 13,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-224",
+    "source_candidate_id": "source-ai-dev-224",
+    "theme": "agent_framework",
+    "title": "openai/openai-agents-js",
+    "source_kind": "github_repo",
+    "url": "https://github.com/openai/openai-agents-js",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-224-openai-openai-agents-js\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 2940,
+      "heading_count": 19,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 2381,
+      "substantive_line_count": 5,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-225",
+    "source_candidate_id": "source-ai-dev-225",
+    "theme": "agent_memory",
+    "title": "mem0ai/mem0",
+    "source_kind": "github_repo",
+    "url": "https://github.com/mem0ai/mem0",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-225-mem0ai-mem0\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 6176,
+      "heading_count": 29,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 5289,
+      "substantive_line_count": 22,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-226",
+    "source_candidate_id": "source-ai-dev-226",
+    "theme": "agent_memory",
+    "title": "getzep/zep",
+    "source_kind": "github_repo",
+    "url": "https://github.com/getzep/zep",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-226-getzep-zep\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 3463,
+      "heading_count": 22,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 2902,
+      "substantive_line_count": 15,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-227",
+    "source_candidate_id": "source-ai-dev-227",
+    "theme": "agent_memory",
+    "title": "letta-ai/letta",
+    "source_kind": "github_repo",
+    "url": "https://github.com/letta-ai/letta",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-227-letta-ai-letta\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4118,
+      "heading_count": 19,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 3526,
+      "substantive_line_count": 14,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-228",
+    "source_candidate_id": "source-ai-dev-228",
+    "theme": "agent_memory",
+    "title": "langchain-ai/langmem",
+    "source_kind": "github_repo",
+    "url": "https://github.com/langchain-ai/langmem",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-228-langchain-ai-langmem\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4701,
+      "heading_count": 23,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 4055,
+      "substantive_line_count": 17,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-229",
+    "source_candidate_id": "source-ai-dev-229",
+    "theme": "agent_memory",
+    "title": "supermemoryai/supermemory",
+    "source_kind": "github_repo",
+    "url": "https://github.com/supermemoryai/supermemory",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-229-supermemoryai-supermemory\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 9201,
+      "heading_count": 33,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 8239,
+      "substantive_line_count": 34,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_memory"
+      ]
+    },
+    "expected_signals": [
+      "agent_memory",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-231",
+    "source_candidate_id": "source-ai-dev-231",
+    "theme": "eval_harness",
+    "title": "confident-ai/deepeval",
+    "source_kind": "github_repo",
+    "url": "https://github.com/confident-ai/deepeval",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-231-confident-ai-deepeval\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 13539,
+      "heading_count": 32,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 12408,
+      "substantive_line_count": 58,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "eval_harness"
+      ]
+    },
+    "expected_signals": [
+      "eval_harness",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-232",
+    "source_candidate_id": "source-ai-dev-232",
+    "theme": "eval_harness",
+    "title": "UKGovernmentBEIS/inspect_ai",
+    "source_kind": "github_repo",
+    "url": "https://github.com/UKGovernmentBEIS/inspect_ai",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-232-UKGovernmentBEIS-inspect_ai\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 1387,
+      "heading_count": 12,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1026,
+      "substantive_line_count": 4,
+      "relevance_signal_count": 0,
+      "relevance_matched_signals": []
+    },
+    "expected_signals": [
+      "eval_harness",
+      "github_repo"
+    ],
+    "governance_flags": [
+      "topic_relevance_missing:eval_harness,github_repo"
+    ]
+  },
+  {
+    "id": "ingest-source-ai-dev-233",
+    "source_candidate_id": "source-ai-dev-233",
+    "theme": "eval_harness",
+    "title": "promptfoo/promptfoo",
+    "source_kind": "github_repo",
+    "url": "https://github.com/promptfoo/promptfoo",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-233-promptfoo-promptfoo\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 3214,
+      "heading_count": 19,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 2500,
+      "substantive_line_count": 6,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "eval_harness"
+      ]
+    },
+    "expected_signals": [
+      "eval_harness",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-234",
+    "source_candidate_id": "source-ai-dev-234",
+    "theme": "observability",
+    "title": "langfuse/langfuse",
+    "source_kind": "github_repo",
+    "url": "https://github.com/langfuse/langfuse",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-234-langfuse-langfuse\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 10773,
+      "heading_count": 35,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 9539,
+      "substantive_line_count": 26,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "observability"
+      ]
+    },
+    "expected_signals": [
+      "observability",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-235",
+    "source_candidate_id": "source-ai-dev-235",
+    "theme": "observability",
+    "title": "Arize-ai/phoenix",
+    "source_kind": "github_repo",
+    "url": "https://github.com/Arize-ai/phoenix",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-235-Arize-ai-phoenix\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 5811,
+      "heading_count": 26,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 5135,
+      "substantive_line_count": 17,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "observability"
+      ]
+    },
+    "expected_signals": [
+      "observability",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-236",
+    "source_candidate_id": "source-ai-dev-236",
+    "theme": "observability",
+    "title": "traceloop/openllmetry",
+    "source_kind": "github_repo",
+    "url": "https://github.com/traceloop/openllmetry",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-236-traceloop-openllmetry\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4084,
+      "heading_count": 25,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 3359,
+      "substantive_line_count": 9,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "observability"
+      ]
+    },
+    "expected_signals": [
+      "observability",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-237",
+    "source_candidate_id": "source-ai-dev-237",
+    "theme": "rag",
+    "title": "neo4j/neo4j-graphrag-python",
+    "source_kind": "github_repo",
+    "url": "https://github.com/neo4j/neo4j-graphrag-python",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-237-neo4j-neo4j-graphrag-python\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 12690,
+      "heading_count": 46,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 11265,
+      "substantive_line_count": 47,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-238",
+    "source_candidate_id": "source-ai-dev-238",
+    "theme": "vector_database",
+    "title": "milvus-io/milvus",
+    "source_kind": "github_repo",
+    "url": "https://github.com/milvus-io/milvus",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-238-milvus-io-milvus\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 10623,
+      "heading_count": 24,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 9919,
+      "substantive_line_count": 25,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "vector_database"
+      ]
+    },
+    "expected_signals": [
+      "vector_database",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-239",
+    "source_candidate_id": "source-ai-dev-239",
+    "theme": "vector_database",
+    "title": "qdrant/qdrant",
+    "source_kind": "github_repo",
+    "url": "https://github.com/qdrant/qdrant",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-239-qdrant-qdrant\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 6693,
+      "heading_count": 33,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 5702,
+      "substantive_line_count": 30,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "vector_database"
+      ]
+    },
+    "expected_signals": [
+      "vector_database",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-240",
+    "source_candidate_id": "source-ai-dev-240",
+    "theme": "vector_database",
+    "title": "weaviate/weaviate",
+    "source_kind": "github_repo",
+    "url": "https://github.com/weaviate/weaviate",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-240-weaviate-weaviate\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 9073,
+      "heading_count": 28,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 7987,
+      "substantive_line_count": 28,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "vector_database"
+      ]
+    },
+    "expected_signals": [
+      "vector_database",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-241",
+    "source_candidate_id": "source-ai-dev-241",
+    "theme": "vector_database",
+    "title": "chroma-core/chroma",
+    "source_kind": "github_repo",
+    "url": "https://github.com/chroma-core/chroma",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-241-chroma-core-chroma\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 2539,
+      "heading_count": 21,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1677,
+      "substantive_line_count": 5,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "vector_database"
+      ]
+    },
+    "expected_signals": [
+      "vector_database",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-242",
+    "source_candidate_id": "source-ai-dev-242",
+    "theme": "vector_database",
+    "title": "pinecone-io/examples",
+    "source_kind": "github_repo",
+    "url": "https://github.com/pinecone-io/examples",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-242-pinecone-io-examples\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 2052,
+      "heading_count": 17,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1586,
+      "substantive_line_count": 6,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "vector_database"
+      ]
+    },
+    "expected_signals": [
+      "vector_database",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-243",
+    "source_candidate_id": "source-ai-dev-243",
+    "theme": "mcp_tool_use",
+    "title": "modelcontextprotocol/typescript-sdk",
+    "source_kind": "github_repo",
+    "url": "https://github.com/modelcontextprotocol/typescript-sdk",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-243-modelcontextprotocol-typescript-sdk\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 5959,
+      "heading_count": 28,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 5132,
+      "substantive_line_count": 22,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "mcp_tool_use"
+      ]
+    },
+    "expected_signals": [
+      "mcp_tool_use",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-244",
+    "source_candidate_id": "source-ai-dev-244",
+    "theme": "mcp_tool_use",
+    "title": "modelcontextprotocol/python-sdk",
+    "source_kind": "github_repo",
+    "url": "https://github.com/modelcontextprotocol/python-sdk",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-244-modelcontextprotocol-python-sdk\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 61173,
+      "heading_count": 190,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 53061,
+      "substantive_line_count": 138,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "mcp_tool_use"
+      ]
+    },
+    "expected_signals": [
+      "mcp_tool_use",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-245",
+    "source_candidate_id": "source-ai-dev-245",
+    "theme": "tool_use",
+    "title": "anthropics/anthropic-cookbook",
+    "source_kind": "github_repo",
+    "url": "https://github.com/anthropics/anthropic-cookbook",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-245-anthropics-anthropic-cookbook\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 3912,
+      "heading_count": 20,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 3318,
+      "substantive_line_count": 17,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "tool_use"
+      ]
+    },
+    "expected_signals": [
+      "tool_use",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-247",
+    "source_candidate_id": "source-ai-dev-247",
+    "theme": "security",
+    "title": "NVIDIA/garak",
+    "source_kind": "github_repo",
+    "url": "https://github.com/NVIDIA/garak",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-247-NVIDIA-garak\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 15712,
+      "heading_count": 44,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 14634,
+      "substantive_line_count": 57,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "security"
+      ]
+    },
+    "expected_signals": [
+      "security",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-248",
+    "source_candidate_id": "source-ai-dev-248",
+    "theme": "security",
+    "title": "protectai/rebuff",
+    "source_kind": "github_repo",
+    "url": "https://github.com/protectai/rebuff",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-248-protectai-rebuff\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4605,
+      "heading_count": 27,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 3779,
+      "substantive_line_count": 15,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "security"
+      ]
+    },
+    "expected_signals": [
+      "security",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-249",
+    "source_candidate_id": "source-ai-dev-249",
+    "theme": "security",
+    "title": "microsoft/promptbench",
+    "source_kind": "github_repo",
+    "url": "https://github.com/microsoft/promptbench",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-249-microsoft-promptbench\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 10820,
+      "heading_count": 32,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 9835,
+      "substantive_line_count": 42,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "security"
+      ]
+    },
+    "expected_signals": [
+      "security",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-250",
+    "source_candidate_id": "source-ai-dev-250",
+    "theme": "agent_framework",
+    "title": "FoundationAgents/MetaGPT",
+    "source_kind": "github_repo",
+    "url": "https://github.com/FoundationAgents/MetaGPT",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-250-FoundationAgents-MetaGPT\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4717,
+      "heading_count": 25,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 3824,
+      "substantive_line_count": 14,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-251",
+    "source_candidate_id": "source-ai-dev-251",
+    "theme": "agent_framework",
+    "title": "mastra-ai/mastra",
+    "source_kind": "github_repo",
+    "url": "https://github.com/mastra-ai/mastra",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-251-mastra-ai-mastra\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 5198,
+      "heading_count": 21,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 4655,
+      "substantive_line_count": 24,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-252",
+    "source_candidate_id": "source-ai-dev-252",
+    "theme": "agent_framework",
+    "title": "humanlayer/12-factor-agents",
+    "source_kind": "github_repo",
+    "url": "https://github.com/humanlayer/12-factor-agents",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-252-humanlayer-12-factor-agents\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 9301,
+      "heading_count": 24,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 8108,
+      "substantive_line_count": 31,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-253",
+    "source_candidate_id": "source-ai-dev-253",
+    "theme": "rag",
+    "title": "TransformerOptimus/SuperAGI",
+    "source_kind": "github_repo",
+    "url": "https://github.com/TransformerOptimus/SuperAGI",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-253-TransformerOptimus-SuperAGI\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4546,
+      "heading_count": 25,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 3811,
+      "substantive_line_count": 17,
+      "relevance_signal_count": 0,
+      "relevance_matched_signals": []
+    },
+    "expected_signals": [
+      "rag",
+      "github_repo"
+    ],
+    "governance_flags": [
+      "topic_relevance_missing:rag,github_repo"
+    ]
+  },
+  {
+    "id": "ingest-source-ai-dev-254",
+    "source_candidate_id": "source-ai-dev-254",
+    "theme": "rag",
+    "title": "raga-ai-hub/RagaAI-Catalyst",
+    "source_kind": "github_repo",
+    "url": "https://github.com/raga-ai-hub/RagaAI-Catalyst",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-254-raga-ai-hub-RagaAI-Catalyst\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 14218,
+      "heading_count": 78,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 11378,
+      "substantive_line_count": 24,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "rag"
+      ]
+    },
+    "expected_signals": [
+      "rag",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-255",
+    "source_candidate_id": "source-ai-dev-255",
+    "theme": "agent_framework",
+    "title": "GreyDGL/PentestGPT",
+    "source_kind": "github_repo",
+    "url": "https://github.com/GreyDGL/PentestGPT",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-255-GreyDGL-PentestGPT\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 5956,
+      "heading_count": 42,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 4826,
+      "substantive_line_count": 18,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-256",
+    "source_candidate_id": "source-ai-dev-256",
+    "theme": "agent_framework",
+    "title": "langchain4j/langchain4j",
+    "source_kind": "github_repo",
+    "url": "https://github.com/langchain4j/langchain4j",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-256-langchain4j-langchain4j\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4728,
+      "heading_count": 22,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 3800,
+      "substantive_line_count": 18,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-257",
+    "source_candidate_id": "source-ai-dev-257",
+    "theme": "agent_framework",
+    "title": "The-Pocket/PocketFlow",
+    "source_kind": "github_repo",
+    "url": "https://github.com/The-Pocket/PocketFlow",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-257-The-Pocket-PocketFlow\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4901,
+      "heading_count": 13,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 4457,
+      "substantive_line_count": 3,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-258",
+    "source_candidate_id": "source-ai-dev-258",
+    "theme": "agent_framework",
+    "title": "HKUDS/AutoAgent",
+    "source_kind": "github_repo",
+    "url": "https://github.com/HKUDS/AutoAgent",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-258-HKUDS-AutoAgent\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 12432,
+      "heading_count": 40,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 11123,
+      "substantive_line_count": 33,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-259",
+    "source_candidate_id": "source-ai-dev-259",
+    "theme": "agent_framework",
+    "title": "VoltAgent/voltagent",
+    "source_kind": "github_repo",
+    "url": "https://github.com/VoltAgent/voltagent",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-259-VoltAgent-voltagent\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 11096,
+      "heading_count": 35,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 10082,
+      "substantive_line_count": 49,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-260",
+    "source_candidate_id": "source-ai-dev-260",
+    "theme": "agent_framework",
+    "title": "InternLM/MindSearch",
+    "source_kind": "github_repo",
+    "url": "https://github.com/InternLM/MindSearch",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-260-InternLM-MindSearch\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 4422,
+      "heading_count": 28,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 3463,
+      "substantive_line_count": 13,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-261",
+    "source_candidate_id": "source-ai-dev-261",
+    "theme": "agent_framework",
+    "title": "LazyAGI/LazyLLM",
+    "source_kind": "github_repo",
+    "url": "https://github.com/LazyAGI/LazyLLM",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-261-LazyAGI-LazyLLM\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "html-to-markdown-clean-v1",
+    "markdown_quality": {
+      "char_count": 20755,
+      "heading_count": 37,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 19422,
+      "substantive_line_count": 62,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "agent_framework"
+      ]
+    },
+    "expected_signals": [
+      "agent_framework",
+      "github_repo"
+    ],
+    "governance_flags": []
+  },
+  {
+    "id": "ingest-source-ai-dev-266",
+    "source_candidate_id": "source-ai-dev-266",
+    "theme": "eval_harness",
+    "title": "RaV-IDP: A Reconstruction-as-Validation Framework for Faithful Intelligent Document Processing",
+    "source_kind": "paper",
+    "url": "http://arxiv.org/abs/2604.23644v1",
+    "file_path": "D:\\workspace\\outputs\\knowledge-sources\\ai-dev\\source-ai-dev-266-RaV-IDP-A-Reconstruction-as-Validation-Framework-for-Faithful-Intelligent-Document-Process\\source.md",
+    "memory_domain": "knowledge",
+    "source_type": "markdown_file",
+    "sectioning_mode": "markdown",
+    "language": "en",
+    "markdown_converter": "arxiv-metadata-to-markdown-v1",
+    "markdown_quality": {
+      "char_count": 1893,
+      "heading_count": 4,
+      "empty_heading_count": 0,
+      "mojibake_marker_count": 0,
+      "nav_noise_marker_count": 0,
+      "useless_line_count": 0,
+      "stripped_noise_line_count": 0,
+      "useful_body_char_count": 1648,
+      "substantive_line_count": 4,
+      "relevance_signal_count": 1,
+      "relevance_matched_signals": [
+        "eval_harness"
+      ]
+    },
+    "expected_signals": [
+      "eval_harness",
+      "paper"
+    ],
+    "governance_flags": []
+  }
+]

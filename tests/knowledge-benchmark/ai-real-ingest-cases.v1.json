@@ -1,0 +1,114 @@
+[
+  {
+    "id": "ingest-ai-agent-memory-001",
+    "theme": "agent_memory",
+    "title": "GitHub Copilot Memory Public Preview",
+    "source_kind": "web_article",
+    "url": "https://github.blog/changelog/2026-01-15-agentic-memory-for-github-copilot-is-in-public-preview/",
+    "memory_domain": "knowledge",
+    "sectioning_mode": "paragraph",
+    "expected_signals": [
+      "memory",
+      "repository",
+      "agent"
+    ]
+  },
+  {
+    "id": "ingest-ai-agent-memory-002",
+    "theme": "agent_memory",
+    "title": "Building an Agentic Memory System for GitHub Copilot",
+    "source_kind": "web_article",
+    "url": "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/",
+    "memory_domain": "knowledge",
+    "sectioning_mode": "paragraph",
+    "expected_signals": [
+      "memory",
+      "validation",
+      "repository knowledge"
+    ]
+  },
+  {
+    "id": "ingest-ai-agent-framework-001",
+    "theme": "agent_framework",
+    "title": "LangGraph Memory Overview",
+    "source_kind": "web_article",
+    "url": "https://docs.langchain.com/oss/javascript/concepts/memory",
+    "memory_domain": "knowledge",
+    "sectioning_mode": "paragraph",
+    "expected_signals": [
+      "short-term memory",
+      "long-term memory",
+      "namespace"
+    ]
+  },
+  {
+    "id": "ingest-ai-agent-framework-002",
+    "theme": "agent_framework",
+    "title": "LangGraph Memory Agent",
+    "source_kind": "web_article",
+    "url": "https://github.com/langchain-ai/memory-agent",
+    "memory_domain": "knowledge",
+    "sectioning_mode": "paragraph",
+    "expected_signals": [
+      "memory agent",
+      "user_id",
+      "evaluation"
+    ]
+  },
+  {
+    "id": "ingest-ai-agent-framework-003",
+    "theme": "agent_framework",
+    "title": "Microsoft AutoGen Repository",
+    "source_kind": "web_article",
+    "url": "https://github.com/microsoft/autogen",
+    "memory_domain": "knowledge",
+    "sectioning_mode": "paragraph",
+    "expected_signals": [
+      "maintenance mode",
+      "agent framework",
+      "migration"
+    ]
+  },
+  {
+    "id": "ingest-ai-agentic-rag-001",
+    "theme": "agentic_rag",
+    "title": "Haystack Repository",
+    "source_kind": "web_article",
+    "url": "https://github.com/deepset-ai/haystack",
+    "memory_domain": "knowledge",
+    "sectioning_mode": "paragraph",
+    "expected_signals": [
+      "RAG",
+      "agents",
+      "pipelines"
+    ]
+  },
+  {
+    "id": "ingest-ai-agentic-rag-002",
+    "theme": "agentic_rag",
+    "title": "SoK Agentic RAG",
+    "source_kind": "web_article",
+    "url": "https://arxiv.org/abs/2603.07379",
+    "memory_domain": "knowledge",
+    "sectioning_mode": "paragraph",
+    "expected_signals": [
+      "taxonomy",
+      "agentic rag",
+      "evaluation"
+    ]
+  },
+  {
+    "id": "ingest-ai-eval-harness-001",
+    "theme": "eval_harness",
+    "title": "RAGalyst",
+    "source_kind": "web_article",
+    "url": "https://arxiv.org/abs/2511.04502",
+    "memory_domain": "knowledge",
+    "sectioning_mode": "paragraph",
+    "expected_signals": [
+      "evaluation",
+      "RAG",
+      "human-aligned"
+    ]
+  }
+]

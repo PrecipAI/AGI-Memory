@@ -1,0 +1,1722 @@
+openapi: 3.1.0
+info:
+  title: SuperAgentSystem Internal API
+  version: v1
+  summary: Launch Spec v1 frozen internal contracts with Memory System V3 single-tenant extension
+servers:
+  - url: https://internal.super-agent.local
+components:
+  parameters:
+    TenantId:
+      name: X-Tenant-Id
+      in: header
+      required: true
+      schema:
+        type: string
+    Scope:
+      name: X-Scope
+      in: header
+      required: true
+      schema:
+        type: string
+    TraceId:
+      name: X-Trace-Id
+      in: header
+      required: true
+      schema:
+        type: string
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+  responses:
+    ErrorResponse:
+      description: Standard error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    Error:
+      type: object
+      required: [error_code, message, trace_id, retryable, details]
+      properties:
+        error_code:
+          type: string
+        message:
+          type: string
+        trace_id:
+          type: string
+        retryable:
+          type: boolean
+        details:
+          type: object
+          additionalProperties: true
+    Step:
+      type: object
+      required:
+        - step_key
+        - step_order
+        - title
+        - step_type
+        - dependency_keys
+        - risk_level
+        - side_effect_class
+        - input_payload
+        - expected_output
+        - acceptance_criteria
+      properties:
+        step_key:
+          type: string
+        step_order:
+          type: integer
+        title:
+          type: string
+        step_type:
+          type: string
+        dependency_keys:
+          type: array
+          items:
+            type: string
+        risk_level:
+          type: string
+          enum: [low, medium, high, critical]
+        side_effect_class:
+          type: string
+          enum: [none, read_only, external_resource, state_change, approval]
+        capability_hint:
+          type: string
+        compensation_hint:
+          type: object
+          additionalProperties: true
+        input_payload:
+          type: object
+          additionalProperties: true
+        expected_output:
+          type: object
+          additionalProperties: true
+        acceptance_criteria:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    PlanRequest:
+      type: object
+      required: [task_request_id, task_type, goal, normalized_envelope, resident_context, retrieval_budget]
+      properties:
+        task_request_id:
+          type: string
+          format: uuid
+        task_type:
+          type: string
+        goal:
+          type: string
+        normalized_envelope:
+          type: object
+          additionalProperties: true
+        resident_context:
+          type: object
+          additionalProperties: true
+        retrieval_budget:
+          type: object
+          additionalProperties: true
+    PlanResponse:
+      type: object
+      required: [task_plan_id, plan_version, risk_level, acceptance_criteria, steps]
+      properties:
+        task_plan_id:
+          type: string
+          format: uuid
+        plan_version:
+          type: integer
+        risk_level:
+          type: string
+        acceptance_criteria:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/Step"
+    ResolveRequest:
+      type: object
+      required: [task_plan_id, task_step_id, step_type, risk_level, side_effect_class, required_scopes, fingerprint_context]
+      properties:
+        task_plan_id:
+          type: string
+          format: uuid
+        task_step_id:
+          type: string
+          format: uuid
+        step_type:
+          type: string
+        risk_level:
+          type: string
+        side_effect_class:
+          type: string
+        required_scopes:
+          type: array
+          items:
+            type: string
+        fingerprint_context:
+          type: object
+          additionalProperties: true
+    ResolveResponse:
+      type: object
+      required: [resolved_capability_id, candidate_capabilities, approval_required, resolution_reason]
+      properties:
+        resolved_capability_id:
+          type: string
+          format: uuid
+        candidate_capabilities:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        approval_required:
+          type: boolean
+        resolution_reason:
+          type: string
+    DispatchRequest:
+      type: object
+      required: [task_request_id, task_plan_id, task_step_id, resolved_capability_id, dispatch_payload, precheck_token]
+      properties:
+        task_request_id:
+          type: string
+          format: uuid
+        task_plan_id:
+          type: string
+          format: uuid
+        task_step_id:
+          type: string
+          format: uuid
+        resolved_capability_id:
+          type: string
+          format: uuid
+        dispatch_payload:
+          type: object
+          additionalProperties: true
+        precheck_token:
+          type: string
+    DispatchResponse:
+      type: object
+      required: [dispatch_status, attempt_no, execution_reference, journal_checkpoint, stream_state]
+      properties:
+        dispatch_status:
+          type: string
+        attempt_no:
+          type: integer
+        execution_reference:
+          type: object
+          additionalProperties: true
+        journal_checkpoint:
+          type: string
+        stream_state:
+          type: string
+          enum: [provisional, committed, revoked, replanned, blocked]
+    MemoryCandidatePreview:
+      type: object
+      required:
+        - source_type
+        - source_ref
+        - artifact_tag
+        - verification_status
+        - side_effect_class
+        - fingerprint_status
+        - candidate_payload
+      properties:
+        source_type:
+          type: string
+        source_ref:
+          type: string
+        artifact_tag:
+          type: string
+        error_code:
+          type: string
+        verification_status:
+          type: string
+        side_effect_class:
+          type: string
+        fingerprint:
+          type: string
+        fingerprint_status:
+          type: string
+          enum: [matched, matched_or_na, mismatch, unknown]
+        candidate_payload:
+          type: object
+          additionalProperties: true
+        llm_refined_payload:
+          type: object
+          additionalProperties: true
+    VerifyRequest:
+      type: object
+      required: [task_request_id, task_plan_id, verification_phase, expected_state, observed_state]
+      properties:
+        task_request_id:
+          type: string
+          format: uuid
+        task_plan_id:
+          type: string
+          format: uuid
+        task_step_id:
+          type: string
+          format: uuid
+        verification_phase:
+          type: string
+          enum: [precheck, postcheck, acceptance, cleanup]
+        expected_state:
+          type: object
+          additionalProperties: true
+        observed_state:
+          type: object
+          additionalProperties: true
+    VerifyResponse:
+      type: object
+      required: [verification_result_id, verdict, evidence_payload]
+      properties:
+        verification_result_id:
+          type: string
+          format: uuid
+        verdict:
+          type: string
+          enum: [passed, failed, waived]
+        failure_event_id:
+          type: string
+          format: uuid
+        evidence_payload:
+          type: object
+          additionalProperties: true
+        precheck_token:
+          type: string
+        breaker_state:
+          type: string
+        memory_candidate_preview:
+          $ref: "#/components/schemas/MemoryCandidatePreview"
+    CleanupRequest:
+      type: object
+      required: [task_request_id, task_plan_id, task_step_id, cleanup_status, journal_cursor, capsule_id, dependency_state]
+      properties:
+        task_request_id:
+          type: string
+          format: uuid
+        task_plan_id:
+          type: string
+          format: uuid
+        task_step_id:
+          type: string
+          format: uuid
+        cleanup_status:
+          type: string
+        journal_cursor:
+          type: integer
+        capsule_id:
+          type: string
+          format: uuid
+        dependency_state:
+          type: string
+          enum: [DOWN, HALF-OPEN, UP]
+    CleanupResponse:
+      type: object
+      required: [cleanup_status, drift_detected, scope_frozen, reconciliation_required]
+      properties:
+        cleanup_status:
+          type: string
+        drift_detected:
+          type: boolean
+        dlq_item_id:
+          type: string
+          format: uuid
+        scope_frozen:
+          type: boolean
+        reconciliation_required:
+          type: boolean
+    MemoryQueryRequest:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum: [resident, factual, procedural, summary, candidate]
+        task_request_id:
+          type: string
+          format: uuid
+        fingerprint:
+          type: string
+        limit:
+          type: integer
+      additionalProperties: false
+    MemoryQueryResponse:
+      type: object
+      required: [kind, tenant_id, scope, single_tenant_mode, items]
+      properties:
+        kind:
+          type: string
+        tenant_id:
+          type: string
+        scope:
+          type: string
+        single_tenant_mode:
+          type: boolean
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    MemoryCandidateRequest:
+      type: object
+      required:
+        - task_request_id
+        - task_step_id
+        - source_type
+        - source_ref
+        - artifact_tag
+        - verification_status
+        - side_effect_class
+        - fingerprint_status
+        - candidate_payload
+      properties:
+        task_request_id:
+          type: string
+          format: uuid
+        task_step_id:
+          type: string
+          format: uuid
+        source_type:
+          type: string
+        source_ref:
+          type: string
+        artifact_tag:
+          type: string
+        error_code:
+          type: string
+        verification_status:
+          type: string
+        side_effect_class:
+          type: string
+        fingerprint:
+          type: string
+        fingerprint_status:
+          type: string
+          enum: [matched, matched_or_na, mismatch, unknown]
+        candidate_payload:
+          type: object
+          additionalProperties: true
+        llm_refined_payload:
+          type: object
+          additionalProperties: true
+    MemoryCandidateResponse:
+      type: object
+      required:
+        - accepted
+        - candidate_hash
+        - candidate_id
+        - candidate_status
+        - routing_decision
+        - persist_target
+        - storage_decision
+      properties:
+        accepted:
+          type: boolean
+        candidate_hash:
+          type: string
+        candidate_id:
+          type: string
+          format: uuid
+        candidate_status:
+          type: string
+          enum: [extracted, ranked, routed, persisted, dropped, blocked]
+        routing_decision:
+          type: string
+        persist_target:
+          type: string
+          enum: [memory, rule, skill, resident_candidate, summary_only, drop, block]
+        storage_decision:
+          type: string
+        persisted_object_id:
+          type: string
+          format: uuid
+    MemoryRetrieveRequest:
+      type: object
+      required: [task_request_id, query, fingerprint_status]
+      properties:
+        task_request_id:
+          type: string
+          format: uuid
+        query:
+          type: string
+        runtime_summary:
+          type: object
+          additionalProperties: true
+        fingerprint:
+          type: string
+          description: Required when include_procedural=true.
+        fingerprint_status:
+          type: string
+          enum: [matched, matched_or_na, mismatch, unknown]
+          description: Mandatory retrieval decision input. Procedural memory enters the high-weight path only when fingerprint_status=matched.
+        include_procedural:
+          type: boolean
+        include_factual:
+          type: boolean
+        limit:
+          type: integer
+        task_type:
+          type: string
+          enum: [design, execution, debugging, governance, review, ingestion, integration, answer]
+        host:
+          type: string
+          description: Optional host/client identifier such as codex or claude_code for task binding.
+        project_ref:
+          type: string
+          description: Optional project identifier used by task binding.
+        operation_intent:
+          type: string
+          description: Optional operation that may trigger rule checkpoints or gates, such as write_host_config.
+        context_budget_tokens:
+          type: integer
+        existing_bundle_id:
+          type: string
+          format: uuid
+        existing_query_hash:
+          type: string
+        layer_versions:
+          type: object
+          additionalProperties: true
+        required_layers:
+          type: array
+          items:
+            type: string
+        forbidden_layers:
+          type: array
+          items:
+            type: string
+        compression_mode:
+          type: string
+          enum: [none, light, aggressive, evidence_only]
+        attention_layout:
+          type: string
+    MemoryRetrieveResponse:
+      type: object
+      required:
+        - runtime_summary
+        - conversation_summary
+        - resident_snapshot
+        - rules
+        - factual_memory
+        - procedural_memory
+        - gates
+      properties:
+        bundle_id:
+          type: string
+          format: uuid
+        runtime_summary:
+          type: object
+          additionalProperties: true
+        conversation_summary:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        resident_snapshot:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        rules:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        factual_memory:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        procedural_memory:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        synthesized_knowledge:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        evidence_index:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        layer_versions:
+          type: object
+          additionalProperties: true
+        assembly_context:
+          type: object
+          additionalProperties: true
+        context_package:
+          type: object
+          additionalProperties: true
+        gates:
+          type: object
+          additionalProperties: true
+    RuleGateCheckRequest:
+      type: object
+      required: [task_request_id, operation]
+      properties:
+        task_request_id:
+          type: string
+          format: uuid
+        task_step_id:
+          type: string
+          format: uuid
+        task_type:
+          type: string
+          enum: [design, execution, debugging, governance, review, ingestion, integration, answer]
+        host:
+          type: string
+        project_ref:
+          type: string
+        operation:
+          type: string
+        checkpoint_keys:
+          type: array
+          items:
+            type: string
+        evidence:
+          type: object
+          additionalProperties: true
+        actor_ref:
+          type: string
+    RuleGateCheckResponse:
+      type: object
+      required: [allowed, decision, operation, matched_checkpoint_count, checkpoints, audit_ids]
+      properties:
+        allowed:
+          type: boolean
+        decision:
+          type: string
+          enum: [allow, warn, ask_user, block]
+        operation:
+          type: string
+        matched_checkpoint_count:
+          type: integer
+        checkpoints:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        audit_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        rule_hotplug_note:
+          type: string
+    GovernanceRunRequest:
+      type: object
+      required: [task_request_id]
+      properties:
+        task_request_id:
+          type: string
+          format: uuid
+        task_step_id:
+          type: string
+          format: uuid
+        fingerprint:
+          type: string
+        rebuild_resident:
+          type: boolean
+        sync_index:
+          type: boolean
+        run_lifecycle:
+          type: boolean
+    GovernanceRunResponse:
+      type: object
+      required:
+        - summary_ids
+        - persisted_memory_ids
+        - persisted_skill_ids
+        - index_sync
+        - lifecycle
+      properties:
+        summary_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        rebuilt_snapshot_id:
+          type: string
+          format: uuid
+        persisted_memory_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        persisted_skill_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        drift_check_result_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        reconciliation_item_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        zombie_state_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        index_sync:
+          type: object
+          additionalProperties: true
+        lifecycle:
+          type: object
+          additionalProperties: true
+    KnowledgeGovernanceJobCreateRequest:
+      type: object
+      required: [job_type, trigger_type]
+      properties:
+        job_type:
+          type: string
+        trigger_type:
+          type: string
+        trigger_ref:
+          type: string
+        target_object_type:
+          type: string
+        target_object_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        priority:
+          type: integer
+        payload:
+          type: object
+          additionalProperties: true
+    KnowledgeGovernanceJobCreateResponse:
+      type: object
+      required: [job_id, status, queued_at]
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        queued_at:
+          type: string
+          format: date-time
+    KnowledgeGovernanceJobResponse:
+      type: object
+      required: [job_id, job_type, status, created_objects, updated_objects, warnings, trace]
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        job_type:
+          type: string
+        status:
+          type: string
+        decision:
+          type: string
+        created_objects:
+          type: array
+          items:
+            type: string
+        updated_objects:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+        trace:
+          type: object
+          additionalProperties: true
+        started_at:
+          type: string
+          format: date-time
+        finished_at:
+          type: string
+          format: date-time
+    KnowledgeGovernanceRunRequest:
+      type: object
+      required: [task_request_id]
+      properties:
+        task_request_id:
+          type: string
+          format: uuid
+        task_step_id:
+          type: string
+          format: uuid
+        candidate_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        run_modes:
+          type: array
+          items:
+            type: string
+        max_items:
+          type: integer
+        include_graph_governance:
+          type: boolean
+        include_summary_rebuild:
+          type: boolean
+        include_resident_rebuild:
+          type: boolean
+        include_staleness_scan:
+          type: boolean
+    KnowledgeGovernanceRunResponse:
+      type: object
+      required: [job_id, status, processed_candidate_count, created_document_ids, created_section_ids, created_fact_ids, created_entity_ids, created_evidence_ids, created_relation_ids, review_queue_item_ids, warnings]
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        processed_candidate_count:
+          type: integer
+        created_document_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        created_section_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        created_fact_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        created_entity_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        created_evidence_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        created_relation_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        review_queue_item_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        context_bundle_id:
+          type: string
+          format: uuid
+        warnings:
+          type: array
+          items:
+            type: string
+    KnowledgeReviewQueueResponse:
+      type: object
+      required: [tenant_id, scope, items]
+      properties:
+        tenant_id:
+          type: string
+        scope:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    KnowledgeReviewActionRequest:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+    KnowledgeReviewActionResponse:
+      type: object
+      required: [review_queue_id, action, status, resolved_at]
+      properties:
+        review_queue_id:
+          type: string
+          format: uuid
+        action:
+          type: string
+        status:
+          type: string
+        resolved_at:
+          type: string
+          format: date-time
+    KnowledgeContextBundleResponse:
+      type: object
+      required: [bundle_id, request_ref, bundle_type, facts, entities, relations, evidence_refs, section_refs, warnings, assembly_trace, created_at]
+      properties:
+        bundle_id:
+          type: string
+          format: uuid
+        request_ref:
+          type: string
+        bundle_type:
+          type: string
+        summary:
+          type: string
+        facts:
+          type: array
+          items: {}
+        entities:
+          type: array
+          items: {}
+        relations:
+          type: array
+          items: {}
+        evidence_refs:
+          type: array
+          items: {}
+        section_refs:
+          type: array
+          items: {}
+        warnings:
+          type: array
+          items: {}
+        assembly_trace:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+    KnowledgeRetrieveRequest:
+      type: object
+      required: [task_request_id, query]
+      properties:
+        task_request_id:
+          type: string
+          format: uuid
+        query:
+          type: string
+        runtime_summary:
+          type: object
+          additionalProperties: true
+        intent_type:
+          type: string
+        top_k:
+          type: integer
+        latency_budget_ms:
+          type: integer
+        require_evidence:
+          type: boolean
+        include_trace:
+          type: boolean
+        include_procedural:
+          type: boolean
+        include_factual:
+          type: boolean
+        fingerprint:
+          type: string
+        fingerprint_status:
+          type: string
+          enum: [matched, matched_or_na, mismatch, unknown]
+    KnowledgeRetrieveResponse:
+      type: object
+      required: [bundle_id, query, summary, facts, rules, skills, entities, relations, evidence_refs, section_refs, warnings, assembly_trace]
+      properties:
+        bundle_id:
+          type: string
+          format: uuid
+        query:
+          type: string
+        summary:
+          type: string
+        facts:
+          type: array
+          items: {}
+        derived_knowledge:
+          type: array
+          items: {}
+        evidence_trace:
+          type: array
+          items: {}
+        rules:
+          type: array
+          items: {}
+        skills:
+          type: array
+          items: {}
+        entities:
+          type: array
+          items: {}
+        relations:
+          type: array
+          items: {}
+        evidence_refs:
+          type: array
+          items: {}
+        section_refs:
+          type: array
+          items: {}
+        warnings:
+          type: array
+          items: {}
+        assembly_trace:
+          type: object
+          additionalProperties: true
+    KnowledgeGraphListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    KnowledgeDocumentIngestRequest:
+      type: object
+      required: [task_request_id, source_type]
+      properties:
+        task_request_id:
+          type: string
+          format: uuid
+        task_step_id:
+          type: string
+          format: uuid
+        source_type:
+          type: string
+          enum: [local_file, inline_text, markdown_file, markdown_text, markitdown_file, markitdown_url]
+        file_path:
+          type: string
+        source_uri:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        memory_domain:
+          type: string
+        language:
+          type: string
+        author:
+          type: string
+        markdown_converter:
+          type: string
+        sectioning_mode:
+          type: string
+          enum: [auto, markdown, paragraph]
+        max_section_chars:
+          type: integer
+        promote_to_candidates:
+          type: boolean
+        trigger_governance:
+          type: boolean
+        artifact_tag:
+          type: string
+        fact_type:
+          type: string
+        verification_status:
+          type: string
+        fingerprint:
+          type: string
+        fingerprint_status:
+          type: string
+          enum: [matched, matched_or_na, mismatch, unknown]
+    KnowledgeDocumentIngestResponse:
+      type: object
+      required: [document_id, title, source_uri, section_count, section_ids, evidence_ids, candidate_ids, context_bundle_id, warnings]
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        source_uri:
+          type: string
+        markdown_content_ref:
+          type: string
+        markdown_converter:
+          type: string
+        section_count:
+          type: integer
+        section_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        evidence_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        candidate_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        context_bundle_id:
+          type: string
+          format: uuid
+        governance:
+          type: object
+          nullable: true
+          additionalProperties: true
+        warnings:
+          type: array
+          items:
+            type: string
+    KnowledgeDocumentListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    KnowledgeGovernanceRunsResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    KnowledgeOpsOverviewResponse:
+      type: object
+      required:
+        - document_count
+        - section_count
+        - evidence_count
+        - entity_count
+        - fact_count
+        - relation_count
+        - active_review_count
+        - governance_job_count
+        - corpus_governance
+      properties:
+        document_count:
+          type: integer
+        section_count:
+          type: integer
+        evidence_count:
+          type: integer
+        entity_count:
+          type: integer
+        fact_count:
+          type: integer
+        relation_count:
+          type: integer
+        active_review_count:
+          type: integer
+        governance_job_count:
+          type: integer
+        corpus_governance:
+          type: object
+          required:
+            - total_document_count
+            - active_document_count
+            - retired_document_count
+            - retired_section_count
+            - retired_evidence_count
+            - retired_fact_count
+            - retired_relation_count
+            - active_full_markdown_document_count
+            - active_generated_document_count
+            - active_duplicate_markdown_hash_count
+            - active_duplicate_canonical_source_uri_count
+            - active_temp_test_document_count
+            - active_derived_knowledge_count
+          properties:
+            total_document_count:
+              type: integer
+            active_document_count:
+              type: integer
+            retired_document_count:
+              type: integer
+            retired_section_count:
+              type: integer
+            retired_evidence_count:
+              type: integer
+            retired_fact_count:
+              type: integer
+            retired_relation_count:
+              type: integer
+            active_full_markdown_document_count:
+              type: integer
+            active_generated_document_count:
+              type: integer
+            active_duplicate_markdown_hash_count:
+              type: integer
+            active_duplicate_canonical_source_uri_count:
+              type: integer
+            active_temp_test_document_count:
+              type: integer
+            active_derived_knowledge_count:
+              type: integer
+    FeedbackCommitRequest:
+      type: object
+      required: [task_request_id, task_step_id, capability_feedback, policy_feedback]
+      properties:
+        task_request_id:
+          type: string
+          format: uuid
+        task_step_id:
+          type: string
+          format: uuid
+        verification_result_id:
+          type: string
+          format: uuid
+        failure_event_id:
+          type: string
+          format: uuid
+        capability_feedback:
+          type: object
+          additionalProperties: true
+        policy_feedback:
+          type: object
+          additionalProperties: true
+    FeedbackCommitResponse:
+      type: object
+      required: [feedback_status, affected_objects, committed_at]
+      properties:
+        feedback_status:
+          type: string
+        affected_objects:
+          type: array
+          items:
+            type: string
+        committed_at:
+          type: string
+          format: date-time
+paths:
+  /internal/planner/plan:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanRequest"
+      responses:
+        "200":
+          description: Planned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/resolver/resolve:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResolveRequest"
+      responses:
+        "200":
+          description: Resolved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResolveResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/router/dispatch:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DispatchRequest"
+      responses:
+        "200":
+          description: Dispatched
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DispatchResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/verifier/check:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyRequest"
+      responses:
+        "200":
+          description: Verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerifyResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/cleanup/dispatch:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CleanupRequest"
+      responses:
+        "200":
+          description: Cleanup dispatched
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CleanupResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/memory/query:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemoryQueryRequest"
+      responses:
+        "200":
+          description: Memory query result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemoryQueryResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/memory/candidates:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemoryCandidateRequest"
+      responses:
+        "200":
+          description: Candidate ingested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemoryCandidateResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/memory/retrieve:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemoryRetrieveRequest"
+      responses:
+        "200":
+          description: Retrieval bundle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemoryRetrieveResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/rules/gate/check:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RuleGateCheckRequest"
+      responses:
+        "200":
+          description: Rule gate decision
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuleGateCheckResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/memory/governance/run:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GovernanceRunRequest"
+      responses:
+        "200":
+          description: Governance completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GovernanceRunResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/knowledge/governance/jobs:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeGovernanceJobCreateRequest"
+      responses:
+        "200":
+          description: Governance job created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeGovernanceJobCreateResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/knowledge/governance/jobs/{jobId}:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Governance job details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeGovernanceJobResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/knowledge/governance/run:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeGovernanceRunRequest"
+      responses:
+        "200":
+          description: Knowledge governance completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeGovernanceRunResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/knowledge/documents/ingest:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeDocumentIngestRequest"
+      responses:
+        "200":
+          description: Knowledge document ingested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeDocumentIngestResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/knowledge/documents:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Knowledge documents
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeDocumentListResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/knowledge/review-queue:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Review queue items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeReviewQueueResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/knowledge/review-queue/{reviewQueueId}/actions:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - name: reviewQueueId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeReviewActionRequest"
+      responses:
+        "200":
+          description: Review action applied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeReviewActionResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/knowledge/context-bundles/{bundleId}:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - name: bundleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Context bundle details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeContextBundleResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/knowledge/retrieve:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeRetrieveRequest"
+      responses:
+        "200":
+          description: Knowledge retrieval bundle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeRetrieveResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/knowledge/graph/entities:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Knowledge graph entities
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeGraphListResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/knowledge/graph/facts:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Knowledge graph facts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeGraphListResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/knowledge/graph/relations:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Knowledge graph relations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeGraphListResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/knowledge/governance/runs:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Knowledge governance runs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeGovernanceRunsResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/knowledge/ops/overview:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Knowledge ops overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeOpsOverviewResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /internal/feedback/commit:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Scope"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedbackCommitRequest"
+      responses:
+        "200":
+          description: Feedback committed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedbackCommitResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"

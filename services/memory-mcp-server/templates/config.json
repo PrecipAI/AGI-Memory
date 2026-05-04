@@ -1,0 +1,8 @@
+{
+  "memoryServiceUrl": "http://127.0.0.1:3101",
+  "transport": "stdio",
+  "tenantId": "tenant-local",
+  "scope": "memory.validation",
+  "defaultFingerprintStatus": "unknown",
+  "logLevel": "info"
+}

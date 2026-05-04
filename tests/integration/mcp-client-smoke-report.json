@@ -1,0 +1,17 @@
+{
+  "client": "generic",
+  "memory_service_mode": "fake",
+  "memory_service_url": "http://127.0.0.1:56160",
+  "mcp_server_command": "D:\\nodejs\\node.exe D:\\workspace\\projects\\SuperAgentSystem-main\\services\\memory-mcp-server\\dist\\services\\memory-mcp-server\\src\\cli.js start --config C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-client-smoke-jbJ0VL\\.memory-mcp\\config.json",
+  "tools_listed": true,
+  "resources_listed": true,
+  "memory_health": true,
+  "memory_query_layer": true,
+  "memory_defaults_resource": true,
+  "memory_retrieve_context": true,
+  "retrieve_context_matched": true,
+  "retrieve_context_missing_fingerprint_status_rejected": true,
+  "retrieve_context_missing_fingerprint_rejected": true,
+  "rule_gate_check": true,
+  "status": "PASS"
+}

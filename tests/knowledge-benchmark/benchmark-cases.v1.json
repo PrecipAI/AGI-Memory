@@ -1,0 +1,62 @@
+[
+  {
+    "id": "fact-sla-001",
+    "scene": "factual_exact",
+    "query": "What is the P1 incident acknowledgement requirement?",
+    "fingerprint": "local-dev-v1",
+    "fingerprint_status": "matched",
+    "include_factual": true,
+    "include_procedural": false,
+    "expected_bucket": "factual_memory",
+    "expected_titles": ["Support SLA"],
+    "must_have_terms": ["15 minutes"]
+  },
+  {
+    "id": "fact-escalation-001",
+    "scene": "factual_paraphrase",
+    "query": "When should a blocker be escalated?",
+    "fingerprint": "local-dev-v1",
+    "fingerprint_status": "matched",
+    "include_factual": true,
+    "include_procedural": false,
+    "expected_bucket": "factual_memory",
+    "expected_titles": ["Escalation policy"],
+    "must_have_terms": ["20 minutes", "assign an owner"]
+  },
+  {
+    "id": "fact-endpoint-001",
+    "scene": "factual_exact",
+    "query": "What capability is reachable in the validation environment?",
+    "fingerprint": "local-dev-v1",
+    "fingerprint_status": "matched",
+    "include_factual": true,
+    "include_procedural": false,
+    "expected_bucket": "factual_memory",
+    "expected_titles": ["Support environment endpoint"],
+    "must_have_terms": ["validation environment"]
+  },
+  {
+    "id": "fact-utf8-001",
+    "scene": "cross_object",
+    "query": "What is the UTF-8 enforcement preference on this machine?",
+    "fingerprint": "local-dev-v1",
+    "fingerprint_status": "matched_or_na",
+    "include_factual": true,
+    "include_procedural": false,
+    "expected_bucket": "factual_memory",
+    "expected_titles": ["UTF-8 enforcement requires executable safeguards"],
+    "must_have_terms": ["Git defaults", "validation step"]
+  },
+  {
+    "id": "proc-triage-001",
+    "scene": "procedural_with_fingerprint",
+    "query": "How should I handle support triage?",
+    "fingerprint": "local-dev-v1",
+    "fingerprint_status": "matched",
+    "include_factual": true,
+    "include_procedural": true,
+    "expected_bucket": "procedural_memory",
+    "expected_titles": ["Ticket triage"],
+    "must_have_terms": ["triage"]
+  }
+]

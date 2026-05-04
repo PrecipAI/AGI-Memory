@@ -1,0 +1,118 @@
+{
+  "schema_version": "knowledge-capability-cases.v1",
+  "purpose": "评测长期知识/记忆系统当前能力边界：治理产物召回、证据溯源、双语查询、泛化误召回、无关问题拒答边界。",
+  "cases": [
+    {
+      "id": "cap-001",
+      "category": "memory_governance",
+      "language": "zh-CN",
+      "query": "长期记忆系统为什么不能只靠相似召回？",
+      "expected_title_terms": ["长期记忆", "验证", "相似召回"],
+      "expected_evidence_terms": ["memory"],
+      "min_derived_hits": 1,
+      "min_evidence_hits": 2,
+      "max_primary_facts": 0
+    },
+    {
+      "id": "cap-002",
+      "category": "mcp_security",
+      "language": "zh-CN",
+      "query": "Agent 工具和 MCP 接入应该如何做权限、沙箱和审计？",
+      "expected_title_terms": ["MCP", "授权", "沙箱"],
+      "expected_evidence_terms": ["authorization", "permission"],
+      "min_derived_hits": 1,
+      "min_evidence_hits": 2,
+      "max_primary_facts": 1
+    },
+    {
+      "id": "cap-003",
+      "category": "agent_observability",
+      "language": "zh-CN",
+      "query": "Agent 失败治理需要记录哪些观测数据？",
+      "expected_title_terms": ["观测", "工具调用", "上下文"],
+      "expected_evidence_terms": ["trace", "workflow"],
+      "min_derived_hits": 1,
+      "min_evidence_hits": 2,
+      "max_primary_facts": 1
+    },
+    {
+      "id": "cap-004",
+      "category": "rag_evidence",
+      "language": "zh-CN",
+      "query": "RAG 系统如何避免只靠向量 chunk，怎么做证据和上下文装配？",
+      "expected_title_terms": ["检索", "证据", "RAG"],
+      "expected_evidence_terms": ["rag", "retrieval"],
+      "min_derived_hits": 2,
+      "min_evidence_hits": 3,
+      "max_primary_facts": 1
+    },
+    {
+      "id": "cap-005",
+      "category": "cross_lingual",
+      "language": "en",
+      "query": "How should agentic tools handle authorization, sandboxing, and audit?",
+      "expected_title_terms": ["MCP", "授权", "沙箱"],
+      "expected_evidence_terms": ["authorization", "permission"],
+      "min_derived_hits": 1,
+      "min_evidence_hits": 2,
+      "max_primary_facts": 0
+    },
+    {
+      "id": "cap-006",
+      "category": "harness_reliability",
+      "language": "zh-CN",
+      "query": "为什么 Agent 可靠性不能只靠一次提示词，而要靠 harness 闭环？",
+      "expected_title_terms": ["harness", "可靠性"],
+      "expected_evidence_terms": ["harness", "agent"],
+      "min_derived_hits": 1,
+      "min_evidence_hits": 2,
+      "max_primary_facts": 1
+    },
+    {
+      "id": "cap-007",
+      "category": "graph_boundary",
+      "language": "zh-CN",
+      "query": "图谱召回适合什么问题，为什么不能替代证据治理？",
+      "expected_title_terms": ["图谱", "证据治理"],
+      "expected_evidence_terms": ["graph", "evidence"],
+      "min_derived_hits": 1,
+      "min_evidence_hits": 1,
+      "max_primary_facts": 1
+    },
+    {
+      "id": "cap-008",
+      "category": "irrelevant_boundary",
+      "language": "zh-CN",
+      "query": "明天上海天气适合穿什么衣服？",
+      "expected_title_terms": [],
+      "expected_evidence_terms": [],
+      "min_derived_hits": 0,
+      "max_derived_hits": 0,
+      "min_evidence_hits": 0,
+      "max_primary_facts": 0
+    },
+    {
+      "id": "cap-009",
+      "category": "unsupported_domain",
+      "language": "en",
+      "query": "What is the latest price of NVIDIA stock today?",
+      "expected_title_terms": [],
+      "expected_evidence_terms": [],
+      "min_derived_hits": 0,
+      "max_derived_hits": 0,
+      "min_evidence_hits": 0,
+      "max_primary_facts": 0
+    },
+    {
+      "id": "cap-010",
+      "category": "specificity_ranking",
+      "language": "zh-CN",
+      "query": "生产级 RAG 默认应该采用什么检索结构？",
+      "expected_title_terms": ["生产级", "检索"],
+      "expected_evidence_terms": ["retrieval", "rag"],
+      "min_derived_hits": 1,
+      "min_evidence_hits": 2,
+      "max_primary_facts": 1
+    }
+  ]
+}

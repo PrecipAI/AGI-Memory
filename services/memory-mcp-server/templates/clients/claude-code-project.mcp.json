@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "memory-v3": {
+      "command": "cmd",
+      "args": ["/c", "npx", "memory-mcp", "start", "--config", ".memory-mcp/config.json"]
+    }
+  }
+}
