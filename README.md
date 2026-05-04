@@ -7,6 +7,8 @@ Unified long-term memory and knowledge platform for AI agents, with MCP access, 
 [![MCP](https://img.shields.io/badge/protocol-MCP-111111)](services/memory-mcp-server/README.md)
 [![Status](https://img.shields.io/badge/status-engineering_stage-orange)](#current-status)
 
+Built for teams that want long-term agent memory to behave like an engineering system instead of a prompt-side workaround.
+
 ## Highlights
 
 - Unified long-term memory, knowledge, rule, and skill platform
@@ -14,6 +16,14 @@ Unified long-term memory and knowledge platform for AI agents, with MCP access, 
 - Governance-oriented knowledge evolution instead of append-only storage
 - Rule-gated high-risk operations with auditability
 - Markdown-first ingestion and graph-first knowledge synthesis
+
+## Typical use cases
+
+- Add governed long-term memory to coding agents such as Codex and Claude Code
+- Connect a private knowledge platform to agent hosts through MCP
+- Enforce pre-execution rules for risky operations such as config mutation or governance approval
+- Build a memory and knowledge layer that can evolve through governance instead of accumulating raw artifacts
+- Compare retrieval, graph expansion, and structured navigation strategies on the same corpus
 
 ## Why this project
 
@@ -96,6 +106,16 @@ At a high level, the system is split into four planes:
 
 ```powershell
 npm install
+```
+
+### Short verification path
+
+If you only want to verify the memory and MCP path first:
+
+```powershell
+npm run verify:mcp-cli
+npm run verify:mcp-client-smoke
+npm run verify:mcp
 ```
 
 ### Build
