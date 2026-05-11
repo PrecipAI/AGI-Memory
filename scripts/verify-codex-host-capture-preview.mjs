@@ -24,7 +24,7 @@ try {
   assert.match(body.session_file, /rollout-2026-05-04T21-32-42-019df330-e9df-7ef3-90bc-7c403ef1741e\.jsonl$/);
 
   assert.equal(body.totals.user_message_count, 4, "fixture should exclude injected AGENTS/environment scaffold and keep the four real user messages");
-  assert.equal(body.totals.command_event_count, 2, "fixture should expose two command events");
+  assert.equal(body.totals.command_event_count, 3, "fixture should expose exec events and shell_command calls as command evidence");
   assert.equal(body.totals.mcp_call_count, 2, "fixture should expose two MCP calls");
   assert.equal(body.governance_preview.readiness.has_user_intent, true);
   assert.equal(body.governance_preview.readiness.has_execution_trace, true);
@@ -43,6 +43,12 @@ try {
       (item) => item.status === "failure" && item.command.join(" ").includes("rg --files")
     ),
     "preview should expose command status so adapter can retain failed execution steps"
+  );
+  assert.ok(
+    body.governance_preview.commands.some(
+      (item) => item.status === "success" && item.command.join(" ").includes("npm run verify:mcp")
+    ),
+    "preview should expose shell_command tool calls as command execution steps even without exec_command_end events"
   );
   assert.ok(
     body.governance_preview.mcp_calls.every((item) => Object.prototype.hasOwnProperty.call(item, "status")),

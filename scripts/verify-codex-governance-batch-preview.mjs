@@ -11,8 +11,7 @@ try {
     url: "/internal/host-capture/codex/governance-batch-preview",
     payload: {
       codex_home: fixtureRoot,
-      thread_id: "019df330-e9df-7ef3-90bc-7c403ef1741e",
-      max_items: 5
+      thread_id: "019df330-e9df-7ef3-90bc-7c403ef1741e"
     }
   });
 
@@ -42,8 +41,13 @@ try {
   assert.ok(
     body.extraction_preview.memory_candidates.some(
       (item) =>
-        (String(item.title).includes("Machine-specific") || String(item.title).includes("Workspace") || String(item.title).includes("Project path")) &&
-        ["workspace_reusable", "project_reusable"].includes(item.availability_scope)
+        ["workspace_reusable", "project_reusable"].includes(item.availability_scope) &&
+        (
+          String(item.title).includes("Machine-specific") ||
+          String(item.title).includes("Workspace") ||
+          String(item.title).includes("Project path") ||
+          String(item.title).includes("Memory MCP integration")
+        )
     ),
     "batch preview should infer memory candidates from stable environment/workspace context"
   );

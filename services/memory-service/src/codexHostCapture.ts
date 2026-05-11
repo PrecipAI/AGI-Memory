@@ -230,6 +230,25 @@ export async function previewCodexHostCapture(input: CodexCapturePreviewRequest)
       if (typeof payload.call_id === "string") {
         toolCallIndexByCallId.set(payload.call_id, index);
       }
+      const shellCommand = toolName === "shell_command" ? parseShellCommandArguments(payload.arguments) : null;
+      if (shellCommand) {
+        const commandIndex = commands.length;
+        if (shellCommand.cwd) {
+          workspacePaths.add(shellCommand.cwd);
+        }
+        commands.push({
+          timestamp,
+          command: [shellCommand.command],
+          cwd: shellCommand.cwd,
+          exit_code: null,
+          stdout_excerpt: null,
+          stderr_excerpt: null,
+          status: "unknown"
+        });
+        if (typeof payload.call_id === "string") {
+          commandIndexByCallId.set(payload.call_id, commandIndex);
+        }
+      }
       continue;
     }
 
@@ -251,8 +270,10 @@ export async function previewCodexHostCapture(input: CodexCapturePreviewRequest)
         const parsed = parseFunctionCallOutput(resultSummary ?? "");
         commands[index] = {
           ...commands[index],
+          exit_code: parsed.exitCode ?? commands[index].exit_code,
           stdout_excerpt: parsed.output ?? commands[index].stdout_excerpt,
-          stderr_excerpt: parsed.error ?? commands[index].stderr_excerpt
+          stderr_excerpt: parsed.error ?? commands[index].stderr_excerpt,
+          status: parsed.status ?? commands[index].status
         };
       }
       continue;
@@ -263,6 +284,23 @@ export async function previewCodexHostCapture(input: CodexCapturePreviewRequest)
       const cwd = typeof payload.cwd === "string" ? payload.cwd : null;
       if (cwd) {
         workspacePaths.add(cwd);
+      }
+      if (typeof payload.call_id === "string" && commandIndexByCallId.has(payload.call_id)) {
+        const existingIndex = commandIndexByCallId.get(payload.call_id)!;
+        commands[existingIndex] = {
+          ...commands[existingIndex],
+          command: command.length > 0 ? command : commands[existingIndex].command,
+          cwd: cwd ?? commands[existingIndex].cwd,
+          exit_code: typeof payload.exit_code === "number" ? payload.exit_code : commands[existingIndex].exit_code,
+          stdout_excerpt:
+            extractTextSummary(payload.stdout) ??
+            extractTextSummary(payload.aggregated_output) ??
+            extractTextSummary(payload.formatted_output) ??
+            commands[existingIndex].stdout_excerpt,
+          stderr_excerpt: extractTextSummary(payload.stderr) ?? commands[existingIndex].stderr_excerpt,
+          status: inferCommandStatus(payload)
+        };
+        continue;
       }
       const index = commands.length;
       commands.push({
@@ -434,7 +472,7 @@ function normalizeMaxItems(value: number | null | undefined): number {
   if (typeof value === "number" && Number.isFinite(value)) {
     return Math.max(1, Math.min(500, Math.trunc(value)));
   }
-  return 12;
+  return 500;
 }
 
 async function readJsonlFile<T>(filePath: string): Promise<T[]> {
@@ -644,15 +682,42 @@ function extractResultSummary(payload: Record<string, any>): string | null {
   );
 }
 
-function parseFunctionCallOutput(text: string): { output: string | null; error: string | null } {
-  if (!text.trim()) {
-    return { output: null, error: null };
+function parseShellCommandArguments(value: unknown): { command: string; cwd: string | null } | null {
+  if (typeof value !== "string" || !value.trim()) {
+    return null;
   }
-  const outputMatch = text.match(/Output:\s*([\s\S]*)$/);
+  try {
+    const parsed = JSON.parse(value) as { command?: unknown; workdir?: unknown };
+    if (typeof parsed.command !== "string" || !parsed.command.trim()) {
+      return null;
+    }
+    return {
+      command: parsed.command.trim(),
+      cwd: typeof parsed.workdir === "string" && parsed.workdir.trim() ? parsed.workdir.trim() : null
+    };
+  } catch {
+    return null;
+  }
+}
+
+function parseFunctionCallOutput(text: string): {
+  output: string | null;
+  error: string | null;
+  exitCode: number | null;
+  status: "success" | "failure" | "unknown" | null;
+} {
+  if (!text.trim()) {
+    return { output: null, error: null, exitCode: null, status: null };
+  }
+  const exitMatch = text.match(/Exit code:\s*(-?\d+)/i);
+  const exitCode = exitMatch ? Number(exitMatch[1]) : null;
+  const outputMatch = text.match(/Output:\s*([\s\S]*?)(?:\nError:\s*[\s\S]*)?$/);
   const errorMatch = text.match(/Error:\s*([\s\S]*)$/);
   return {
     output: outputMatch?.[1]?.trim() ? summarizeText(outputMatch[1].trim(), 4000) : summarizeText(text.trim(), 4000),
-    error: errorMatch?.[1]?.trim() ? summarizeText(errorMatch[1].trim(), 4000) : null
+    error: errorMatch?.[1]?.trim() ? summarizeText(errorMatch[1].trim(), 4000) : null,
+    exitCode,
+    status: exitCode === null ? null : exitCode === 0 ? "success" : "failure"
   };
 }
 
