@@ -1,0 +1,4 @@
+{"timestamp":"2026-05-06T01:00:00.000Z","role":"user","content":"治理层接入 Claude Code 时必须使用 Claude Code 当前模型生成结构化治理结果，服务端只负责校验和落库。"}
+{"timestamp":"2026-05-06T01:01:00.000Z","role":"assistant","content":"我会按 host model contract 生成 rule、memory、skill proposal 和 evidence。"}
+{"timestamp":"2026-05-06T01:02:00.000Z","command":["npm","run","verify:host-model-governance"],"cwd":"D:\\workspace\\projects\\SuperAgentSystem-main","exit_code":0,"stdout":"passed"}
+{"timestamp":"2026-05-06T01:03:00.000Z","tool_name":"shell_command","arguments":{"command":"npm run verify:host-model-governance"},"result":"passed","status":"success"}

@@ -25,7 +25,7 @@ import {
   updateKnowledgeDocumentMarkdownGovernance,
   upsertRecallSurfaceState
 } from "@super-agent/db";
-import { KnowledgeModelWorker, type KnowledgeSynthesisInput } from "./knowledgeModelWorker.js";
+import { KnowledgeModelWorker, type KnowledgeSynthesisInput, type KnowledgeSynthesisOutput } from "./knowledgeModelWorker.js";
 
 type KnowledgeGovernanceJobCreateRequest = {
   job_type: string;
@@ -198,6 +198,101 @@ function buildSynthesisInput(rows: Record<string, unknown>[]): KnowledgeSynthesi
         require_governance_meaning_for_active_relations: true
       }
     }
+  };
+}
+
+function isLikelyLocalSourceUri(value: string | null | undefined): boolean {
+  const source = String(value ?? "").trim().toLowerCase();
+  return (
+    source.startsWith("verify://") ||
+    source.startsWith("thread://") ||
+    source.startsWith("memory-candidate://") ||
+    /^[a-z]:\\/.test(source) ||
+    source.startsWith("\\\\") ||
+    source.includes("knowledge-capability-report") ||
+    source.includes("knowledge-current-system-report") ||
+    source.includes("project_execution")
+  );
+}
+
+function containsLocalAdoptionMarkers(input: string): boolean {
+  const text = input.toLowerCase();
+  const patterns = [
+    /\bour system\b/,
+    /\bthis system\b/,
+    /\bthis project\b/,
+    /\bfor this project\b/,
+    /\bwe should\b/,
+    /\bwe must\b/,
+    /\bwe will\b/,
+    /\bour design\b/,
+    /\bdefault design\b/,
+    /本系统/,
+    /当前系统/,
+    /本项目/,
+    /对于我们/,
+    /我们应该/,
+    /我们必须/,
+    /我们后续/,
+    /默认设计/,
+    /应作为我们的/,
+    /纳入我们的/
+  ];
+  return patterns.some((pattern) => pattern.test(text));
+}
+
+function classifySynthesisSourceScope(input: KnowledgeSynthesisInput): "external_general" | "local_or_mixed" {
+  const sourceUris = input.facts.map((fact) => fact.evidence_source_uri ?? "");
+  return sourceUris.some((uri) => isLikelyLocalSourceUri(uri)) ? "local_or_mixed" : "external_general";
+}
+
+function enforceSynthesisBoundary(input: {
+  synthesis: KnowledgeSynthesisOutput;
+  synthesisInput: KnowledgeSynthesisInput;
+}): {
+  synthesis: KnowledgeSynthesisOutput;
+  sourceScope: "external_general" | "local_or_mixed";
+  boundaryReason: string | null;
+} {
+  const sourceScope = classifySynthesisSourceScope(input.synthesisInput);
+  const joinedText = `${input.synthesis.title}\n${input.synthesis.content}\n${input.synthesis.reasoning_summary}`;
+  const localAdoption = containsLocalAdoptionMarkers(joinedText);
+
+  if (sourceScope === "local_or_mixed") {
+    return {
+      synthesis: {
+        ...input.synthesis,
+        governance_output_type: localAdoption ? "memory_candidate" : "audit_only",
+        recall_state: "audit_only",
+        context_assembly_state: "audit_only"
+      },
+      sourceScope,
+      boundaryReason: localAdoption
+        ? "synthesis_boundary:local_or_mixed_sources_with_local_adoption_markers"
+        : "synthesis_boundary:local_or_mixed_sources_not_allowed_as_external_knowledge"
+    };
+  }
+
+  if (localAdoption) {
+    return {
+      synthesis: {
+        ...input.synthesis,
+        governance_output_type: "memory_candidate",
+        recall_state: "audit_only",
+        context_assembly_state: "audit_only"
+      },
+      sourceScope,
+      boundaryReason: "synthesis_boundary:external_sources_but_local_adoption_wording"
+    };
+  }
+
+  return {
+    synthesis: {
+      ...input.synthesis,
+      governance_output_type: input.synthesis.governance_output_type ?? "derived_knowledge"
+    },
+    sourceScope,
+    boundaryReason: null
   };
 }
 
@@ -885,12 +980,18 @@ export async function runKnowledgeGovernance(input: {
         limit: input.body.max_items ?? 20
       });
       const synthesisInput = buildSynthesisInput(synthesisRows);
-      const synthesis = synthesisInput ? await modelWorker.synthesize(synthesisInput) : null;
+      const rawSynthesis = synthesisInput ? await modelWorker.synthesize(synthesisInput) : null;
+      const synthesisBoundary = rawSynthesis && synthesisInput ? enforceSynthesisBoundary({ synthesis: rawSynthesis, synthesisInput }) : null;
+      const synthesis = synthesisBoundary?.synthesis ?? rawSynthesis;
 
       if (synthesis && synthesisInput) {
         const sourceObjectIds = synthesisInput.facts.map((fact) => fact.fact_id);
         const evidenceIds = Array.from(new Set(synthesisInput.facts.map((fact) => fact.evidence_id)));
         const governanceOutputType = synthesis.governance_output_type ?? "derived_knowledge";
+        const sourceScope = synthesisBoundary?.sourceScope ?? "external_general";
+        if (synthesisBoundary?.boundaryReason) {
+          warnings.push(synthesisBoundary.boundaryReason);
+        }
         if (governanceOutputType !== "derived_knowledge") {
           const outputRef = `${governanceOutputType}:${normalizeText(synthesis.title).slice(0, 80)}`;
           if (governanceOutputType === "skill_candidate") {
@@ -918,6 +1019,7 @@ export async function runKnowledgeGovernance(input: {
               afterState: {
                 governance_output_type: governanceOutputType,
                 knowledge_type: synthesis.knowledge_type,
+                source_scope: sourceScope,
                 title: synthesis.title,
                 content: synthesis.content,
                 source_object_ids: sourceObjectIds,
@@ -956,12 +1058,13 @@ export async function runKnowledgeGovernance(input: {
           confidenceScore: synthesis.confidence_score,
           riskLevel: synthesis.risk_level,
           governanceJobId: jobId,
-          metadata: {
-            synthesis_provider: synthesis.provider,
-            governance_output_type: governanceOutputType,
-            evidence_bound: true,
-            abstraction_layer: "derived_knowledge",
-            requires_model_confirmation: synthesis.provider === "heuristic-synthesis"
+            metadata: {
+              synthesis_provider: synthesis.provider,
+              governance_output_type: governanceOutputType,
+              source_scope: sourceScope,
+              evidence_bound: true,
+              abstraction_layer: "derived_knowledge",
+              requires_model_confirmation: synthesis.provider === "heuristic-synthesis"
           },
           traceId: input.traceId
         });
@@ -1017,6 +1120,7 @@ export async function runKnowledgeGovernance(input: {
             afterState: {
               governance_output_type: governanceOutputType,
               knowledge_type: synthesis.knowledge_type,
+              source_scope: sourceScope,
               recall_state: synthesizedRecallState,
               context_assembly_state: synthesizedContextState,
               existed: synthesized.existed
@@ -1042,6 +1146,7 @@ export async function runKnowledgeGovernance(input: {
             metadata: {
               knowledge_type: synthesis.knowledge_type,
               governance_output_type: governanceOutputType,
+              source_scope: sourceScope,
               abstraction_layer: "derived_knowledge"
             },
             traceId: input.traceId

@@ -283,7 +283,7 @@ try {
         title: "Workspace rule candidate",
         content: "Workspace directories are machine-specific and must be confirmed before cloning shared repositories.",
         applies_to: ["planner", "router", "executor"],
-        enforcement_level: "must_follow"
+        enforcement_level: "must"
       }
     }
   });
@@ -311,7 +311,7 @@ try {
         title: "Workspace rule candidate updated",
         content: "Workspace directories are machine-specific and must be confirmed before cloning or moving shared repositories.",
         applies_to: ["planner", "router", "executor"],
-        enforcement_level: "must_follow",
+        enforcement_level: "must",
         priority: 90
       }
     }
@@ -338,7 +338,7 @@ try {
         title: "Conflicting workspace rule candidate",
         content: "Workspace directories may be assumed from another machine without confirmation.",
         applies_to: ["planner", "router", "executor"],
-        enforcement_level: "should_follow",
+        enforcement_level: "must_not",
         priority: 40,
         conflicts_with_rule_key: "verify-workspace-constraint",
         conflict_type: "workspace_location_policy_conflict"

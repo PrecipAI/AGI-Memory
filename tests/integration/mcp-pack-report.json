@@ -2,20 +2,20 @@
   "status": "PASS",
   "tarball_name": "super-agent-memory-mcp-0.1.0.tgz",
   "tarball_path": "D:\\workspace\\projects\\SuperAgentSystem-main\\services\\memory-mcp-server\\super-agent-memory-mcp-0.1.0.tgz",
-  "generated_config_path": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-Smq2gN\\app\\.memory-mcp\\config.json",
+  "generated_config_path": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-EI5a3n\\app\\.memory-mcp\\config.json",
   "generated_templates": [
-    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-Smq2gN\\app\\.memory-mcp\\clients\\generic-mcp.json",
-    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-Smq2gN\\app\\.memory-mcp\\clients\\claude-code-project.mcp.json",
-    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-Smq2gN\\app\\.memory-mcp\\clients\\claude-desktop.json",
-    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-Smq2gN\\app\\.memory-mcp\\clients\\codex-config.toml",
-    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-Smq2gN\\app\\.memory-mcp\\clients\\opencode.jsonc",
-    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-Smq2gN\\app\\.memory-mcp\\clients\\openclaw-mcp-set.md",
-    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-Smq2gN\\app\\.memory-mcp\\clients\\usage-instructions.md",
-    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-Smq2gN\\app\\.memory-mcp\\clients\\agent-memory-policy.md",
-    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-Smq2gN\\app\\.memory-mcp\\clients\\codex-AGENTS-snippet.md",
-    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-Smq2gN\\app\\.memory-mcp\\clients\\claude-CLAUDE-snippet.md",
-    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-Smq2gN\\app\\.memory-mcp\\clients\\opencode-instructions-snippet.md",
-    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-Smq2gN\\app\\.memory-mcp\\clients\\openclaw-skill-snippet.md"
+    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-EI5a3n\\app\\.memory-mcp\\clients\\generic-mcp.json",
+    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-EI5a3n\\app\\.memory-mcp\\clients\\claude-code-project.mcp.json",
+    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-EI5a3n\\app\\.memory-mcp\\clients\\claude-desktop.json",
+    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-EI5a3n\\app\\.memory-mcp\\clients\\codex-config.toml",
+    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-EI5a3n\\app\\.memory-mcp\\clients\\opencode.jsonc",
+    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-EI5a3n\\app\\.memory-mcp\\clients\\openclaw-mcp-set.md",
+    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-EI5a3n\\app\\.memory-mcp\\clients\\usage-instructions.md",
+    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-EI5a3n\\app\\.memory-mcp\\clients\\agent-memory-policy.md",
+    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-EI5a3n\\app\\.memory-mcp\\clients\\codex-AGENTS-snippet.md",
+    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-EI5a3n\\app\\.memory-mcp\\clients\\claude-CLAUDE-snippet.md",
+    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-EI5a3n\\app\\.memory-mcp\\clients\\opencode-instructions-snippet.md",
+    "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-EI5a3n\\app\\.memory-mcp\\clients\\openclaw-skill-snippet.md"
   ],
-  "generated_readme_path": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-Smq2gN\\app\\.memory-mcp\\README.md"
+  "generated_readme_path": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-install-EI5a3n\\app\\.memory-mcp\\README.md"
 }

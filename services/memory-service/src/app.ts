@@ -30,7 +30,11 @@ import {
 } from "@super-agent/db";
 import { CandidateRanker } from "./candidateRanker.js";
 import { handleCandidateIngress } from "./candidateIngress.js";
+import { listCodexHostSessions, previewCodexHostCapture } from "./codexHostCapture.js";
 import { formatFrozenErrorResponse } from "./errors.js";
+import { listHostSessions, normalizeHost, previewHostCapture } from "./hostCapture.js";
+import { buildGovernanceBatchPreview } from "./hostCaptureGovernanceBatch.js";
+import { runCodexHostGovernance } from "./hostCaptureGovernanceRun.js";
 import { ingestKnowledgeDocument } from "./knowledgeDocumentIngest.js";
 import { handleGovernanceRun } from "./governanceRun.js";
 import { IndexSyncAdapter } from "./indexSyncAdapter.js";
@@ -200,6 +204,291 @@ export function buildMemoryServiceApp() {
       indexSyncAdapter,
       lifecycleWorker
     });
+  });
+
+  app.post("/internal/host-capture/codex/preview", async (request, reply) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "host-capture-codex-preview");
+    const body = (request.body ?? {}) as {
+      codex_home?: string | null;
+      thread_id?: string | null;
+      max_items?: number | null;
+    };
+
+    try {
+      return await previewCodexHostCapture({
+        codex_home: body.codex_home ?? null,
+        thread_id: body.thread_id ?? null,
+        max_items: body.max_items ?? null
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      reply.status(400);
+      return {
+        error_code: "CODEX_HOST_CAPTURE_PREVIEW_FAILED",
+        message,
+        trace_id: context.traceId,
+        retryable: false,
+        details: {
+          codex_home: body.codex_home ?? null,
+          thread_id: body.thread_id ?? null
+        }
+      };
+    }
+  });
+
+  app.post("/internal/host-capture/:host/preview", async (request, reply) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "host-capture-preview");
+    const params = request.params as { host: string };
+    const body = (request.body ?? {}) as {
+      host_home?: string | null;
+      codex_home?: string | null;
+      thread_id?: string | null;
+      max_items?: number | null;
+    };
+    const host = normalizeHost(params.host);
+
+    try {
+      return await previewHostCapture({
+        host,
+        host_home: body.host_home ?? body.codex_home ?? null,
+        codex_home: body.codex_home ?? body.host_home ?? null,
+        thread_id: body.thread_id ?? null,
+        max_items: body.max_items ?? null
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      reply.status(400);
+      return {
+        error_code: "HOST_CAPTURE_PREVIEW_FAILED",
+        message,
+        trace_id: context.traceId,
+        retryable: false,
+        details: {
+          host,
+          host_home: body.host_home ?? body.codex_home ?? null,
+          thread_id: body.thread_id ?? null
+        }
+      };
+    }
+  });
+
+  app.get("/internal/host-capture/codex/sessions", async (request, reply) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "host-capture-codex-sessions");
+    const query = (request.query ?? {}) as {
+      codex_home?: string | null;
+      limit?: string | number | null;
+    };
+
+    try {
+      return await listCodexHostSessions({
+        codex_home: query.codex_home ?? null,
+        limit:
+          typeof query.limit === "number"
+            ? query.limit
+            : typeof query.limit === "string" && query.limit.trim()
+              ? Number(query.limit)
+              : null
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      reply.status(400);
+      return {
+        error_code: "CODEX_HOST_CAPTURE_SESSION_LIST_FAILED",
+        message,
+        trace_id: context.traceId,
+        retryable: false,
+        details: {
+          codex_home: query.codex_home ?? null,
+          limit: query.limit ?? null
+        }
+      };
+    }
+  });
+
+  app.get("/internal/host-capture/:host/sessions", async (request, reply) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "host-capture-sessions");
+    const params = request.params as { host: string };
+    const query = (request.query ?? {}) as {
+      host_home?: string | null;
+      codex_home?: string | null;
+      limit?: string | number | null;
+    };
+    const host = normalizeHost(params.host);
+
+    try {
+      return await listHostSessions({
+        host,
+        host_home: query.host_home ?? query.codex_home ?? null,
+        codex_home: query.codex_home ?? query.host_home ?? null,
+        limit:
+          typeof query.limit === "number"
+            ? query.limit
+            : typeof query.limit === "string" && query.limit.trim()
+              ? Number(query.limit)
+              : null
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      reply.status(400);
+      return {
+        error_code: "HOST_CAPTURE_SESSION_LIST_FAILED",
+        message,
+        trace_id: context.traceId,
+        retryable: false,
+        details: {
+          host,
+          host_home: query.host_home ?? query.codex_home ?? null,
+          limit: query.limit ?? null
+        }
+      };
+    }
+  });
+
+  app.post("/internal/host-capture/codex/governance-batch-preview", async (request, reply) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "host-capture-codex-batch-preview");
+    const body = (request.body ?? {}) as {
+      codex_home?: string | null;
+      thread_id?: string | null;
+      max_items?: number | null;
+    };
+
+    try {
+      const preview = await previewCodexHostCapture({
+        codex_home: body.codex_home ?? null,
+        thread_id: body.thread_id ?? null,
+        max_items: body.max_items ?? null
+      });
+      return buildGovernanceBatchPreview(preview);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      reply.status(400);
+      return {
+        error_code: "CODEX_GOVERNANCE_BATCH_PREVIEW_FAILED",
+        message,
+        trace_id: context.traceId,
+        retryable: false,
+        details: {
+          codex_home: body.codex_home ?? null,
+          thread_id: body.thread_id ?? null
+        }
+      };
+    }
+  });
+
+  app.post("/internal/host-capture/:host/governance-batch-preview", async (request, reply) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "host-capture-governance-batch-preview");
+    const params = request.params as { host: string };
+    const body = (request.body ?? {}) as {
+      host_home?: string | null;
+      codex_home?: string | null;
+      thread_id?: string | null;
+      max_items?: number | null;
+    };
+    const host = normalizeHost(params.host);
+
+    try {
+      const preview = await previewHostCapture({
+        host,
+        host_home: body.host_home ?? body.codex_home ?? null,
+        codex_home: body.codex_home ?? body.host_home ?? null,
+        thread_id: body.thread_id ?? null,
+        max_items: body.max_items ?? null
+      });
+      return buildGovernanceBatchPreview(preview);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      reply.status(400);
+      return {
+        error_code: "HOST_GOVERNANCE_BATCH_PREVIEW_FAILED",
+        message,
+        trace_id: context.traceId,
+        retryable: false,
+        details: {
+          host,
+          host_home: body.host_home ?? body.codex_home ?? null,
+          thread_id: body.thread_id ?? null
+        }
+      };
+    }
+  });
+
+  app.post("/internal/host-capture/codex/governance-run", async (request, reply) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "host-capture-codex-governance-run");
+    const body = (request.body ?? {}) as {
+      codex_home?: string | null;
+      thread_id?: string | null;
+      max_items?: number | null;
+      task_request_id?: string | null;
+      fingerprint?: string | null;
+      governance_mode?: "rules_fallback" | "host_model" | null;
+      host_model_result?: Record<string, unknown> | null;
+    };
+
+    try {
+      return await runCodexHostGovernance({
+        tenantId: context.tenantId,
+        scope: context.scope,
+        traceId: context.traceId,
+        body
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      reply.status(400);
+      return {
+        error_code: "CODEX_GOVERNANCE_RUN_FAILED",
+        message,
+        trace_id: context.traceId,
+        retryable: false,
+        details: {
+          codex_home: body.codex_home ?? null,
+          thread_id: body.thread_id ?? null
+        }
+      };
+    }
+  });
+
+  app.post("/internal/host-capture/:host/governance-run", async (request, reply) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "host-capture-governance-run");
+    const params = request.params as { host: string };
+    const body = (request.body ?? {}) as {
+      host_home?: string | null;
+      codex_home?: string | null;
+      thread_id?: string | null;
+      max_items?: number | null;
+      task_request_id?: string | null;
+      fingerprint?: string | null;
+      governance_mode?: "rules_fallback" | "host_model" | null;
+      host_model_result?: Record<string, unknown> | null;
+    };
+    const host = normalizeHost(params.host);
+
+    try {
+      return await runCodexHostGovernance({
+        tenantId: context.tenantId,
+        scope: context.scope,
+        traceId: context.traceId,
+        body: {
+          ...body,
+          host,
+          host_home: body.host_home ?? body.codex_home ?? null,
+          codex_home: body.codex_home ?? body.host_home ?? null
+        }
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      reply.status(400);
+      return {
+        error_code: "HOST_GOVERNANCE_RUN_FAILED",
+        message,
+        trace_id: context.traceId,
+        retryable: false,
+        details: {
+          host,
+          host_home: body.host_home ?? body.codex_home ?? null,
+          thread_id: body.thread_id ?? null
+        }
+      };
+    }
   });
 
   app.get("/internal/governance/change-proposals", async (request) => {

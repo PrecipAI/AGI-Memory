@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-30T10:07:21.744Z",
+  "generated_at": "2026-05-05T14:15:14.404Z",
   "tenant_id": "tenant-local",
   "scope": "memory.validation",
   "corpus": {
@@ -8,8 +8,8 @@
     "retired_documents": 59,
     "active_markdown_documents": 118,
     "active_sections": 2401,
-    "active_evidence": 2401,
-    "active_synthesized_knowledge": 16,
+    "active_evidence": 2416,
+    "active_synthesized_knowledge": 14,
     "fact_count": 0,
     "entity_count": 0,
     "relation_count": 0,
@@ -2051,51 +2051,6 @@
       "source_uri_count": 6
     },
     {
-      "id": "27cb6336-4567-4d8e-94de-f4246b71c30d",
-      "knowledge_type": "derived_rule",
-      "title": "长期记忆召回不能只做相似检索，必须在使用时验证有效性",
-      "content": "长期记忆系统的默认召回规则应是“先召回候选，再验证当前上下文是否仍然适用”。尤其在代码、配置、分支、用户偏好会变化的场景中，历史记忆不能因为相似度高就直接进入上下文；应绑定 evidence，并在使用前检查它是否被更新、取代或与当前任务冲突。\n\n适用场景：agent memory、代码仓库记忆、跨任务经验复用、长期知识召回。\n边界：如果是纯静态事实或用户明确要求追溯原始材料，可以直接展开证据；但默认回答不应把未验证旧记忆当作最终知识。",
-      "reasoning_summary": "GitHub Copilot 记忆系统强调“记住什么与何时遗忘”的核心挑战在于代码演进后记忆是否仍有效，并提出 just-in-time verification；LangGraph 文档也指出 memory update/delete 本身复杂，模型可能过度插入或过度更新。因此治理后的长期记忆应优先保存可验证规则和证据链，而不是直接暴露相似文本。",
-      "confidence_score": "0.9100",
-      "risk_level": "low",
-      "lifecycle_state": "curated",
-      "review_state": "model_accepted",
-      "recall_state": "active",
-      "evidence_ids": [
-        "3de88388-2155-4db1-ae6d-260f48216937",
-        "afdeadd9-c1ab-40c5-83cd-50efe91fc7a2",
-        "a4ddc3b6-52fc-471e-b246-5e5a0b49548d"
-      ],
-      "source_object_ids": [
-        "3de88388-2155-4db1-ae6d-260f48216937",
-        "afdeadd9-c1ab-40c5-83cd-50efe91fc7a2",
-        "a4ddc3b6-52fc-471e-b246-5e5a0b49548d"
-      ],
-      "metadata": {
-        "governor": "codex_manual",
-        "keywords": [
-          "memory",
-          "记忆",
-          "召回",
-          "验证",
-          "有效性",
-          "just-in-time verification",
-          "forget",
-          "update"
-        ],
-        "language": "zh-CN",
-        "evidence_policy": "section/evidence-backed",
-        "source_object_type": "evidence",
-        "intermediate_artifacts_purged": true,
-        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
-        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
-      },
-      "created_at": "2026-04-30T01:52:52.619Z",
-      "updated_at": "2026-04-30T09:51:09.242Z",
-      "linked_evidence_count": 3,
-      "source_uri_count": 3
-    },
-    {
       "id": "4ca426c6-0887-4126-b78b-bca632f3c22f",
       "knowledge_type": "derived_rule",
       "title": "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
@@ -2229,80 +2184,6 @@
             "document_id": "e0c1fde2-71a4-42ae-be9f-a57a15cce489",
             "document_title": "AI Agent 的长期记忆工程取舍",
             "evidence_source_uri": "https://www.phppan.com/tag/rag#section-51"
-          }
-        ],
-        "source_object_type": "evidence",
-        "model_layer_executor": "codex",
-        "governance_output_type": "derived_knowledge",
-        "intermediate_artifacts_purged": true,
-        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
-        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
-      },
-      "created_at": "2026-04-30T07:13:08.339Z",
-      "updated_at": "2026-04-30T09:51:09.242Z",
-      "linked_evidence_count": 6,
-      "source_uri_count": 6
-    },
-    {
-      "id": "185404b1-4d6b-48ea-8365-e2f05e806748",
-      "knowledge_type": "derived_rule",
-      "title": "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
-      "content": "# RAG 评估必须拆开检索质量、生成忠实度和多轮行为\n\nRAG 系统不能只用“回答看起来对不对”做验收。工程评估应拆成检索、生成和多轮行为三层，否则无法判断问题出在召回、排序、证据装配、提示词还是模型生成。\n\n推荐的评估拆分：\n\n1. 检索层：评估相关证据是否被找全、相关节点是否排在无关节点之前。\n2. 生成层：评估回答是否基于 retrieval_context、是否和证据矛盾、是否回答了问题。\n3. 端到端层：组合 retrieval + generation 指标，验证用户最终体验。\n4. 多轮层：单轮指标不能覆盖对话状态、追问、省略和历史依赖，需要专门的 multi-turn case。\n5. CI 层：把关键测试集接入回归流程，防止索引、模型、chunk、rerank 或提示词调整后静默退化。\n\n适用边界：适合任何要长期迭代的 RAG/Agent 知识系统；早期探索可以先用小测试集，但必须保留可扩展到 CI 的数据结构。",
-      "reasoning_summary": "DeepEval RAG materials separate retrieval metrics, generation metrics, E2E evaluation, multi-turn RAG evaluation, hyperparameter optimization, simulation, and CI unit testing. These facts jointly support a governance rule for evaluation decomposition.",
-      "confidence_score": "0.9000",
-      "risk_level": "low",
-      "lifecycle_state": "curated",
-      "review_state": "model_accepted",
-      "recall_state": "active",
-      "evidence_ids": [
-        "e4108e4d-e814-43b0-a9d5-c0abd6fa4279",
-        "0ad19f34-5432-4095-9fe5-c11266b0bfb6",
-        "c67c710c-37ef-47f6-85df-23ca204e22d9",
-        "a4700168-e3fc-43a4-852a-bd6752eb644a",
-        "ea76f855-c710-41e9-8283-2d8743ee6075",
-        "8bd033e9-5a1c-4fb9-9cde-ac31ef482ff8"
-      ],
-      "source_object_ids": [
-        "e4108e4d-e814-43b0-a9d5-c0abd6fa4279",
-        "0ad19f34-5432-4095-9fe5-c11266b0bfb6",
-        "c67c710c-37ef-47f6-85df-23ca204e22d9",
-        "a4700168-e3fc-43a4-852a-bd6752eb644a",
-        "ea76f855-c710-41e9-8283-2d8743ee6075",
-        "8bd033e9-5a1c-4fb9-9cde-ac31ef482ff8"
-      ],
-      "metadata": {
-        "content_hash": "e7a8459b6619b7b0d4369584662d4c26f0da73f928c686a65b09c62385507e16",
-        "evidence_bound": true,
-        "source_documents": [
-          {
-            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
-            "document_title": "DeepEval RAG Evaluation",
-            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-16"
-          },
-          {
-            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
-            "document_title": "DeepEval RAG Evaluation",
-            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-12"
-          },
-          {
-            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
-            "document_title": "DeepEval RAG Evaluation",
-            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-18"
-          },
-          {
-            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
-            "document_title": "DeepEval RAG Evaluation",
-            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-11"
-          },
-          {
-            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
-            "document_title": "DeepEval RAG Evaluation",
-            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-6"
-          },
-          {
-            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
-            "document_title": "DeepEval RAG Evaluation",
-            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-8"
           }
         ],
         "source_object_type": "evidence",
@@ -2459,51 +2340,6 @@
       "source_uri_count": 4
     },
     {
-      "id": "560fe851-c746-41f2-9b2a-a8536cad13ba",
-      "knowledge_type": "design_principle",
-      "title": "Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词",
-      "content": "设计 AI agent 时，应把 harness 当成核心工程对象：包括 guide、sensor、权限、上下文生命周期、反馈回路、沙箱、可观测性和架构不变量。单纯增加提示词或依赖模型自我判断不能稳定提升可靠性；更可靠的做法是把约束沉淀为可执行、不易被忽略的工程边界，并用外部传感器/评测验证输出。\n\n适用场景：coding agent、自动化 agent、长期运行 agent、带工具调用的 agent。\n边界：小型一次性任务可以用轻量提示词；但进入生产级或长期任务后，必须把 harness 作为系统设计的一部分。",
-      "reasoning_summary": "Harness Engineering 文档把 guides/sensors 作为核心控制分类，指出冗长提示词不具备规模化稳定性，并警告生成模型自评存在系统性高估。多段证据共同支持：可靠性应来自工程化 harness，而不是单点模型能力。",
-      "confidence_score": "0.9000",
-      "risk_level": "low",
-      "lifecycle_state": "curated",
-      "review_state": "model_accepted",
-      "recall_state": "active",
-      "evidence_ids": [
-        "82e1316f-8dc3-4705-b371-b5fda50e935e",
-        "c4030127-0443-45a4-be63-12e0dcdd8f90",
-        "23b3b7a4-29c1-453f-b425-e59a49b15b32"
-      ],
-      "source_object_ids": [
-        "82e1316f-8dc3-4705-b371-b5fda50e935e",
-        "c4030127-0443-45a4-be63-12e0dcdd8f90",
-        "23b3b7a4-29c1-453f-b425-e59a49b15b32"
-      ],
-      "metadata": {
-        "governor": "codex_manual",
-        "keywords": [
-          "agent",
-          "harness",
-          "guide",
-          "sensor",
-          "提示词",
-          "可靠性",
-          "self-evaluation",
-          "invariants"
-        ],
-        "language": "zh-CN",
-        "evidence_policy": "section/evidence-backed",
-        "source_object_type": "evidence",
-        "intermediate_artifacts_purged": true,
-        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
-        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
-      },
-      "created_at": "2026-04-30T01:52:52.619Z",
-      "updated_at": "2026-04-30T09:51:09.242Z",
-      "linked_evidence_count": 3,
-      "source_uri_count": 3
-    },
-    {
       "id": "7a729f07-b6c5-4f62-a321-c3746beea5ad",
       "knowledge_type": "design_principle",
       "title": "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
@@ -2573,6 +2409,80 @@
         "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
       },
       "created_at": "2026-04-30T06:54:32.409Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 6,
+      "source_uri_count": 6
+    },
+    {
+      "id": "185404b1-4d6b-48ea-8365-e2f05e806748",
+      "knowledge_type": "derived_rule",
+      "title": "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+      "content": "# RAG 评估必须拆开检索质量、生成忠实度和多轮行为\n\nRAG 系统不能只用“回答看起来对不对”做验收。工程评估应拆成检索、生成和多轮行为三层，否则无法判断问题出在召回、排序、证据装配、提示词还是模型生成。\n\n推荐的评估拆分：\n\n1. 检索层：评估相关证据是否被找全、相关节点是否排在无关节点之前。\n2. 生成层：评估回答是否基于 retrieval_context、是否和证据矛盾、是否回答了问题。\n3. 端到端层：组合 retrieval + generation 指标，验证用户最终体验。\n4. 多轮层：单轮指标不能覆盖对话状态、追问、省略和历史依赖，需要专门的 multi-turn case。\n5. CI 层：把关键测试集接入回归流程，防止索引、模型、chunk、rerank 或提示词调整后静默退化。\n\n适用边界：适合任何要长期迭代的 RAG/Agent 知识系统；早期探索可以先用小测试集，但必须保留可扩展到 CI 的数据结构。",
+      "reasoning_summary": "DeepEval RAG materials separate retrieval metrics, generation metrics, E2E evaluation, multi-turn RAG evaluation, hyperparameter optimization, simulation, and CI unit testing. These facts jointly support a governance rule for evaluation decomposition.",
+      "confidence_score": "0.9000",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "e4108e4d-e814-43b0-a9d5-c0abd6fa4279",
+        "0ad19f34-5432-4095-9fe5-c11266b0bfb6",
+        "c67c710c-37ef-47f6-85df-23ca204e22d9",
+        "a4700168-e3fc-43a4-852a-bd6752eb644a",
+        "ea76f855-c710-41e9-8283-2d8743ee6075",
+        "8bd033e9-5a1c-4fb9-9cde-ac31ef482ff8"
+      ],
+      "source_object_ids": [
+        "e4108e4d-e814-43b0-a9d5-c0abd6fa4279",
+        "0ad19f34-5432-4095-9fe5-c11266b0bfb6",
+        "c67c710c-37ef-47f6-85df-23ca204e22d9",
+        "a4700168-e3fc-43a4-852a-bd6752eb644a",
+        "ea76f855-c710-41e9-8283-2d8743ee6075",
+        "8bd033e9-5a1c-4fb9-9cde-ac31ef482ff8"
+      ],
+      "metadata": {
+        "content_hash": "e7a8459b6619b7b0d4369584662d4c26f0da73f928c686a65b09c62385507e16",
+        "evidence_bound": true,
+        "source_documents": [
+          {
+            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
+            "document_title": "DeepEval RAG Evaluation",
+            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-16"
+          },
+          {
+            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
+            "document_title": "DeepEval RAG Evaluation",
+            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-12"
+          },
+          {
+            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
+            "document_title": "DeepEval RAG Evaluation",
+            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-18"
+          },
+          {
+            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
+            "document_title": "DeepEval RAG Evaluation",
+            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-11"
+          },
+          {
+            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
+            "document_title": "DeepEval RAG Evaluation",
+            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-6"
+          },
+          {
+            "document_id": "c76ce783-7c51-407a-8092-2328ebeac3f4",
+            "document_title": "DeepEval RAG Evaluation",
+            "evidence_source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-8"
+          }
+        ],
+        "source_object_type": "evidence",
+        "model_layer_executor": "codex",
+        "governance_output_type": "derived_knowledge",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T07:13:08.339Z",
       "updated_at": "2026-04-30T09:51:09.242Z",
       "linked_evidence_count": 6,
       "source_uri_count": 6
@@ -2765,6 +2675,50 @@
       "source_uri_count": 3
     },
     {
+      "id": "1d369420-4e4b-4e1c-bf5c-77a857918c52",
+      "knowledge_type": "boundary_condition",
+      "title": "图谱抽取不等于知识治理，chunk 内路径只能作为图谱候选",
+      "content": "Property graph / KG extractor 可以从 chunk 中抽取实体和关系路径，但这只是图谱候选生成，不等于已经完成跨来源知识治理。真正可召回的知识图谱需要再做跨文档去重、冲突检测、关系合并、适用边界判断和 evidence 绑定；否则图谱只是把 chunk 噪声结构化，并不会自动变聪明。\n\n适用场景：GraphRAG、知识图谱入库、文档关系抽取。\n边界：单文档问答或局部导航可以直接使用 chunk-level path；跨来源推理、长期知识沉淀和默认召回必须经过治理层确认。",
+      "reasoning_summary": "LlamaIndex Property Graph 文档说明 property graph 是带标签节点和关系的集合，construction 阶段通过 kg_extractors 在 chunk 上抽取实体关系并附加到节点。这个机制能生成候选图谱，但证据没有说明它会自动完成跨来源治理，因此应把它放在候选层而不是最终知识层。",
+      "confidence_score": "0.8600",
+      "risk_level": "low",
+      "lifecycle_state": "curated",
+      "review_state": "model_accepted",
+      "recall_state": "active",
+      "evidence_ids": [
+        "217e706d-f488-4ed4-8be3-45aa3ead8b76",
+        "f486d854-9ae0-4770-b6a3-394f75ac366e",
+        "ac9878cf-754e-420b-be6b-dcccd5b6d284"
+      ],
+      "source_object_ids": [
+        "217e706d-f488-4ed4-8be3-45aa3ead8b76",
+        "f486d854-9ae0-4770-b6a3-394f75ac366e",
+        "ac9878cf-754e-420b-be6b-dcccd5b6d284"
+      ],
+      "metadata": {
+        "governor": "codex_manual",
+        "keywords": [
+          "GraphRAG",
+          "knowledge graph",
+          "图谱",
+          "kg extractor",
+          "chunk",
+          "治理",
+          "跨来源"
+        ],
+        "language": "zh-CN",
+        "evidence_policy": "section/evidence-backed",
+        "source_object_type": "evidence",
+        "intermediate_artifacts_purged": true,
+        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
+        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
+      },
+      "created_at": "2026-04-30T01:52:52.619Z",
+      "updated_at": "2026-04-30T09:51:09.242Z",
+      "linked_evidence_count": 3,
+      "source_uri_count": 3
+    },
+    {
       "id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
       "knowledge_type": "cross_source_pattern",
       "title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
@@ -2837,61 +2791,9 @@
       "updated_at": "2026-04-30T09:51:09.242Z",
       "linked_evidence_count": 6,
       "source_uri_count": 6
-    },
-    {
-      "id": "1d369420-4e4b-4e1c-bf5c-77a857918c52",
-      "knowledge_type": "boundary_condition",
-      "title": "图谱抽取不等于知识治理，chunk 内路径只能作为图谱候选",
-      "content": "Property graph / KG extractor 可以从 chunk 中抽取实体和关系路径，但这只是图谱候选生成，不等于已经完成跨来源知识治理。真正可召回的知识图谱需要再做跨文档去重、冲突检测、关系合并、适用边界判断和 evidence 绑定；否则图谱只是把 chunk 噪声结构化，并不会自动变聪明。\n\n适用场景：GraphRAG、知识图谱入库、文档关系抽取。\n边界：单文档问答或局部导航可以直接使用 chunk-level path；跨来源推理、长期知识沉淀和默认召回必须经过治理层确认。",
-      "reasoning_summary": "LlamaIndex Property Graph 文档说明 property graph 是带标签节点和关系的集合，construction 阶段通过 kg_extractors 在 chunk 上抽取实体关系并附加到节点。这个机制能生成候选图谱，但证据没有说明它会自动完成跨来源治理，因此应把它放在候选层而不是最终知识层。",
-      "confidence_score": "0.8600",
-      "risk_level": "low",
-      "lifecycle_state": "curated",
-      "review_state": "model_accepted",
-      "recall_state": "active",
-      "evidence_ids": [
-        "217e706d-f488-4ed4-8be3-45aa3ead8b76",
-        "f486d854-9ae0-4770-b6a3-394f75ac366e",
-        "ac9878cf-754e-420b-be6b-dcccd5b6d284"
-      ],
-      "source_object_ids": [
-        "217e706d-f488-4ed4-8be3-45aa3ead8b76",
-        "f486d854-9ae0-4770-b6a3-394f75ac366e",
-        "ac9878cf-754e-420b-be6b-dcccd5b6d284"
-      ],
-      "metadata": {
-        "governor": "codex_manual",
-        "keywords": [
-          "GraphRAG",
-          "knowledge graph",
-          "图谱",
-          "kg extractor",
-          "chunk",
-          "治理",
-          "跨来源"
-        ],
-        "language": "zh-CN",
-        "evidence_policy": "section/evidence-backed",
-        "source_object_type": "evidence",
-        "intermediate_artifacts_purged": true,
-        "intermediate_artifacts_purged_at": "2026-04-30T17:51:09.242386+08:00",
-        "intermediate_artifacts_purge_trace_id": "trace-current-report-governance"
-      },
-      "created_at": "2026-04-30T01:52:52.619Z",
-      "updated_at": "2026-04-30T09:51:09.242Z",
-      "linked_evidence_count": 3,
-      "source_uri_count": 3
     }
   ],
   "synthesized_evidence_sample": [
-    {
-      "synthesized_knowledge_id": "e9324616-1e7c-4bf2-905a-7c59e672d7ff",
-      "synthesized_title": "长期记忆必须在使用时验证有效性，而不是只做相似召回",
-      "evidence_id": "90895773-02f8-425c-a102-d8cfdda4962c",
-      "source_uri": "https://docs.mem0.ai/overview#section-2",
-      "source_type": "markdown_file",
-      "content_excerpt": "Managed memory layer for AI agents - production-ready in minutes Mem0 Platform Overview Mem0 is the memory engine that keeps conversations contextual so users never repeat themselves and your agents respond with conti..."
-    },
     {
       "synthesized_knowledge_id": "e9324616-1e7c-4bf2-905a-7c59e672d7ff",
       "synthesized_title": "长期记忆必须在使用时验证有效性，而不是只做相似召回",
@@ -2925,6 +2827,14 @@
       "content_excerpt": "We implemented memory creation as a tool that agents can invoke when they discover something that&rsquo;s likely to have actionable implications for future tasks. How Copilot agents store learnings worth remembering a..."
     },
     {
+      "synthesized_knowledge_id": "e9324616-1e7c-4bf2-905a-7c59e672d7ff",
+      "synthesized_title": "长期记忆必须在使用时验证有效性，而不是只做相似召回",
+      "evidence_id": "90895773-02f8-425c-a102-d8cfdda4962c",
+      "source_uri": "https://docs.mem0.ai/overview#section-2",
+      "source_type": "markdown_file",
+      "content_excerpt": "Managed memory layer for AI agents - production-ready in minutes Mem0 Platform Overview Mem0 is the memory engine that keeps conversations contextual so users never repeat themselves and your agents respond with conti..."
+    },
+    {
       "synthesized_knowledge_id": "13f4d447-0e71-41f2-9281-2f46e364501f",
       "synthesized_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
       "evidence_id": "fddd0e4d-0517-483b-a666-74d7614559f3",
@@ -2943,18 +2853,10 @@
     {
       "synthesized_knowledge_id": "13f4d447-0e71-41f2-9281-2f46e364501f",
       "synthesized_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
-      "evidence_id": "27f765a1-5c60-4739-8f7f-2ed9f1942af6",
-      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-39",
+      "evidence_id": "4c98e074-48a7-4e58-a3c1-5d833b5f4af4",
+      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-31",
       "source_type": "markdown_file",
-      "content_excerpt": "- Claude Agent SDK — Configure Permissions — The most concrete reference for harness permission architecture: five-layer evaluation order (hooks → deny rules → permission mode → allow rules → canUseTool), allowedTools..."
-    },
-    {
-      "synthesized_knowledge_id": "13f4d447-0e71-41f2-9281-2f46e364501f",
-      "synthesized_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
-      "evidence_id": "f9081e96-00fa-4d87-a9a7-50fd10422ad4",
-      "source_uri": "https://python.langchain.com/docs/tutorials/rag#section-24",
-      "source_type": "markdown_file",
-      "content_excerpt": "RAG applications are susceptible to indirect prompt injection . Retrieved documents may contain text that resembles instructions (e.g., “respond in JSON format” or “ignore previous instructions”). Because the retrieve..."
+      "content_excerpt": "- Design Patterns for Deploying AI Agents with Model Context Protocol — March 2026 field report from an enterprise MCP deployment identifying three protocol-level gaps that break production: missing identity propagati..."
     },
     {
       "synthesized_knowledge_id": "13f4d447-0e71-41f2-9281-2f46e364501f",
@@ -2967,42 +2869,26 @@
     {
       "synthesized_knowledge_id": "13f4d447-0e71-41f2-9281-2f46e364501f",
       "synthesized_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
-      "evidence_id": "4c98e074-48a7-4e58-a3c1-5d833b5f4af4",
-      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-31",
+      "evidence_id": "f9081e96-00fa-4d87-a9a7-50fd10422ad4",
+      "source_uri": "https://python.langchain.com/docs/tutorials/rag#section-24",
       "source_type": "markdown_file",
-      "content_excerpt": "- Design Patterns for Deploying AI Agents with Model Context Protocol — March 2026 field report from an enterprise MCP deployment identifying three protocol-level gaps that break production: missing identity propagati..."
+      "content_excerpt": "RAG applications are susceptible to indirect prompt injection . Retrieved documents may contain text that resembles instructions (e.g., “respond in JSON format” or “ignore previous instructions”). Because the retrieve..."
     },
     {
-      "synthesized_knowledge_id": "27cb6336-4567-4d8e-94de-f4246b71c30d",
-      "synthesized_title": "长期记忆召回不能只做相似检索，必须在使用时验证有效性",
-      "evidence_id": "a4ddc3b6-52fc-471e-b246-5e5a0b49548d",
-      "source_uri": "https://docs.langchain.com/oss/javascript/concepts/memory#section-7",
-      "source_type": "markdown_text",
-      "content_excerpt": "However, this shifts some complexity memory updating. The model must now delete or update existing items in the list, which can be tricky. In addition, some models may default to over-inserting and others may default ..."
-    },
-    {
-      "synthesized_knowledge_id": "27cb6336-4567-4d8e-94de-f4246b71c30d",
-      "synthesized_title": "长期记忆召回不能只做相似检索，必须在使用时验证有效性",
-      "evidence_id": "afdeadd9-c1ab-40c5-83cd-50efe91fc7a2",
-      "source_uri": "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-9",
-      "source_type": "markdown_text",
-      "content_excerpt": "Information retrieval is an asymmetrical problem: It&rsquo;s hard to solve, but easy to verify. By using real-time verification, we gain the power of pre-stored memories while avoiding the risk of outdated or misleadi..."
-    },
-    {
-      "synthesized_knowledge_id": "27cb6336-4567-4d8e-94de-f4246b71c30d",
-      "synthesized_title": "长期记忆召回不能只做相似检索，必须在使用时验证有效性",
-      "evidence_id": "3de88388-2155-4db1-ae6d-260f48216937",
-      "source_uri": "https://github.blog/ai-and-ml/github-copilot/building-an-agentic-memory-system-for-github-copilot/#section-8",
-      "source_type": "markdown_text",
-      "content_excerpt": "Our agents continuously improve at extracting the context needed for specific tasks. The core challenge for memory systems isn&rsquo;t about information retrieval, but ensuring that any stored knowledge remains valid ..."
+      "synthesized_knowledge_id": "13f4d447-0e71-41f2-9281-2f46e364501f",
+      "synthesized_title": "Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束",
+      "evidence_id": "27f765a1-5c60-4739-8f7f-2ed9f1942af6",
+      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-39",
+      "source_type": "markdown_file",
+      "content_excerpt": "- Claude Agent SDK — Configure Permissions — The most concrete reference for harness permission architecture: five-layer evaluation order (hooks → deny rules → permission mode → allow rules → canUseTool), allowedTools..."
     },
     {
       "synthesized_knowledge_id": "00b5be19-f96b-4c29-8733-fdf609750796",
       "synthesized_title": "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
-      "evidence_id": "0c942337-c42f-404e-b8c4-180775eeb400",
-      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-47",
+      "evidence_id": "fddd0e4d-0517-483b-a666-74d7614559f3",
+      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-84",
       "source_type": "markdown_file",
-      "content_excerpt": "- Harness Engineering — How task runners fit into the harness: queueing, parallelism, and progress reporting. - Building a C Compiler with a Team of Parallel Claudes — Anthropic's account of coordinating 16 Claude ins..."
+      "content_excerpt": "- Implementing a Secure Sandbox for Local Agents — Cursor's cross-platform sandbox implementation (macOS Seatbelt, Linux Landlock + seccomp, Windows WSL2) that lets agents run freely within a boundary and request appr..."
     },
     {
       "synthesized_knowledge_id": "00b5be19-f96b-4c29-8733-fdf609750796",
@@ -3015,18 +2901,10 @@
     {
       "synthesized_knowledge_id": "00b5be19-f96b-4c29-8733-fdf609750796",
       "synthesized_title": "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
-      "evidence_id": "fe2190fe-2a5c-448c-831c-5617b303fb40",
-      "source_uri": "https://deepeval.com/docs/introduction#section-14",
+      "evidence_id": "0c942337-c42f-404e-b8c4-180775eeb400",
+      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-47",
       "source_type": "markdown_file",
-      "content_excerpt": "Runtime records of your agent's steps, spans, inputs, outputs, tool calls, and component behavior."
-    },
-    {
-      "synthesized_knowledge_id": "00b5be19-f96b-4c29-8733-fdf609750796",
-      "synthesized_title": "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
-      "evidence_id": "f39ba11e-3a5c-40fd-b29b-ebd4b970b72d",
-      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-89",
-      "source_type": "markdown_file",
-      "content_excerpt": "- Demystifying Evals for AI Agents — Anthropic's comprehensive guide to agent evaluation: trajectory evals, outcome evals, and how to build eval harnesses that are themselves reliable. - DeepEval — The most complete o..."
+      "content_excerpt": "- Harness Engineering — How task runners fit into the harness: queueing, parallelism, and progress reporting. - Building a C Compiler with a Team of Parallel Claudes — Anthropic's account of coordinating 16 Claude ins..."
     },
     {
       "synthesized_knowledge_id": "00b5be19-f96b-4c29-8733-fdf609750796",
@@ -3039,18 +2917,18 @@
     {
       "synthesized_knowledge_id": "00b5be19-f96b-4c29-8733-fdf609750796",
       "synthesized_title": "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
-      "evidence_id": "fddd0e4d-0517-483b-a666-74d7614559f3",
-      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-84",
+      "evidence_id": "f39ba11e-3a5c-40fd-b29b-ebd4b970b72d",
+      "source_uri": "https://github.com/ai-boost/awesome-harness-engineering#section-89",
       "source_type": "markdown_file",
-      "content_excerpt": "- Implementing a Secure Sandbox for Local Agents — Cursor's cross-platform sandbox implementation (macOS Seatbelt, Linux Landlock + seccomp, Windows WSL2) that lets agents run freely within a boundary and request appr..."
+      "content_excerpt": "- Demystifying Evals for AI Agents — Anthropic's comprehensive guide to agent evaluation: trajectory evals, outcome evals, and how to build eval harnesses that are themselves reliable. - DeepEval — The most complete o..."
     },
     {
-      "synthesized_knowledge_id": "bb379f22-d450-40e5-ba02-ed021281ad64",
-      "synthesized_title": "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
-      "evidence_id": "4c47cc9f-528d-470d-9b15-b268afe3654e",
-      "source_uri": "https://www.phppan.com/tag/rag#section-50",
+      "synthesized_knowledge_id": "00b5be19-f96b-4c29-8733-fdf609750796",
+      "synthesized_title": "Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力",
+      "evidence_id": "fe2190fe-2a5c-448c-831c-5617b303fb40",
+      "source_uri": "https://deepeval.com/docs/introduction#section-14",
       "source_type": "markdown_file",
-      "content_excerpt": "使用 BM25 集成，把「关键词命中能力」补回来 稠密向量检索（Dense / Embedding） ： 适合语义相近的表达，用户措辞变化大也能匹配到。 稀疏检索（Sparse / BM25） ： 适合精确词匹配，尤其是专有名词、编号、字段名、错误码、产品型号、合同条款号。 用户问了一个带编号/字段名的问题，向量检索给你一堆语义很像的段落，但就是没有那个编号对应的条款；BM25 往往一搜就中。 对“必须精确命中”的问题更稳（例如政..."
+      "content_excerpt": "Runtime records of your agent's steps, spans, inputs, outputs, tool calls, and component behavior."
     },
     {
       "synthesized_knowledge_id": "bb379f22-d450-40e5-ba02-ed021281ad64",
@@ -3093,12 +2971,20 @@
       "content_excerpt": "把 BM25 当主力 ：BM25 对同义改写不敏感，用户表达一变就丢召回 权重拍脑袋 ：BM25 和向量的分数尺度不同，直接线性加权经常不稳定 更稳的做法通常是：先归一化，再做合并；或者交给 rerank 做最终裁决。 分词质量不过关 ：中文 BM25 的效果强依赖分词/词典 词典里把产品名、缩写、字段名补齐，收益很实在。"
     },
     {
+      "synthesized_knowledge_id": "bb379f22-d450-40e5-ba02-ed021281ad64",
+      "synthesized_title": "生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径",
+      "evidence_id": "4c47cc9f-528d-470d-9b15-b268afe3654e",
+      "source_uri": "https://www.phppan.com/tag/rag#section-50",
+      "source_type": "markdown_file",
+      "content_excerpt": "使用 BM25 集成，把「关键词命中能力」补回来 稠密向量检索（Dense / Embedding） ： 适合语义相近的表达，用户措辞变化大也能匹配到。 稀疏检索（Sparse / BM25） ： 适合精确词匹配，尤其是专有名词、编号、字段名、错误码、产品型号、合同条款号。 用户问了一个带编号/字段名的问题，向量检索给你一堆语义很像的段落，但就是没有那个编号对应的条款；BM25 往往一搜就中。 对“必须精确命中”的问题更稳（例如政..."
+    },
+    {
       "synthesized_knowledge_id": "4ca426c6-0887-4126-b78b-bca632f3c22f",
       "synthesized_title": "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
-      "evidence_id": "fe2190fe-2a5c-448c-831c-5617b303fb40",
-      "source_uri": "https://deepeval.com/docs/introduction#section-14",
+      "evidence_id": "2d72c9b5-82a1-407f-94b6-500c27d25759",
+      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-33",
       "source_type": "markdown_file",
-      "content_excerpt": "Runtime records of your agent's steps, spans, inputs, outputs, tool calls, and component behavior."
+      "content_excerpt": "Described as an ordered timeline -- observations, tool calls, decisions, and outcomes -- like a \"flight recorder\" for agent workflows: - Capture concise per-step breadcrumbs: what happened, when, which tool/model, lin..."
     },
     {
       "synthesized_knowledge_id": "4ca426c6-0887-4126-b78b-bca632f3c22f",
@@ -3135,34 +3021,10 @@
     {
       "synthesized_knowledge_id": "4ca426c6-0887-4126-b78b-bca632f3c22f",
       "synthesized_title": "Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败",
-      "evidence_id": "2d72c9b5-82a1-407f-94b6-500c27d25759",
-      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-33",
+      "evidence_id": "fe2190fe-2a5c-448c-831c-5617b303fb40",
+      "source_uri": "https://deepeval.com/docs/introduction#section-14",
       "source_type": "markdown_file",
-      "content_excerpt": "Described as an ordered timeline -- observations, tool calls, decisions, and outcomes -- like a \"flight recorder\" for agent workflows: - Capture concise per-step breadcrumbs: what happened, when, which tool/model, lin..."
-    },
-    {
-      "synthesized_knowledge_id": "560fe851-c746-41f2-9b2a-a8536cad13ba",
-      "synthesized_title": "Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词",
-      "evidence_id": "82e1316f-8dc3-4705-b371-b5fda50e935e",
-      "source_uri": "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-2",
-      "source_type": "markdown_file",
-      "content_excerpt": "The most useful framework for thinking about harness design distinguishes two fundamentally different kinds of controls. Guides are feedforward — they steer the agent before it acts. An AGENTS.md file is a guide. Arch..."
-    },
-    {
-      "synthesized_knowledge_id": "560fe851-c746-41f2-9b2a-a8536cad13ba",
-      "synthesized_title": "Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词",
-      "evidence_id": "c4030127-0443-45a4-be63-12e0dcdd8f90",
-      "source_uri": "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-6",
-      "source_type": "markdown_file",
-      "content_excerpt": "One of the most counterintuitive lessons from teams running agents at scale: trying to control agent behavior through verbose instructions in prompts doesn't scale. Instructions get long, agents start ignoring the one..."
-    },
-    {
-      "synthesized_knowledge_id": "560fe851-c746-41f2-9b2a-a8536cad13ba",
-      "synthesized_title": "Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词",
-      "evidence_id": "23b3b7a4-29c1-453f-b425-e59a49b15b32",
-      "source_uri": "https://tianpan.co/blog/2026-02-17-harness-engineering-agent-first-software-development#section-7",
-      "source_type": "markdown_file",
-      "content_excerpt": "Any harness that asks the generating agent to judge its own output gets confidence without accuracy. This is not a subtle failure mode — it's a systematic bias. Models consistently overestimate the quality of code the..."
+      "content_excerpt": "Runtime records of your agent's steps, spans, inputs, outputs, tool calls, and component behavior."
     },
     {
       "synthesized_knowledge_id": "7a729f07-b6c5-4f62-a321-c3746beea5ad",
@@ -3175,10 +3037,10 @@
     {
       "synthesized_knowledge_id": "7a729f07-b6c5-4f62-a321-c3746beea5ad",
       "synthesized_title": "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
-      "evidence_id": "8142cbd2-90a4-4af4-a219-99b98f6be20f",
-      "source_uri": "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+      "evidence_id": "612aa009-dc84-4b04-ab7b-f3717320b2b2",
+      "source_uri": "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
       "source_type": "markdown_file",
-      "content_excerpt": "Section titled “[Optional] Set up observability with Llamatrace” Set up tracing to visualize each step in the workflow. % pip install \"openinference-instrumentation-llama-index>=3.0.0\" \"opentelemetry-proto>=1.12.0\" op..."
+      "content_excerpt": "ranker = LLMRerank( choice_batch_size = 5 , top_n = 3 , llm = OpenAI( model = \"gpt-4o-mini\" ) print ( await ctx.store.get( \"query\" , default = None ), flush = True ) new_nodes = ranker.postprocess_nodes( ev.nodes, que..."
     },
     {
       "synthesized_knowledge_id": "7a729f07-b6c5-4f62-a321-c3746beea5ad",
@@ -3191,6 +3053,14 @@
     {
       "synthesized_knowledge_id": "7a729f07-b6c5-4f62-a321-c3746beea5ad",
       "synthesized_title": "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
+      "evidence_id": "8142cbd2-90a4-4af4-a219-99b98f6be20f",
+      "source_uri": "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-2",
+      "source_type": "markdown_file",
+      "content_excerpt": "Section titled “[Optional] Set up observability with Llamatrace” Set up tracing to visualize each step in the workflow. % pip install \"openinference-instrumentation-llama-index>=3.0.0\" \"opentelemetry-proto>=1.12.0\" op..."
+    },
+    {
+      "synthesized_knowledge_id": "7a729f07-b6c5-4f62-a321-c3746beea5ad",
+      "synthesized_title": "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
       "evidence_id": "160c3669-5847-432b-878f-9deb53d6b797",
       "source_uri": "https://github.com/infiniflow/ragflow#section-9",
       "source_type": "markdown_file",
@@ -3199,18 +3069,18 @@
     {
       "synthesized_knowledge_id": "7a729f07-b6c5-4f62-a321-c3746beea5ad",
       "synthesized_title": "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
-      "evidence_id": "612aa009-dc84-4b04-ab7b-f3717320b2b2",
-      "source_uri": "https://docs.llamaindex.ai/en/stable/examples/workflow/rag#section-12",
-      "source_type": "markdown_file",
-      "content_excerpt": "ranker = LLMRerank( choice_batch_size = 5 , top_n = 3 , llm = OpenAI( model = \"gpt-4o-mini\" ) print ( await ctx.store.get( \"query\" , default = None ), flush = True ) new_nodes = ranker.postprocess_nodes( ev.nodes, que..."
-    },
-    {
-      "synthesized_knowledge_id": "7a729f07-b6c5-4f62-a321-c3746beea5ad",
-      "synthesized_title": "生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环",
       "evidence_id": "30db5afc-a716-43eb-9948-3651bce02f80",
       "source_uri": "https://genai.owasp.org/llmrisk/llm01-prompt-injection#section-17",
       "source_type": "markdown_file",
       "content_excerpt": "An attacker modifies a document in a repository used by a Retrieval-Augmented Generation (RAG) application. When a user&#8217;s query returns the modified content, the malicious instructions alter the LLM&#8217;s outp..."
+    },
+    {
+      "synthesized_knowledge_id": "185404b1-4d6b-48ea-8365-e2f05e806748",
+      "synthesized_title": "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+      "evidence_id": "ea76f855-c710-41e9-8283-2d8743ee6075",
+      "source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-6",
+      "source_type": "markdown_file",
+      "content_excerpt": "deepeval offers three LLM evaluation metrics to evaluate retrievals: ContextualPrecisionMetric : evaluates whether the reranker in your retriever ranks more relevant nodes in your retrieval context higher than irrelev..."
     },
     {
       "synthesized_knowledge_id": "185404b1-4d6b-48ea-8365-e2f05e806748",
@@ -3239,18 +3109,10 @@
     {
       "synthesized_knowledge_id": "0a0a6d5d-9471-49cd-8803-5379393a3481",
       "synthesized_title": "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理",
-      "evidence_id": "1e7f06e7-a076-43dd-adf2-697fe3d61746",
-      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-27",
+      "evidence_id": "b63f4792-f6e7-4468-ac36-d1f2ed1ff421",
+      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-41",
       "source_type": "markdown_file",
-      "content_excerpt": "Hong & He (2025, Frontiers in Psychology ) introduced a unified scoring method: - Recency : Memory decay score decreasing hourly by a decay factor of 0.995 - Importance : LLM-generated score of perceived significance ..."
-    },
-    {
-      "synthesized_knowledge_id": "0a0a6d5d-9471-49cd-8803-5379393a3481",
-      "synthesized_title": "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理",
-      "evidence_id": "b85790a2-a08f-489c-be76-4823dab8c752",
-      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-28",
-      "source_type": "markdown_file",
-      "content_excerpt": "A study at the 13th International Conference on Human-Agent Interaction proposed an Extended Declarative Memory Module computing activation scores dynamically by integrating: - Semantic similarity (vector space) - Fre..."
+      "content_excerpt": "Graphiti is a real-time, temporally-aware knowledge graph engine: - Incrementally processes incoming data without batch recomputation - Hybrid indexing: semantic embeddings + keyword search + graph traversal - Retriev..."
     },
     {
       "synthesized_knowledge_id": "0a0a6d5d-9471-49cd-8803-5379393a3481",
@@ -3263,10 +3125,26 @@
     {
       "synthesized_knowledge_id": "0a0a6d5d-9471-49cd-8803-5379393a3481",
       "synthesized_title": "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理",
-      "evidence_id": "b63f4792-f6e7-4468-ac36-d1f2ed1ff421",
-      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-41",
+      "evidence_id": "b85790a2-a08f-489c-be76-4823dab8c752",
+      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-28",
       "source_type": "markdown_file",
-      "content_excerpt": "Graphiti is a real-time, temporally-aware knowledge graph engine: - Incrementally processes incoming data without batch recomputation - Hybrid indexing: semantic embeddings + keyword search + graph traversal - Retriev..."
+      "content_excerpt": "A study at the 13th International Conference on Human-Agent Interaction proposed an Extended Declarative Memory Module computing activation scores dynamically by integrating: - Semantic similarity (vector space) - Fre..."
+    },
+    {
+      "synthesized_knowledge_id": "0a0a6d5d-9471-49cd-8803-5379393a3481",
+      "synthesized_title": "长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理",
+      "evidence_id": "1e7f06e7-a076-43dd-adf2-697fe3d61746",
+      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-27",
+      "source_type": "markdown_file",
+      "content_excerpt": "Hong & He (2025, Frontiers in Psychology ) introduced a unified scoring method: - Recency : Memory decay score decreasing hourly by a decay factor of 0.995 - Importance : LLM-generated score of perceived significance ..."
+    },
+    {
+      "synthesized_knowledge_id": "185404b1-4d6b-48ea-8365-e2f05e806748",
+      "synthesized_title": "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
+      "evidence_id": "8bd033e9-5a1c-4fb9-9cde-ac31ef482ff8",
+      "source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-8",
+      "source_type": "markdown_file",
+      "content_excerpt": "deepeval offers two LLM evaluation metrics to evaluate generic generations: - AnswerRelevancyMetric : evaluates whether the prompt template in your generator is able to instruct your LLM to output relevant and helpful..."
     },
     {
       "synthesized_knowledge_id": "185404b1-4d6b-48ea-8365-e2f05e806748",
@@ -3277,20 +3155,44 @@
       "content_excerpt": "You can simply combine retrieval and generation metrics to evaluate a RAG pipeline, end-to-end. test_cases = test_cases, contextual_precision, contextual_recall, contextual_relevancy,"
     },
     {
-      "synthesized_knowledge_id": "185404b1-4d6b-48ea-8365-e2f05e806748",
-      "synthesized_title": "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
-      "evidence_id": "ea76f855-c710-41e9-8283-2d8743ee6075",
-      "source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-6",
+      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
+      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "evidence_id": "cd2b0773-b78c-4b6f-a93b-f54f3a5bae46",
+      "source_uri": "https://docs.pinecone.io/guides/search/hybrid-search#section-2",
       "source_type": "markdown_file",
-      "content_excerpt": "deepeval offers three LLM evaluation metrics to evaluate retrievals: ContextualPrecisionMetric : evaluates whether the reranker in your retriever ranks more relevant nodes in your retrieval context higher than irrelev..."
+      "content_excerpt": "Combine semantic and lexical search for better results. Semantic search and lexical search are powerful information retrieval techniques, but each has notable limitations. For example: - Semantic search can miss resul..."
     },
     {
-      "synthesized_knowledge_id": "185404b1-4d6b-48ea-8365-e2f05e806748",
-      "synthesized_title": "RAG 评估必须拆开检索质量、生成忠实度和多轮行为",
-      "evidence_id": "8bd033e9-5a1c-4fb9-9cde-ac31ef482ff8",
-      "source_uri": "https://deepeval.com/docs/guides-rag-evaluation#section-8",
+      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
+      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "evidence_id": "dc5733be-02f4-46a7-a63a-6064ff85923f",
+      "source_uri": "https://www.elastic.co/guide/en/elasticsearch/reference/current/rrf.html#section-2",
       "source_type": "markdown_file",
-      "content_excerpt": "deepeval offers two LLM evaluation metrics to evaluate generic generations: - AnswerRelevancyMetric : evaluates whether the prompt template in your generator is able to instruct your LLM to output relevant and helpful..."
+      "content_excerpt": "Reciprocal rank fusion (RRF) is a method for combining multiple result sets with different relevance indicators into a single result set. RRF requires no tuning, and the different relevance indicators do not have to b..."
+    },
+    {
+      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
+      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "evidence_id": "451360ef-fe35-488d-8a6d-bce2e62b23fb",
+      "source_uri": "https://qdrant.tech/documentation/overview#section-15",
+      "source_type": "markdown_file",
+      "content_excerpt": "Vector search alone can provide a decent search experience to your users; however, semantic similarity is rarely the only factor you have to consider. Embeddings won’t capture attributes such as price, and typically, ..."
+    },
+    {
+      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
+      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "evidence_id": "6396b215-f6e7-462f-b577-5d6e98c8cec3",
+      "source_uri": "https://github.com/FlagOpen/FlagEmbedding#section-18",
+      "source_type": "markdown_file",
+      "content_excerpt": "bge is short for BAAI general embedding . query instruction for retrieval A LLM-based embedding model with in-context learning capabilities, which can fully leverage the model's potential based on a few shot examples ..."
+    },
+    {
+      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
+      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
+      "evidence_id": "f5b1516b-d857-4b6b-abcb-9b618646d50e",
+      "source_uri": "https://docs.pinecone.io/guides/search/hybrid-search#section-13",
+      "source_type": "markdown_file",
+      "content_excerpt": "dense_embeddings = pc.inference.embed( model = \"llama-text-embed-v2\" , inputs = [d[ 'chunk_text' ] for d in data], parameters = { \"input_type\" : \"passage\" , \"truncate\" : \"END\" }"
     },
     {
       "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
@@ -3309,44 +3211,12 @@
       "content_excerpt": "a cross-encoder model which is suitable for multilingual contexts, performs well in both English and Chinese proficiency, allows freedom to select layers, compress ratio and compress layers for output, facilitating ac..."
     },
     {
-      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
-      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
-      "evidence_id": "f5b1516b-d857-4b6b-abcb-9b618646d50e",
-      "source_uri": "https://docs.pinecone.io/guides/search/hybrid-search#section-13",
+      "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
+      "synthesized_title": "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时",
+      "evidence_id": "74472ff6-0578-47ac-98ee-42de6ca3d83d",
+      "source_uri": "https://github.com/InternLM/lagent#section-12",
       "source_type": "markdown_file",
-      "content_excerpt": "dense_embeddings = pc.inference.embed( model = \"llama-text-embed-v2\" , inputs = [d[ 'chunk_text' ] for d in data], parameters = { \"input_type\" : \"passage\" , \"truncate\" : \"END\" }"
-    },
-    {
-      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
-      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
-      "evidence_id": "6396b215-f6e7-462f-b577-5d6e98c8cec3",
-      "source_uri": "https://github.com/FlagOpen/FlagEmbedding#section-18",
-      "source_type": "markdown_file",
-      "content_excerpt": "bge is short for BAAI general embedding . query instruction for retrieval A LLM-based embedding model with in-context learning capabilities, which can fully leverage the model's potential based on a few shot examples ..."
-    },
-    {
-      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
-      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
-      "evidence_id": "451360ef-fe35-488d-8a6d-bce2e62b23fb",
-      "source_uri": "https://qdrant.tech/documentation/overview#section-15",
-      "source_type": "markdown_file",
-      "content_excerpt": "Vector search alone can provide a decent search experience to your users; however, semantic similarity is rarely the only factor you have to consider. Embeddings won’t capture attributes such as price, and typically, ..."
-    },
-    {
-      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
-      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
-      "evidence_id": "dc5733be-02f4-46a7-a63a-6064ff85923f",
-      "source_uri": "https://www.elastic.co/guide/en/elasticsearch/reference/current/rrf.html#section-2",
-      "source_type": "markdown_file",
-      "content_excerpt": "Reciprocal rank fusion (RRF) is a method for combining multiple result sets with different relevance indicators into a single result set. RRF requires no tuning, and the different relevance indicators do not have to b..."
-    },
-    {
-      "synthesized_knowledge_id": "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
-      "synthesized_title": "检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排",
-      "evidence_id": "cd2b0773-b78c-4b6f-a93b-f54f3a5bae46",
-      "source_uri": "https://docs.pinecone.io/guides/search/hybrid-search#section-2",
-      "source_type": "markdown_file",
-      "content_excerpt": "Combine semantic and lexical search for better results. Semantic search and lexical search are powerful information retrieval techniques, but each has notable limitations. For example: - Semantic search can miss resul..."
+      "content_excerpt": "Both input and output messages will be added to the memory of Agent in each forward pass. This is performed in __call__ rather than forward . See the following pseudo code def __call__ ( self , * message ): message = ..."
     },
     {
       "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
@@ -3355,14 +3225,6 @@
       "source_uri": "https://github.com/geekan/MetaGPT#section-8",
       "source_type": "markdown_file",
       "content_excerpt": "Assign different roles to GPTs to form a collaborative entity for complex tasks."
-    },
-    {
-      "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
-      "synthesized_title": "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时",
-      "evidence_id": "74472ff6-0578-47ac-98ee-42de6ca3d83d",
-      "source_uri": "https://github.com/InternLM/lagent#section-12",
-      "source_type": "markdown_file",
-      "content_excerpt": "Both input and output messages will be added to the memory of Agent in each forward pass. This is performed in __call__ rather than forward . See the following pseudo code def __call__ ( self , * message ): message = ..."
     },
     {
       "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
@@ -3383,18 +3245,10 @@
     {
       "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
       "synthesized_title": "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时",
-      "evidence_id": "80968a46-f75a-4e02-ab71-d4bd65ed84f6",
-      "source_uri": "https://github.com/agentscope-ai/agentscope#section-10",
+      "evidence_id": "32335c2c-2cfe-4ee2-8f88-b1c52a18ee4f",
+      "source_uri": "https://docs.camel-ai.org#section-6",
       "source_type": "markdown_file",
-      "content_excerpt": "- Simple : start building your agents in 5 minutes with built-in ReAct agent, tools, skills, human-in-the-loop steering, memory, planning, realtime voice, evaluation and model finetuning - Extensible : large number of..."
-    },
-    {
-      "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
-      "synthesized_title": "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时",
-      "evidence_id": "f09380a9-45c9-48d9-a128-8a288907f118",
-      "source_uri": "https://docs.crewai.com#section-6",
-      "source_type": "markdown_file",
-      "content_excerpt": "Compose agents with tools, memory, knowledge, and structured outputs using Pydantic. Includes templates and best practices."
+      "content_excerpt": "OWL (Optimized Workforce Learning) is a multi-agent automation framework for real-world tasks. Built on CAMEL-AI, it enables dynamic agent collaboration using tools like browsers, code interpreters, and multimodal mod..."
     },
     {
       "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
@@ -3407,10 +3261,18 @@
     {
       "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
       "synthesized_title": "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时",
-      "evidence_id": "32335c2c-2cfe-4ee2-8f88-b1c52a18ee4f",
-      "source_uri": "https://docs.camel-ai.org#section-6",
+      "evidence_id": "f09380a9-45c9-48d9-a128-8a288907f118",
+      "source_uri": "https://docs.crewai.com#section-6",
       "source_type": "markdown_file",
-      "content_excerpt": "OWL (Optimized Workforce Learning) is a multi-agent automation framework for real-world tasks. Built on CAMEL-AI, it enables dynamic agent collaboration using tools like browsers, code interpreters, and multimodal mod..."
+      "content_excerpt": "Compose agents with tools, memory, knowledge, and structured outputs using Pydantic. Includes templates and best practices."
+    },
+    {
+      "synthesized_knowledge_id": "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
+      "synthesized_title": "Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时",
+      "evidence_id": "80968a46-f75a-4e02-ab71-d4bd65ed84f6",
+      "source_uri": "https://github.com/agentscope-ai/agentscope#section-10",
+      "source_type": "markdown_file",
+      "content_excerpt": "- Simple : start building your agents in 5 minutes with built-in ReAct agent, tools, skills, human-in-the-loop steering, memory, planning, realtime voice, evaluation and model finetuning - Extensible : large number of..."
     },
     {
       "synthesized_knowledge_id": "a9947a35-1621-4f30-b48d-60b3b171e86e",
@@ -3423,18 +3285,18 @@
     {
       "synthesized_knowledge_id": "a9947a35-1621-4f30-b48d-60b3b171e86e",
       "synthesized_title": "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节",
-      "evidence_id": "d40131b9-84f4-49b4-8c10-7cc9c10583d2",
-      "source_uri": "https://python.langchain.com/docs/tutorials/rag#section-2",
-      "source_type": "markdown_file",
-      "content_excerpt": "One of the most powerful applications enabled by LLMs is sophisticated question-answering (Q&A) chatbots. These are applications that can answer questions about specific source information. These applications use a te..."
-    },
-    {
-      "synthesized_knowledge_id": "a9947a35-1621-4f30-b48d-60b3b171e86e",
-      "synthesized_title": "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节",
       "evidence_id": "ff653bf5-026d-4107-9136-b8aad893bb5c",
       "source_uri": "https://python.langchain.com/docs/tutorials/rag#section-6",
       "source_type": "markdown_file",
       "content_excerpt": "@tool ( response_format = \"content_and_artifact\" ) def retrieve_context ( query : str ): \"\"\"Retrieve information to help answer a query.\"\"\" retrieved_docs = vector_store . similarity_search ( query , k = 2 ) serialize..."
+    },
+    {
+      "synthesized_knowledge_id": "a9947a35-1621-4f30-b48d-60b3b171e86e",
+      "synthesized_title": "成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节",
+      "evidence_id": "d40131b9-84f4-49b4-8c10-7cc9c10583d2",
+      "source_uri": "https://python.langchain.com/docs/tutorials/rag#section-2",
+      "source_type": "markdown_file",
+      "content_excerpt": "One of the most powerful applications enabled by LLMs is sophisticated question-answering (Q&A) chatbots. These are applications that can answer questions about specific source information. These applications use a te..."
     },
     {
       "synthesized_knowledge_id": "a9947a35-1621-4f30-b48d-60b3b171e86e",
@@ -3447,10 +3309,10 @@
     {
       "synthesized_knowledge_id": "0d11712f-0274-41f3-b781-b8ebe052d360",
       "synthesized_title": "图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断",
-      "evidence_id": "7b7330e5-6d29-4e7e-a7a2-e9f8bf3e6dae",
-      "source_uri": "https://www.flandre.ltd/agent-memory#section-5",
+      "evidence_id": "7457b630-9142-4e63-923e-353a3c77dcde",
+      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-42",
       "source_type": "markdown_file",
-      "content_excerpt": "1.逻辑断裂问题：为适配模型上下文窗口，需将文档暴力切分为512词或1000词的碎片（Hard Chunking),导致原本连贯的语义逻辑被切断，关键信息分散在不同碎片中； 2.匹配偏差问题：依赖语义相似度检索，仅能实现“字面相似”匹配，无法精准捕捉用户“提问意图”与文档“核心内容”的深层关联，常出现“答非所问”； 3.跨域溯源问题：无法理解文档中的跨页参考(如“详见附录G”“参考第2章”)，无法像人类一样顺着线索层级溯源，在复杂..."
+      "content_excerpt": "- Standard RAG: Vector similarity search over flat text chunks - GraphRAG: Leverages semantic relationships between entities via ontologies - Performance: GraphRAG implementations show ~5x query speed improvement over..."
     },
     {
       "synthesized_knowledge_id": "0d11712f-0274-41f3-b781-b8ebe052d360",
@@ -3463,18 +3325,10 @@
     {
       "synthesized_knowledge_id": "0d11712f-0274-41f3-b781-b8ebe052d360",
       "synthesized_title": "图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断",
-      "evidence_id": "7457b630-9142-4e63-923e-353a3c77dcde",
-      "source_uri": "https://gist.github.com/spikelab/7551c6368e23caa06a4056350f6b2db3#section-42",
+      "evidence_id": "7b7330e5-6d29-4e7e-a7a2-e9f8bf3e6dae",
+      "source_uri": "https://www.flandre.ltd/agent-memory#section-5",
       "source_type": "markdown_file",
-      "content_excerpt": "- Standard RAG: Vector similarity search over flat text chunks - GraphRAG: Leverages semantic relationships between entities via ontologies - Performance: GraphRAG implementations show ~5x query speed improvement over..."
-    },
-    {
-      "synthesized_knowledge_id": "1d369420-4e4b-4e1c-bf5c-77a857918c52",
-      "synthesized_title": "图谱抽取不等于知识治理，chunk 内路径只能作为图谱候选",
-      "evidence_id": "ac9878cf-754e-420b-be6b-dcccd5b6d284",
-      "source_uri": "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-9",
-      "source_type": "markdown_file",
-      "content_excerpt": "Section titled “(default) SimpleLLMPathExtractor” Extract short statements using an LLM to prompt and parse single-hop paths in the format ( entity1 , relation , entity2 ) from llama_index.core.indices.property_graph ..."
+      "content_excerpt": "1.逻辑断裂问题：为适配模型上下文窗口，需将文档暴力切分为512词或1000词的碎片（Hard Chunking),导致原本连贯的语义逻辑被切断，关键信息分散在不同碎片中； 2.匹配偏差问题：依赖语义相似度检索，仅能实现“字面相似”匹配，无法精准捕捉用户“提问意图”与文档“核心内容”的深层关联，常出现“答非所问”； 3.跨域溯源问题：无法理解文档中的跨页参考(如“详见附录G”“参考第2章”)，无法像人类一样顺着线索层级溯源，在复杂..."
     },
     {
       "synthesized_knowledge_id": "1d369420-4e4b-4e1c-bf5c-77a857918c52",
@@ -3493,28 +3347,12 @@
       "content_excerpt": "Section titled “Construction” Property graph construction in LlamaIndex works by performing a series of kg_extractors on each chunk, and attaching entities and relations as metadata to each llama-index node. You can u..."
     },
     {
-      "synthesized_knowledge_id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
-      "synthesized_title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
-      "evidence_id": "e870de58-533c-4969-bec7-3d86489ee95b",
-      "source_uri": "https://github.com/eosphoros-ai/DB-GPT#section-12",
+      "synthesized_knowledge_id": "1d369420-4e4b-4e1c-bf5c-77a857918c52",
+      "synthesized_title": "图谱抽取不等于知识治理，chunk 内路径只能作为图谱候选",
+      "evidence_id": "ac9878cf-754e-420b-be6b-dcccd5b6d284",
+      "source_uri": "https://docs.llamaindex.ai/en/stable/module_guides/indexing/lpg_index_guide#section-9",
       "source_type": "markdown_file",
-      "content_excerpt": "Work across structured and unstructured sources, including databases, spreadsheets, documents, and knowledge bases."
-    },
-    {
-      "synthesized_knowledge_id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
-      "synthesized_title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
-      "evidence_id": "19935f83-14d8-409b-8a8f-3459e1a5f556",
-      "source_uri": "https://github.com/labring/FastGPT#section-18",
-      "source_type": "markdown_file",
-      "content_excerpt": "FastGPT is a knowledge-based platform built on the LLMs, offers a comprehensive suite of out-of-the-box capabilities such as data processing, RAG retrieval, and visual AI workflow orchestration, letting you easily dev..."
-    },
-    {
-      "synthesized_knowledge_id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
-      "synthesized_title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
-      "evidence_id": "d8ce9890-ce73-44a4-b2ea-d53581659d65",
-      "source_uri": "https://github.com/eosphoros-ai/DB-GPT#section-13",
-      "source_type": "markdown_file",
-      "content_excerpt": "Package domain knowledge, analysis methods, and execution workflows into reusable skills."
+      "content_excerpt": "Section titled “(default) SimpleLLMPathExtractor” Extract short statements using an LLM to prompt and parse single-hop paths in the format ( entity1 , relation , entity2 ) from llama_index.core.indices.property_graph ..."
     },
     {
       "synthesized_knowledge_id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
@@ -3527,10 +3365,26 @@
     {
       "synthesized_knowledge_id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
       "synthesized_title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
-      "evidence_id": "3ad0b906-0063-4e20-a9d8-da781298bc2f",
-      "source_uri": "https://github.com/infiniflow/ragflow#section-17",
+      "evidence_id": "d8ce9890-ce73-44a4-b2ea-d53581659d65",
+      "source_uri": "https://github.com/eosphoros-ai/DB-GPT#section-13",
       "source_type": "markdown_file",
-      "content_excerpt": "- Streamlined RAG orchestration catered to both personal and large businesses. - Configurable LLMs as well as embedding models. - Multiple recall paired with fused re-ranking. - Intuitive APIs for seamless integration..."
+      "content_excerpt": "Package domain knowledge, analysis methods, and execution workflows into reusable skills."
+    },
+    {
+      "synthesized_knowledge_id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
+      "synthesized_title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+      "evidence_id": "19935f83-14d8-409b-8a8f-3459e1a5f556",
+      "source_uri": "https://github.com/labring/FastGPT#section-18",
+      "source_type": "markdown_file",
+      "content_excerpt": "FastGPT is a knowledge-based platform built on the LLMs, offers a comprehensive suite of out-of-the-box capabilities such as data processing, RAG retrieval, and visual AI workflow orchestration, letting you easily dev..."
+    },
+    {
+      "synthesized_knowledge_id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
+      "synthesized_title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+      "evidence_id": "e870de58-533c-4969-bec7-3d86489ee95b",
+      "source_uri": "https://github.com/eosphoros-ai/DB-GPT#section-12",
+      "source_type": "markdown_file",
+      "content_excerpt": "Work across structured and unstructured sources, including databases, spreadsheets, documents, and knowledge bases."
     },
     {
       "synthesized_knowledge_id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
@@ -3539,6 +3393,14 @@
       "source_uri": "https://github.com/infiniflow/ragflow#section-35",
       "source_type": "markdown_file",
       "content_excerpt": "RAGFlow is a leading open-source Retrieval-Augmented Generation (RAG) engine that fuses cutting-edge RAG with Agent capabilities to create a superior context layer for LLMs"
+    },
+    {
+      "synthesized_knowledge_id": "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
+      "synthesized_title": "成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统",
+      "evidence_id": "3ad0b906-0063-4e20-a9d8-da781298bc2f",
+      "source_uri": "https://github.com/infiniflow/ragflow#section-17",
+      "source_type": "markdown_file",
+      "content_excerpt": "- Streamlined RAG orchestration catered to both personal and large businesses. - Configurable LLMs as well as embedding models. - Multiple recall paired with fused re-ranking. - Intuitive APIs for seamless integration..."
     }
   ],
   "evidence_sources": [
@@ -3574,12 +3436,12 @@
     },
     {
       "source_type": "markdown_file",
-      "source_host": "gist.github.com",
+      "source_host": "www.phppan.com",
       "evidence_count": 53
     },
     {
       "source_type": "markdown_file",
-      "source_host": "www.phppan.com",
+      "source_host": "gist.github.com",
       "evidence_count": 53
     },
     {
@@ -3629,12 +3491,12 @@
     },
     {
       "source_type": "markdown_file",
-      "source_host": "weaviate.io",
+      "source_host": "www.elastic.co",
       "evidence_count": 29
     },
     {
       "source_type": "markdown_file",
-      "source_host": "www.elastic.co",
+      "source_host": "weaviate.io",
       "evidence_count": 29
     },
     {
@@ -3673,13 +3535,13 @@
       "evidence_count": 23
     },
     {
-      "source_type": "markdown_file",
-      "source_host": "qdrant.tech",
+      "source_type": "markdown_text",
+      "source_host": "github.blog",
       "evidence_count": 22
     },
     {
-      "source_type": "markdown_text",
-      "source_host": "github.blog",
+      "source_type": "markdown_file",
+      "source_host": "qdrant.tech",
       "evidence_count": 22
     },
     {
@@ -3695,173 +3557,123 @@
   ],
   "governance_jobs": [
     {
-      "id": "64c54da4-e30e-4e7c-982b-fb03869bf6d3",
-      "job_type": "knowledge_governance_run",
+      "id": "9b07f125-df40-4e2d-abe5-b0e40a119cc5",
+      "job_type": "host_capture_session_governance",
       "trigger_type": "manual_run",
-      "run_status": "completed",
-      "created_at": "2026-04-30T09:51:09.075Z",
-      "started_at": "2026-04-30T09:51:09.085Z",
-      "finished_at": "2026-04-30T09:51:09.267Z",
-      "warnings": [],
-      "synthesized_knowledge_ids": [],
-      "intermediate_artifact_purge": {
-        "deletedFactRows": 1,
-        "deletedEntityRows": 1,
-        "deletedRelationRows": 6,
-        "deletedRecallSurfaceRows": 7,
-        "relinkedSynthesizedEvidenceRows": 0,
-        "rewrittenSynthesizedKnowledgeRows": 16
-      }
-    },
-    {
-      "id": "cfb96c80-cdd5-4df5-94bd-5dde3e3c80e1",
-      "job_type": "knowledge_governance_run",
-      "trigger_type": "manual_run",
-      "run_status": "completed",
-      "created_at": "2026-04-30T09:13:45.027Z",
-      "started_at": "2026-04-30T09:13:45.037Z",
-      "finished_at": "2026-04-30T09:13:45.414Z",
-      "warnings": [
-        "synthesis_skipped:not_enough_evidence_bound_facts"
-      ],
-      "synthesized_knowledge_ids": [],
-      "intermediate_artifact_purge": {
-        "deletedFactRows": 2,
-        "deletedEntityRows": 2,
-        "deletedRelationRows": 12,
-        "deletedRecallSurfaceRows": 14,
-        "relinkedSynthesizedEvidenceRows": 0,
-        "rewrittenSynthesizedKnowledgeRows": 16
-      }
-    },
-    {
-      "id": "b63ef394-1ad6-43c3-8e72-cbc56558ee48",
-      "job_type": "codex_model_layer_governance",
-      "trigger_type": "manual_codex_model_layer",
-      "run_status": "completed",
-      "created_at": "2026-04-30T07:18:53.579Z",
-      "started_at": "2026-04-30T07:18:53.579Z",
-      "finished_at": "2026-04-30T07:18:53.579Z",
+      "run_status": "pending",
+      "created_at": "2026-05-05T13:24:10.924Z",
+      "started_at": null,
+      "finished_at": null,
       "warnings": null,
-      "synthesized_knowledge_ids": [
-        "e9324616-1e7c-4bf2-905a-7c59e672d7ff",
-        "7a729f07-b6c5-4f62-a321-c3746beea5ad",
-        "00b5be19-f96b-4c29-8733-fdf609750796",
-        "0a0a6d5d-9471-49cd-8803-5379393a3481",
-        "0d11712f-0274-41f3-b781-b8ebe052d360",
-        "bb379f22-d450-40e5-ba02-ed021281ad64",
-        "185404b1-4d6b-48ea-8365-e2f05e806748",
-        "f9b1a087-5141-4b52-8d46-c7c19cfb9d02",
-        "bc505385-9fdf-4d4e-93fb-c4bd4443fae9",
-        "13f4d447-0e71-41f2-9281-2f46e364501f",
-        "49cbedb7-4619-46d9-8791-1fa6c4ad9927",
-        "4ca426c6-0887-4126-b78b-bca632f3c22f"
-      ],
+      "synthesized_knowledge_ids": null,
       "intermediate_artifact_purge": null
     },
     {
-      "id": "38cc42d9-f2ea-4867-8c16-5424cfea8e94",
-      "job_type": "codex_model_layer_governance",
-      "trigger_type": "manual_codex_model_layer",
-      "run_status": "completed",
-      "created_at": "2026-04-30T07:13:08.339Z",
-      "started_at": "2026-04-30T07:13:08.339Z",
-      "finished_at": "2026-04-30T07:13:08.339Z",
+      "id": "a9af08df-f80f-4271-86c6-f428ae9cb840",
+      "job_type": "host_capture_session_governance",
+      "trigger_type": "manual_run",
+      "run_status": "pending",
+      "created_at": "2026-05-05T13:16:35.973Z",
+      "started_at": null,
+      "finished_at": null,
       "warnings": null,
-      "synthesized_knowledge_ids": [
-        "e9324616-1e7c-4bf2-905a-7c59e672d7ff",
-        "7a729f07-b6c5-4f62-a321-c3746beea5ad",
-        "00b5be19-f96b-4c29-8733-fdf609750796",
-        "0a0a6d5d-9471-49cd-8803-5379393a3481",
-        "0d11712f-0274-41f3-b781-b8ebe052d360",
-        "bb379f22-d450-40e5-ba02-ed021281ad64",
-        "185404b1-4d6b-48ea-8365-e2f05e806748",
-        "f9b1a087-5141-4b52-8d46-c7c19cfb9d02"
-      ],
+      "synthesized_knowledge_ids": null,
       "intermediate_artifact_purge": null
     },
     {
-      "id": "fb261617-10f1-49e6-810e-465698c3c8a8",
-      "job_type": "codex_model_layer_governance",
-      "trigger_type": "manual_codex_model_layer",
-      "run_status": "completed",
-      "created_at": "2026-04-30T06:54:32.409Z",
-      "started_at": "2026-04-30T06:54:32.409Z",
-      "finished_at": "2026-04-30T06:54:32.409Z",
+      "id": "aafa6cac-2e26-4dbf-943c-e41674aff4b8",
+      "job_type": "host_capture_session_governance",
+      "trigger_type": "manual_run",
+      "run_status": "pending",
+      "created_at": "2026-05-05T13:16:13.151Z",
+      "started_at": null,
+      "finished_at": null,
       "warnings": null,
-      "synthesized_knowledge_ids": [
-        "e9324616-1e7c-4bf2-905a-7c59e672d7ff",
-        "7a729f07-b6c5-4f62-a321-c3746beea5ad",
-        "00b5be19-f96b-4c29-8733-fdf609750796"
-      ],
+      "synthesized_knowledge_ids": null,
       "intermediate_artifact_purge": null
     },
     {
-      "id": "63821cfd-f94d-4c08-8745-53710954b31d",
-      "job_type": "knowledge_governance_run",
+      "id": "4467c6b2-4bcf-4063-ae0f-40da76c17699",
+      "job_type": "host_capture_session_governance",
       "trigger_type": "manual_run",
-      "run_status": "completed",
-      "created_at": "2026-04-30T06:48:31.212Z",
-      "started_at": "2026-04-30T06:48:31.223Z",
-      "finished_at": "2026-04-30T06:48:31.266Z",
-      "warnings": [
-        "synthesis_skipped:model_not_configured"
-      ],
-      "synthesized_knowledge_ids": [],
+      "run_status": "pending",
+      "created_at": "2026-05-05T13:07:05.461Z",
+      "started_at": null,
+      "finished_at": null,
+      "warnings": null,
+      "synthesized_knowledge_ids": null,
       "intermediate_artifact_purge": null
     },
     {
-      "id": "20a71837-1f9c-4fd3-ade6-b454677d1437",
-      "job_type": "knowledge_governance_run",
+      "id": "be8eda99-d764-43f8-9fe3-80cebf8ba918",
+      "job_type": "host_capture_session_governance",
       "trigger_type": "manual_run",
-      "run_status": "completed",
-      "created_at": "2026-04-30T06:47:26.376Z",
-      "started_at": "2026-04-30T06:47:26.378Z",
-      "finished_at": "2026-04-30T06:47:26.425Z",
-      "warnings": [
-        "synthesis_skipped:not_enough_evidence_bound_facts"
-      ],
-      "synthesized_knowledge_ids": [],
+      "run_status": "pending",
+      "created_at": "2026-05-05T13:06:37.548Z",
+      "started_at": null,
+      "finished_at": null,
+      "warnings": null,
+      "synthesized_knowledge_ids": null,
       "intermediate_artifact_purge": null
     },
     {
-      "id": "e29f8a37-8082-4749-a3a5-b0c29530905d",
-      "job_type": "knowledge_governance_run",
+      "id": "f0fd55c0-a35f-408e-ad8a-4d0fe253eac6",
+      "job_type": "host_capture_session_governance",
       "trigger_type": "manual_run",
-      "run_status": "completed",
-      "created_at": "2026-04-30T06:46:27.713Z",
-      "started_at": "2026-04-30T06:46:27.715Z",
-      "finished_at": "2026-04-30T06:46:27.737Z",
-      "warnings": [
-        "synthesis_skipped:not_enough_evidence_bound_facts"
-      ],
-      "synthesized_knowledge_ids": [],
+      "run_status": "pending",
+      "created_at": "2026-05-05T05:15:39.591Z",
+      "started_at": null,
+      "finished_at": null,
+      "warnings": null,
+      "synthesized_knowledge_ids": null,
       "intermediate_artifact_purge": null
     },
     {
-      "id": "e4e54038-7323-40f5-a986-0b72c4c15758",
-      "job_type": "knowledge_governance_run",
+      "id": "7f292f6b-68ac-4f94-a036-47a78f3fcc61",
+      "job_type": "host_capture_session_governance",
       "trigger_type": "manual_run",
-      "run_status": "completed",
-      "created_at": "2026-04-30T06:45:57.066Z",
-      "started_at": "2026-04-30T06:45:57.069Z",
-      "finished_at": "2026-04-30T06:45:57.088Z",
-      "warnings": [
-        "synthesis_skipped:not_enough_evidence_bound_facts"
-      ],
-      "synthesized_knowledge_ids": [],
+      "run_status": "pending",
+      "created_at": "2026-05-05T05:14:24.883Z",
+      "started_at": null,
+      "finished_at": null,
+      "warnings": null,
+      "synthesized_knowledge_ids": null,
       "intermediate_artifact_purge": null
     },
     {
-      "id": "dc303a5e-9d7b-4a98-a4dd-549c1df874ba",
-      "job_type": "knowledge_governance_run",
+      "id": "df79c91e-fa59-4c8e-a5fa-7bc43159a027",
+      "job_type": "host_capture_session_governance",
       "trigger_type": "manual_run",
-      "run_status": "completed",
-      "created_at": "2026-04-30T06:44:45.007Z",
-      "started_at": "2026-04-30T06:44:45.009Z",
-      "finished_at": "2026-04-30T06:44:45.018Z",
-      "warnings": [],
-      "synthesized_knowledge_ids": [],
+      "run_status": "pending",
+      "created_at": "2026-05-05T05:13:19.197Z",
+      "started_at": null,
+      "finished_at": null,
+      "warnings": null,
+      "synthesized_knowledge_ids": null,
+      "intermediate_artifact_purge": null
+    },
+    {
+      "id": "3804cdfd-f09b-48aa-b8a5-342dbb1adb67",
+      "job_type": "host_capture_session_governance",
+      "trigger_type": "manual_run",
+      "run_status": "pending",
+      "created_at": "2026-05-05T05:11:15.664Z",
+      "started_at": null,
+      "finished_at": null,
+      "warnings": null,
+      "synthesized_knowledge_ids": null,
+      "intermediate_artifact_purge": null
+    },
+    {
+      "id": "27da19c7-ed4d-4ae1-948f-4cc5c9abf67c",
+      "job_type": "host_capture_session_governance",
+      "trigger_type": "manual_run",
+      "run_status": "pending",
+      "created_at": "2026-05-05T05:08:20.785Z",
+      "started_at": null,
+      "finished_at": null,
+      "warnings": null,
+      "synthesized_knowledge_ids": null,
       "intermediate_artifact_purge": null
     }
   ],
@@ -3879,6 +3691,13 @@
       "target_object_type": "synthesized_knowledge",
       "risk_level": "low",
       "count": 23
+    },
+    {
+      "governance_type": "host_capture_knowledge_synthesis",
+      "decision": "model_accepted",
+      "target_object_type": "synthesized_knowledge",
+      "risk_level": "low",
+      "count": 22
     },
     {
       "governance_type": "object_quality_governance",
@@ -3954,14 +3773,19 @@
   "pending_change_proposals": [],
   "memory_status": [
     {
-      "status": "active",
-      "count": 3
+      "status": "retired",
+      "count": 2
     }
   ],
-  "rule_status": [],
+  "rule_status": [
+    {
+      "status": "retired",
+      "count": 1
+    }
+  ],
   "skill_status": [
     {
-      "status": "active",
+      "status": "retired",
       "count": 1
     }
   ],

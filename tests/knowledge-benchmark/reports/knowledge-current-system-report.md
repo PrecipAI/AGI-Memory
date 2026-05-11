@@ -1,6 +1,6 @@
 # 当前长期知识/记忆系统完整数据报告
 
-生成时间：2026-04-30T10:07:21.744Z
+生成时间：2026-05-05T14:15:14.404Z
 Tenant / Scope：tenant-local / memory.validation
 
 ## 1. 总体数据
@@ -10,8 +10,8 @@ Tenant / Scope：tenant-local / memory.validation
 | Active documents | 121 |
 | Active markdown documents | 118 |
 | Active sections | 2401 |
-| Active evidence | 2401 |
-| Active synthesized knowledge | 16 |
+| Active evidence | 2416 |
+| Active synthesized knowledge | 14 |
 | Facts / Entities / Relations | 0 / 0 / 0 |
 | Intermediate recall surface | 0 |
 | Active review queue | 5 |
@@ -35,19 +35,17 @@ Tenant / Scope：tenant-local / memory.validation
 | 1 | design_principle | Agent 工具和 MCP 接入必须有结构化授权、沙箱和审计，而不能只靠提示词约束 | 0.9200 | low | 6 | 6 |
 | 2 | derived_rule | 长期记忆必须在使用时验证有效性，而不是只做相似召回 | 0.9200 | low | 5 | 5 |
 | 3 | cross_source_pattern | Agent 可靠性来自 harness 闭环，而不是单次提示词或单模型能力 | 0.9100 | low | 6 | 6 |
-| 4 | derived_rule | 长期记忆召回不能只做相似检索，必须在使用时验证有效性 | 0.9100 | low | 3 | 3 |
-| 5 | derived_rule | Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败 | 0.9100 | low | 6 | 6 |
-| 6 | design_principle | 生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径 | 0.9100 | low | 6 | 6 |
-| 7 | derived_rule | RAG 评估必须拆开检索质量、生成忠实度和多轮行为 | 0.9000 | low | 6 | 6 |
-| 8 | design_principle | 检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排 | 0.9000 | low | 7 | 7 |
-| 9 | derived_rule | 长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理 | 0.9000 | low | 4 | 4 |
-| 10 | design_principle | Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词 | 0.9000 | low | 3 | 3 |
-| 11 | design_principle | 生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环 | 0.9000 | low | 6 | 6 |
-| 12 | cross_source_pattern | Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时 | 0.8900 | low | 8 | 8 |
-| 13 | cross_source_pattern | 成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节 | 0.8800 | low | 4 | 4 |
-| 14 | boundary_condition | 图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断 | 0.8800 | low | 3 | 3 |
-| 15 | cross_source_pattern | 成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统 | 0.8600 | low | 6 | 6 |
-| 16 | boundary_condition | 图谱抽取不等于知识治理，chunk 内路径只能作为图谱候选 | 0.8600 | low | 3 | 3 |
+| 4 | derived_rule | Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败 | 0.9100 | low | 6 | 6 |
+| 5 | design_principle | 生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径 | 0.9100 | low | 6 | 6 |
+| 6 | design_principle | 检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排 | 0.9000 | low | 7 | 7 |
+| 7 | derived_rule | 长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理 | 0.9000 | low | 4 | 4 |
+| 8 | design_principle | 生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环 | 0.9000 | low | 6 | 6 |
+| 9 | derived_rule | RAG 评估必须拆开检索质量、生成忠实度和多轮行为 | 0.9000 | low | 6 | 6 |
+| 10 | cross_source_pattern | Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时 | 0.8900 | low | 8 | 8 |
+| 11 | cross_source_pattern | 成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节 | 0.8800 | low | 4 | 4 |
+| 12 | boundary_condition | 图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断 | 0.8800 | low | 3 | 3 |
+| 13 | boundary_condition | 图谱抽取不等于知识治理，chunk 内路径只能作为图谱候选 | 0.8600 | low | 3 | 3 |
+| 14 | cross_source_pattern | 成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统 | 0.8600 | low | 6 | 6 |
 
 ## 4. Synthesized Knowledge 内容摘要
 
@@ -116,20 +114,7 @@ Tenant / Scope：tenant-local / memory.validation
 
 适用边界：这条模式适合需要长期运行、自动执行或接入工具的 agent；简单问答 bot 不一定需要完整 harness，但一旦涉及文件、命令、外部资源或多步任务，就应进入 harness 设计。
 
-### 4. 长期记忆召回不能只做相似检索，必须在使用时验证有效性
-
-- 类型：derived_rule
-- 置信度：0.9100
-- 风险：low
-- Evidence：3
-- Sources：3
-
-长期记忆系统的默认召回规则应是“先召回候选，再验证当前上下文是否仍然适用”。尤其在代码、配置、分支、用户偏好会变化的场景中，历史记忆不能因为相似度高就直接进入上下文；应绑定 evidence，并在使用前检查它是否被更新、取代或与当前任务冲突。
-
-适用场景：agent memory、代码仓库记忆、跨任务经验复用、长期知识召回。
-边界：如果是纯静态事实或用户明确要求追溯原始材料，可以直接展开证据；但默认回答不应把未验证旧记忆当作最终知识。
-
-### 5. Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败
+### 4. Agent 观测必须记录轨迹、工具调用、上下文和成本，否则无法治理失败
 
 - 类型：derived_rule
 - 置信度：0.9100
@@ -151,7 +136,7 @@ Agent 系统失败通常不是单点错误，而是上下文、工具、权限�
 
 适用边界：凡是多步 agent、RAG、工具调用或自动化执行，都应保留观测；一次性简单问答可以只保留轻量日志。
 
-### 6. 生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径
+### 5. 生产级检索默认应采用多信号候选、重排和证据边界，而不是单一路径
 
 - 类型：design_principle
 - 置信度：0.9100
@@ -173,29 +158,7 @@ Agent 系统失败通常不是单点错误，而是上下文、工具、权限�
 
 适用边界：这条原则适合普通文档问答和知识库助手；如果治理层已经产出高质量 derived knowledge 或图谱规则，召回入口可以优先命中治理产物，再按需回落到原始 evidence。
 
-### 7. RAG 评估必须拆开检索质量、生成忠实度和多轮行为
-
-- 类型：derived_rule
-- 置信度：0.9000
-- 风险：low
-- Evidence：6
-- Sources：6
-
-# RAG 评估必须拆开检索质量、生成忠实度和多轮行为
-
-RAG 系统不能只用“回答看起来对不对”做验收。工程评估应拆成检索、生成和多轮行为三层，否则无法判断问题出在召回、排序、证据装配、提示词还是模型生成。
-
-推荐的评估拆分：
-
-1. 检索层：评估相关证据是否被找全、相关节点是否排在无关节点之前。
-2. 生成层：评估回答是否基于 retrieval_context、是否和证据矛盾、是否回答了问题。
-3. 端到端层：组合 retrieval + generation 指标，验证用户最终体验。
-4. 多轮层：单轮指标不能覆盖对话状态、追问、省略和历史依赖，需要专门的 multi-turn case。
-5. CI 层：把关键测试集接入回归流程，防止索引、模型、chunk、rerank 或提示词调整后静默退化。
-
-适用边界：适合任何要长期迭代的 RAG/Agent 知识系统；早期探索可以先用小测试集，但必须保留可扩展到 CI 的数据结构。
-
-### 8. 检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排
+### 6. 检索基础设施应抽象为可替换后端，核心契约是混合召回、过滤、融合和重排
 
 - 类型：design_principle
 - 置信度：0.9000
@@ -218,7 +181,7 @@ Milvus、Qdrant、Pinecone、Weaviate、Elasticsearch、FlagEmbedding 等组件�
 
 适用边界：这条原则服务普通召回路线和证据定位路线；当图谱治理产物足够成熟时，检索后端仍作为 evidence fallback 和校验通道。
 
-### 9. 长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理
+### 7. 长期记忆不能退化成向量片段库，必须显式建模结构、时间和治理
 
 - 类型：derived_rule
 - 置信度：0.9000
@@ -240,20 +203,7 @@ Milvus、Qdrant、Pinecone、Weaviate、Elasticsearch、FlagEmbedding 等组件�
 
 适用边界：这条规则适用于 agent 长期记忆、项目知识库和跨会话偏好；短期任务状态可以保留在运行层，不应全部进入长期记忆。
 
-### 10. Agent 可靠性主要由 harness 决定，不应只依赖模型和长提示词
-
-- 类型：design_principle
-- 置信度：0.9000
-- 风险：low
-- Evidence：3
-- Sources：3
-
-设计 AI agent 时，应把 harness 当成核心工程对象：包括 guide、sensor、权限、上下文生命周期、反馈回路、沙箱、可观测性和架构不变量。单纯增加提示词或依赖模型自我判断不能稳定提升可靠性；更可靠的做法是把约束沉淀为可执行、不易被忽略的工程边界，并用外部传感器/评测验证输出。
-
-适用场景：coding agent、自动化 agent、长期运行 agent、带工具调用的 agent。
-边界：小型一次性任务可以用轻量提示词；但进入生产级或长期任务后，必须把 harness 作为系统设计的一部分。
-
-### 11. 生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环
+### 8. 生产级 RAG 应拆成检索、重排、证据校验、观测和安全治理的闭环
 
 - 类型：design_principle
 - 置信度：0.9000
@@ -276,7 +226,29 @@ Milvus、Qdrant、Pinecone、Weaviate、Elasticsearch、FlagEmbedding 等组件�
 
 适用边界：这是工程系统原则，不要求每个小 demo 都一次性实现全部组件；但面向长期知识系统或生产 agent 时，缺任一环都会降低可解释性和可治理性。
 
-### 12. Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时
+### 9. RAG 评估必须拆开检索质量、生成忠实度和多轮行为
+
+- 类型：derived_rule
+- 置信度：0.9000
+- 风险：low
+- Evidence：6
+- Sources：6
+
+# RAG 评估必须拆开检索质量、生成忠实度和多轮行为
+
+RAG 系统不能只用“回答看起来对不对”做验收。工程评估应拆成检索、生成和多轮行为三层，否则无法判断问题出在召回、排序、证据装配、提示词还是模型生成。
+
+推荐的评估拆分：
+
+1. 检索层：评估相关证据是否被找全、相关节点是否排在无关节点之前。
+2. 生成层：评估回答是否基于 retrieval_context、是否和证据矛盾、是否回答了问题。
+3. 端到端层：组合 retrieval + generation 指标，验证用户最终体验。
+4. 多轮层：单轮指标不能覆盖对话状态、追问、省略和历史依赖，需要专门的 multi-turn case。
+5. CI 层：把关键测试集接入回归流程，防止索引、模型、chunk、rerank 或提示词调整后静默退化。
+
+适用边界：适合任何要长期迭代的 RAG/Agent 知识系统；早期探索可以先用小测试集，但必须保留可扩展到 CI 的数据结构。
+
+### 10. Agent 框架正在收敛到工具、记忆、工作流、多智能体和评估的一体化运行时
 
 - 类型：cross_source_pattern
 - 置信度：0.8900
@@ -297,7 +269,7 @@ Milvus、Qdrant、Pinecone、Weaviate、Elasticsearch、FlagEmbedding 等组件�
 
 适用边界：适用于生产 agent、自动化工作流和多工具系统；简单单轮聊天不需要完整 runtime。
 
-### 13. 成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节
+### 11. 成熟 RAG 系统会把检索、证据装配和可观测性拆成独立环节
 
 - 类型：cross_source_pattern
 - 置信度：0.8800
@@ -310,7 +282,7 @@ Milvus、Qdrant、Pinecone、Weaviate、Elasticsearch、FlagEmbedding 等组件�
 适用场景：面向真实用户的问题回答、知识库问答、agent 工具检索。
 边界：简单静态 FAQ 可以简化为两步链路；但当来源复杂、需要审计或需要持续改进时，应拆分这些环节。
 
-### 14. 图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断
+### 12. 图谱召回适合关系型问题，但不能替代证据治理和事实有效性判断
 
 - 类型：boundary_condition
 - 置信度：0.8800
@@ -330,7 +302,20 @@ GraphRAG 的价值在于利用实体、关系和本体组织候选知识，尤�
 
 适用边界：当问题涉及因果链、概念演化、跨来源比较、依赖关系、冲突消解时，图谱价值较高；当问题只是精确查找单个字段时，关键词或结构化过滤可能更直接。
 
-### 15. 成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统
+### 13. 图谱抽取不等于知识治理，chunk 内路径只能作为图谱候选
+
+- 类型：boundary_condition
+- 置信度：0.8600
+- 风险：low
+- Evidence：3
+- Sources：3
+
+Property graph / KG extractor 可以从 chunk 中抽取实体和关系路径，但这只是图谱候选生成，不等于已经完成跨来源知识治理。真正可召回的知识图谱需要再做跨文档去重、冲突检测、关系合并、适用边界判断和 evidence 绑定；否则图谱只是把 chunk 噪声结构化，并不会自动变聪明。
+
+适用场景：GraphRAG、知识图谱入库、文档关系抽取。
+边界：单文档问答或局部导航可以直接使用 chunk-level path；跨来源推理、长期知识沉淀和默认召回必须经过治理层确认。
+
+### 14. 成熟知识平台正在收敛为知识库、工作流、Agent 和多源数据的一体化系统
 
 - 类型：cross_source_pattern
 - 置信度：0.8600
@@ -350,19 +335,6 @@ GraphRAG 的价值在于利用实体、关系和本体组织候选知识，尤�
 
 适用边界：这条模式用于产品方向和系统边界判断；具体实现仍应按我们当前路线分层落地，避免一次性复制完整低代码平台。
 
-### 16. 图谱抽取不等于知识治理，chunk 内路径只能作为图谱候选
-
-- 类型：boundary_condition
-- 置信度：0.8600
-- 风险：low
-- Evidence：3
-- Sources：3
-
-Property graph / KG extractor 可以从 chunk 中抽取实体和关系路径，但这只是图谱候选生成，不等于已经完成跨来源知识治理。真正可召回的知识图谱需要再做跨文档去重、冲突检测、关系合并、适用边界判断和 evidence 绑定；否则图谱只是把 chunk 噪声结构化，并不会自动变聪明。
-
-适用场景：GraphRAG、知识图谱入库、文档关系抽取。
-边界：单文档问答或局部导航可以直接使用 chunk-level path；跨来源推理、长期知识沉淀和默认召回必须经过治理层确认。
-
 ## 5. Evidence 来源分布
 
 | Source type | Host | Evidence |
@@ -373,8 +345,8 @@ Property graph / KG extractor 可以从 chunk 中抽取实体和关系路径，�
 | markdown_file | docs.llamaindex.ai | 84 |
 | markdown_file | eastondev.com | 81 |
 | markdown_text | github.com | 75 |
-| markdown_file | gist.github.com | 53 |
 | markdown_file | www.phppan.com | 53 |
+| markdown_file | gist.github.com | 53 |
 | markdown_file | genai.owasp.org | 49 |
 | markdown_file | cloud.tencent.com | 49 |
 | markdown_file | docs.ragas.io | 45 |
@@ -384,8 +356,8 @@ Property graph / KG extractor 可以从 chunk 中抽取实体和关系路径，�
 | markdown_file | zh.wikipedia.org | 41 |
 | markdown_file | python.langchain.com | 32 |
 | markdown_file | openai.github.io | 30 |
-| markdown_file | weaviate.io | 29 |
 | markdown_file | www.elastic.co | 29 |
+| markdown_file | weaviate.io | 29 |
 | markdown_file | docs.langchain.com | 27 |
 | markdown_file | owasp.org | 26 |
 | markdown_file | open.bigmodel.cn | 26 |
@@ -393,8 +365,8 @@ Property graph / KG extractor 可以从 chunk 中抽取实体和关系路径，�
 | markdown_file | htmlpage.cn | 23 |
 | markdown_file | qwen.readthedocs.io | 23 |
 | markdown_file | jiangren.com.au | 23 |
-| markdown_file | qdrant.tech | 22 |
 | markdown_text | github.blog | 22 |
+| markdown_file | qdrant.tech | 22 |
 | markdown_file | www.flandre.ltd | 21 |
 | markdown_file | docs.arize.com | 19 |
 
@@ -402,22 +374,22 @@ Property graph / KG extractor 可以从 chunk 中抽取实体和关系路径，�
 
 | Job | Type | Status | Synthesized | Purge | Warnings |
 | --- | --- | --- | ---: | --- | --- |
-| 64c54da4-e30e-4e7c-982b-fb03869bf6d3 | knowledge_governance_run | completed | 0 | yes | [] |
-| cfb96c80-cdd5-4df5-94bd-5dde3e3c80e1 | knowledge_governance_run | completed | 0 | yes | ["synthesis_skipped:not_enough_evidence_bound_facts"] |
-| b63ef394-1ad6-43c3-8e72-cbc56558ee48 | codex_model_layer_governance | completed | 12 | no | [] |
-| 38cc42d9-f2ea-4867-8c16-5424cfea8e94 | codex_model_layer_governance | completed | 8 | no | [] |
-| fb261617-10f1-49e6-810e-465698c3c8a8 | codex_model_layer_governance | completed | 3 | no | [] |
-| 63821cfd-f94d-4c08-8745-53710954b31d | knowledge_governance_run | completed | 0 | no | ["synthesis_skipped:model_not_configured"] |
-| 20a71837-1f9c-4fd3-ade6-b454677d1437 | knowledge_governance_run | completed | 0 | no | ["synthesis_skipped:not_enough_evidence_bound_facts"] |
-| e29f8a37-8082-4749-a3a5-b0c29530905d | knowledge_governance_run | completed | 0 | no | ["synthesis_skipped:not_enough_evidence_bound_facts"] |
-| e4e54038-7323-40f5-a986-0b72c4c15758 | knowledge_governance_run | completed | 0 | no | ["synthesis_skipped:not_enough_evidence_bound_facts"] |
-| dc303a5e-9d7b-4a98-a4dd-549c1df874ba | knowledge_governance_run | completed | 0 | no | [] |
+| 9b07f125-df40-4e2d-abe5-b0e40a119cc5 | host_capture_session_governance | pending | 0 | no | [] |
+| a9af08df-f80f-4271-86c6-f428ae9cb840 | host_capture_session_governance | pending | 0 | no | [] |
+| aafa6cac-2e26-4dbf-943c-e41674aff4b8 | host_capture_session_governance | pending | 0 | no | [] |
+| 4467c6b2-4bcf-4063-ae0f-40da76c17699 | host_capture_session_governance | pending | 0 | no | [] |
+| be8eda99-d764-43f8-9fe3-80cebf8ba918 | host_capture_session_governance | pending | 0 | no | [] |
+| f0fd55c0-a35f-408e-ad8a-4d0fe253eac6 | host_capture_session_governance | pending | 0 | no | [] |
+| 7f292f6b-68ac-4f94-a036-47a78f3fcc61 | host_capture_session_governance | pending | 0 | no | [] |
+| df79c91e-fa59-4c8e-a5fa-7bc43159a027 | host_capture_session_governance | pending | 0 | no | [] |
+| 3804cdfd-f09b-48aa-b8a5-342dbb1adb67 | host_capture_session_governance | pending | 0 | no | [] |
+| 27da19c7-ed4d-4ae1-948f-4cc5c9abf67c | host_capture_session_governance | pending | 0 | no | [] |
 
 ## 7. Memory / Rule / Skill 状态
 
-- Memory：active=3
-- Rule：none
-- Skill：active=1
+- Memory：retired=2
+- Rule：retired=1
+- Skill：retired=1
 
 ## 8. 当前能力边界结论
 

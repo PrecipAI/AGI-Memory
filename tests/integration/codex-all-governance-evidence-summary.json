@@ -1,0 +1,180 @@
+{
+  "totals": {
+    "thread_count": 15,
+    "success_count": 15,
+    "failure_count": 0,
+    "rule_candidates": 3,
+    "memory_candidates": 12,
+    "skill_proposal_candidates": 4,
+    "knowledge_candidates": 0,
+    "governance_evidence_candidates": 3544,
+    "promoted_rules": 3,
+    "promoted_memories": 12,
+    "promoted_skill_proposals": 4,
+    "promoted_knowledge": 0,
+    "new_candidate_count": 3564,
+    "skipped_previously_governed_count": 1
+  },
+  "evidence_category_counts": {
+    "uploaded_knowledge": 21,
+    "success_reason": 960,
+    "failure_reason": 161,
+    "verification_evidence": 315,
+    "tool_execution": 1769,
+    "mcp_execution": 244,
+    "external_source": 74
+  },
+  "evidence_title_counts": {
+    "User-provided file reference": 21,
+    "Execution step evidence": 1022,
+    "Command/tool availability evidence": 24,
+    "Verification step evidence": 348,
+    "Tool execution evidence": 1769,
+    "MCP execution evidence": 244,
+    "External source discovered during task": 21,
+    "Search or fetch step evidence": 66,
+    "Repository operation evidence": 29
+  },
+  "samples": [
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Execution step evidence",
+      "category": "success_reason",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command Get-ChildItem -Path . -Recurse -File -Include *SPEC*.* , SPEC.md , spec.md | Select-Object -ExpandProperty FullName cwd=C:\\Users\\Administrator\\Documents\\xwechat_files\\wxid_84i4qx0bl9kg22_e192\\msg\\file\\2026-04\\memory-mcp-rc-test-kit exit=0"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Execution step evidence",
+      "category": "success_reason",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command Get-Content -Path 'C:\\Users\\Administrator\\.codex\\skills\\memory-preflight\\SKILL.md' -TotalCount 200 cwd=C:\\Users\\Administrator\\Documents\\xwechat_files\\wxid_84i4qx0bl9kg22_e192\\msg\\file\\2026-04\\memory-mcp-rc-test-kit exit=0"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Execution step evidence",
+      "category": "success_reason",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command Get-Content -Path 'D:\\workspace\\projects\\SuperAgentSystem-main\\SPEC-SuperAgentSystem-knowledge-platform.md' -TotalCount 200 cwd=C:\\Users\\Administrator\\Documents\\xwechat_files\\wxid_84i4qx0bl9kg22_e192\\msg\\file\\2026-04\\memory-mcp-rc-test-kit exit=0"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Execution step evidence",
+      "category": "success_reason",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command Get-Content -Path 'C:\\Users\\Administrator\\.codex\\config.toml' cwd=C:\\Users\\Administrator\\Documents\\xwechat_files\\wxid_84i4qx0bl9kg22_e192\\msg\\file\\2026-04\\memory-mcp-rc-test-kit exit=0"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Execution step evidence",
+      "category": "failure_reason",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command Get-Content -Path 'C:\\Users\\yangy\\Documents\\New project\\codex_persistent_memory.md' -TotalCount 200 cwd=C:\\Users\\Administrator\\Documents\\xwechat_files\\wxid_84i4qx0bl9kg22_e192\\msg\\file\\2026-04\\memory-mcp-rc-test-kit exit=1"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Command/tool availability evidence",
+      "category": "failure_reason",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command rg -n \"verify:mcp|verify:mcp-cli|verify:mcp-client-smoke|rule_gate_check|memory_health|resources/list|tools/list\" -S \"D:\\workspace\\projects\\SuperAgentSystem-main\" cwd=D:\\workspace\\projects\\SuperAgentSystem-main exit=1"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Command/tool availability evidence",
+      "category": "failure_reason",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command rg -n \"\\[mcp_servers\\.memory-v3\\]\" \"C:\\Users\\Administrator\\.codex\\config.toml\" cwd=D:\\workspace\\projects\\SuperAgentSystem-main exit=1"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Execution step evidence",
+      "category": "success_reason",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command (Select-String -Path 'C:\\Users\\Administrator\\.codex\\config.toml' -Pattern '^\\[mcp_servers\\.memory-v3\\]$').Count cwd=D:\\workspace\\projects\\SuperAgentSystem-main exit=0"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Verification step evidence",
+      "category": "verification_evidence",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command Get-Content -Path 'D:\\workspace\\projects\\SuperAgentSystem-main\\scripts\\verify-memory-mcp-client-smoke.mjs' cwd=D:\\workspace\\projects\\SuperAgentSystem-main exit=0"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Verification step evidence",
+      "category": "verification_evidence",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command Get-Content -Path 'D:\\workspace\\projects\\SuperAgentSystem-main\\scripts\\verify-memory-mcp.mjs' cwd=D:\\workspace\\projects\\SuperAgentSystem-main exit=0"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Verification step evidence",
+      "category": "verification_evidence",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command Get-Content -Path 'D:\\workspace\\projects\\SuperAgentSystem-main\\scripts\\verify-memory-mcp-cli.mjs' cwd=D:\\workspace\\projects\\SuperAgentSystem-main exit=0"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Verification step evidence",
+      "category": "verification_evidence",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command Get-Content -Path 'D:\\workspace\\projects\\SuperAgentSystem-main\\scripts\\verify-memory-mcp-real-service.mjs' cwd=D:\\workspace\\projects\\SuperAgentSystem-main exit=0"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Execution step evidence",
+      "category": "success_reason",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command Get-Content -Path 'D:\\workspace\\projects\\SuperAgentSystem-main\\services\\memory-mcp-server\\package.json' cwd=D:\\workspace\\projects\\SuperAgentSystem-main exit=0"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Verification step evidence",
+      "category": "verification_evidence",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command cmd /c npx memory-mcp doctor --config \"D:\\workspace\\projects\\SuperAgentSystem-main\\.memory-mcp\\config.json\" cwd=D:\\workspace\\projects\\SuperAgentSystem-main exit=0"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Verification step evidence",
+      "category": "verification_evidence",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command cmd /c npm run verify:mcp-cli cwd=D:\\workspace\\projects\\SuperAgentSystem-main exit=0"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Verification step evidence",
+      "category": "verification_evidence",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command cmd /c npm run verify:mcp-client-smoke cwd=D:\\workspace\\projects\\SuperAgentSystem-main exit=0"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Verification step evidence",
+      "category": "verification_evidence",
+      "source_kind": "command",
+      "excerpt": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command cmd /c npm run verify:mcp cwd=D:\\workspace\\projects\\SuperAgentSystem-main exit=0"
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Tool execution evidence",
+      "category": "tool_execution",
+      "source_kind": "tool",
+      "excerpt": "shell_command {\"command\":\"Get-Content -Path 'C:\\\\Users\\\\Administrator\\\\.codex\\\\skills\\\\memory-preflight\\\\SKILL.md' -TotalCount 200\",\"workdir\":\"C:\\\\Users\\\\Administrator\\\\Documents\\\\xwechat_files\\\\wxid_84i4qx0bl9kg22_e192\\\\msg\\\\file\\\\2026-04\\\\memory-mcp..."
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Tool execution evidence",
+      "category": "tool_execution",
+      "source_kind": "tool",
+      "excerpt": "shell_command {\"command\":\"Get-Content -Path 'C:\\\\Users\\\\yangy\\\\Documents\\\\New project\\\\codex_persistent_memory.md' -TotalCount 200\",\"workdir\":\"C:\\\\Users\\\\Administrator\\\\Documents\\\\xwechat_files\\\\wxid_84i4qx0bl9kg22_e192\\\\msg\\\\file\\\\2026-04\\\\memory-mcp..."
+    },
+    {
+      "thread": "验证 memory-v3 MCP 接入",
+      "title": "Tool execution evidence",
+      "category": "tool_execution",
+      "source_kind": "tool",
+      "excerpt": "shell_command {\"command\":\"Get-Content -Path 'C:\\\\Users\\\\Administrator\\\\.codex\\\\config.toml'\",\"workdir\":\"C:\\\\Users\\\\Administrator\\\\Documents\\\\xwechat_files\\\\wxid_84i4qx0bl9kg22_e192\\\\msg\\\\file\\\\2026-04\\\\memory-mcp-rc-test-kit\",\"timeout_ms\":20000}"
+    }
+  ]
+}

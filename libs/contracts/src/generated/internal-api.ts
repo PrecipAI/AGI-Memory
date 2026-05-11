@@ -1344,6 +1344,11 @@ export interface components {
             limit?: number;
             /** @enum {string} */
             task_type?: "design" | "execution" | "debugging" | "governance" | "review" | "ingestion" | "integration" | "answer";
+            /**
+             * @description Optional lifecycle phase for rule routing. When omitted, the service derives it from task_type.
+             * @enum {string}
+             */
+            task_phase?: "planning" | "design" | "coding" | "testing" | "review" | "governance" | "reporting" | "integration";
             /** @description Optional host/client identifier such as codex or claude_code for task binding. */
             host?: string;
             /** @description Optional project identifier used by task binding. */
@@ -1410,6 +1415,11 @@ export interface components {
             task_step_id?: string;
             /** @enum {string} */
             task_type?: "design" | "execution" | "debugging" | "governance" | "review" | "ingestion" | "integration" | "answer";
+            /**
+             * @description Optional lifecycle phase for rule gate routing.
+             * @enum {string}
+             */
+            task_phase?: "planning" | "design" | "coding" | "testing" | "review" | "governance" | "reporting" | "integration";
             host?: string;
             project_ref?: string;
             operation: string;

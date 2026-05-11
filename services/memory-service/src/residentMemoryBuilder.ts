@@ -1,4 +1,11 @@
-import { listActiveFactualMemory, listActiveRules, listActiveSkills, replaceResidentSnapshot } from "@super-agent/db";
+import {
+  listActiveFactualMemory,
+  listActiveRules,
+  listActiveSkills,
+  listGovernanceChangeProposals,
+  queryActiveDerivedKnowledge,
+  replaceResidentSnapshot
+} from "@super-agent/db";
 
 export class ResidentMemoryBuilder {
   async rebuild(input: {
@@ -8,13 +15,37 @@ export class ResidentMemoryBuilder {
     dirtyReason?: string | null;
     traceId: string;
   }): Promise<string | null> {
-    const [memoryRows, ruleRows, skillRows] = await Promise.all([
+    const [memoryRows, ruleRows, skillRows, knowledgeRows, proposalRows] = await Promise.all([
       listActiveFactualMemory({ tenantId: input.tenantId, scope: input.scope }),
       listActiveRules({ tenantId: input.tenantId, scope: input.scope }),
-      listActiveSkills({ tenantId: input.tenantId, scope: input.scope, fingerprint: input.fingerprint })
+      listActiveSkills({ tenantId: input.tenantId, scope: input.scope, fingerprint: input.fingerprint }),
+      queryActiveDerivedKnowledge({ tenantId: input.tenantId, scope: input.scope, limit: 5 }),
+      listGovernanceChangeProposals({ tenantId: input.tenantId, scope: input.scope, status: "recorded", limit: 50 })
     ]);
 
-    if (memoryRows.length === 0 && ruleRows.length === 0 && skillRows.length === 0) {
+    const skillProposalRows = proposalRows
+      .filter((row) => row.target_object_type === "skill")
+      .slice(0, 5)
+      .map((row) => ({
+        id: row.id,
+        proposed_action: row.proposed_action,
+        reason: row.reason,
+        target_object_id: row.target_object_id,
+        proposed_payload: row.proposed_payload
+      }));
+
+    const ruleProposalRows = proposalRows
+      .filter((row) => row.target_object_type === "rule")
+      .slice(0, 5)
+      .map((row) => ({
+        id: row.id,
+        proposed_action: row.proposed_action,
+        reason: row.reason,
+        target_object_id: row.target_object_id,
+        proposed_payload: row.proposed_payload
+      }));
+
+    if (memoryRows.length === 0 && ruleRows.length === 0 && skillRows.length === 0 && knowledgeRows.length === 0 && proposalRows.length === 0) {
       return null;
     }
 
@@ -40,6 +71,16 @@ export class ResidentMemoryBuilder {
           skill_key: row.skill_key,
           description: row.description
         })),
+        knowledge: knowledgeRows.slice(0, 5).map((row) => ({
+          id: row.id,
+          title: row.title,
+          knowledge_type: row.knowledge_type,
+          content: row.content,
+          confidence_score: row.confidence_score,
+          recall_state: row.recall_state
+        })),
+        skill_proposals: skillProposalRows,
+        rule_proposals: ruleProposalRows,
         factual_highlights: memoryRows.slice(0, 3).map((row) => ({
           id: row.id,
           title: row.title,
@@ -49,6 +90,12 @@ export class ResidentMemoryBuilder {
           id: row.id,
           skill_key: row.skill_key,
           description: row.description
+        })),
+        knowledge_highlights: knowledgeRows.slice(0, 5).map((row) => ({
+          id: row.id,
+          title: row.title,
+          knowledge_type: row.knowledge_type,
+          content: row.content
         })),
         fingerprint: input.fingerprint ?? null
       },

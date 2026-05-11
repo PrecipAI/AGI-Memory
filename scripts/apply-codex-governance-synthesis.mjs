@@ -1,6 +1,12 @@
 import pg from "pg";
 import { randomUUID, createHash } from "node:crypto";
 
+if (process.env.ALLOW_LEGACY_SYNTHESIS !== "1") {
+  throw new Error(
+    "Legacy synthesis script is disabled by default. It predates the external-knowledge vs local-adoption boundary and can pollute governed knowledge. Use runtime knowledge governance instead, or rerun with ALLOW_LEGACY_SYNTHESIS=1 only for explicit migration work."
+  );
+}
+
 const { Pool } = pg;
 const tenantId = process.env.DEFAULT_TENANT_ID || "tenant-local";
 const scope = process.env.DEFAULT_SCOPE || "memory.validation";

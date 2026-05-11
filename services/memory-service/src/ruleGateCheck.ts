@@ -4,6 +4,7 @@ type RuleGateCheckBody = {
   task_request_id: string;
   task_step_id?: string | null;
   task_type?: string | null;
+  task_phase?: string | null;
   host?: string | null;
   project_ref?: string | null;
   operation: string;
@@ -144,6 +145,7 @@ export async function handleRuleGateCheck(input: {
     decision: overallDecision,
     operation: input.body.operation,
     matched_checkpoint_count: checkpointDecisions.length,
+    task_phase: input.body.task_phase ?? null,
     checkpoints: checkpointDecisions,
     audit_ids: auditIds,
     rule_hotplug_note: "Rule/binding status is read at check time, so enabling or disabling packs affects the next gate check."

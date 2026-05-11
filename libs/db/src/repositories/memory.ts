@@ -173,6 +173,7 @@ export async function queryActiveRules(input: {
   scope: string;
   query?: string | null;
   taskType?: string | null;
+  taskPhase?: string | null;
   limit?: number;
 }): Promise<Record<string, unknown>[]> {
   const pool = getPool();
@@ -191,6 +192,21 @@ export async function queryActiveRules(input: {
     input.taskType && input.taskType.length > 0
       ? Array.from(new Set([input.taskType, ...(taskTypeAliases[input.taskType] ?? [])]))
       : null;
+  const phaseAliases: Record<string, string[]> = {
+    planning: ["planning", "planner"],
+    design: ["design", "planner"],
+    coding: ["coding", "execution", "executor"],
+    testing: ["testing", "verification"],
+    review: ["review", "verification"],
+    governance: ["governance"],
+    reporting: ["reporting", "governance"],
+    integration: ["integration"]
+  };
+  const taskPhases =
+    input.taskPhase && input.taskPhase.length > 0
+      ? Array.from(new Set([input.taskPhase, ...(phaseAliases[input.taskPhase] ?? [])]))
+      : null;
+  const routeKeys = Array.from(new Set([...(taskPhases ?? []), ...(taskTypes ?? [])]));
   const result = await pool.query(
     `
     SELECT *,
@@ -209,16 +225,18 @@ export async function queryActiveRules(input: {
     WHERE tenant_id = $1
       AND scope = $2
       AND status = 'active'
+      AND enforcement_level IN ('must', 'must_not')
       AND (
         $5::text[] IS NULL
         OR applies_to = '[]'::jsonb
         OR applies_to ?| $5::text[]
         OR trigger_conditions -> 'task_types' ?| $5::text[]
+        OR trigger_conditions -> 'applies_to_phase' ?| $5::text[]
       )
     ORDER BY rule_match_count DESC, priority DESC, created_at DESC
     LIMIT $4
     `,
-    [input.tenantId, input.scope, terms.length > 0 ? terms : null, input.limit ?? 10, taskTypes]
+    [input.tenantId, input.scope, terms.length > 0 ? terms : null, input.limit ?? 10, routeKeys.length > 0 ? routeKeys : null]
   );
   return result.rows;
 }
@@ -283,6 +301,13 @@ export async function queryRuleCheckpoints(input: {
       AND scope = $2
       AND status = 'active'
       AND rule_id = ANY($3::uuid[])
+      AND EXISTS (
+        SELECT 1
+        FROM rule
+        WHERE id = rule_checkpoint.rule_id
+          AND status = 'active'
+          AND enforcement_level IN ('must', 'must_not')
+      )
       AND (
         $4::text IS NULL
         OR operation IS NULL
@@ -299,6 +324,7 @@ export async function queryRuleGateCheckpoints(input: {
   tenantId: string;
   scope: string;
   taskType?: string | null;
+  taskPhase?: string | null;
   host?: string | null;
   projectRef?: string | null;
   operation: string;
@@ -344,6 +370,13 @@ export async function queryRuleGateCheckpoints(input: {
       AND rc.scope = $2
       AND rc.status = 'active'
       AND r.status = 'active'
+      AND r.enforcement_level IN ('must', 'must_not')
+      AND (
+        $9::text IS NULL
+        OR r.applies_to = '[]'::jsonb
+        OR r.applies_to ? $9
+        OR r.trigger_conditions -> 'applies_to_phase' ? $9
+      )
       AND (rc.operation IS NULL OR rc.operation = $6)
       AND ($7::text[] IS NULL OR rc.checkpoint_key = ANY($7::text[]))
       AND (
@@ -372,7 +405,8 @@ export async function queryRuleGateCheckpoints(input: {
       input.projectRef ?? null,
       input.operation,
       input.checkpointKeys && input.checkpointKeys.length > 0 ? input.checkpointKeys : null,
-      input.limit ?? 50
+      input.limit ?? 50,
+      input.taskPhase ?? null
     ]
   );
   return result.rows;
@@ -717,6 +751,10 @@ export async function createOrReplaceFactualMemory(input: {
   metadata?: Record<string, unknown>;
   importance?: number;
   confidenceScore?: number;
+  originScope?: string;
+  governanceLevel?: string;
+  availabilityScope?: string;
+  promotionStatus?: string;
   traceId: string;
 }): Promise<string> {
   const pool = getPool();
@@ -783,6 +821,10 @@ export async function createOrReplaceFactualMemory(input: {
           metadata: input.metadata ?? {},
           importance: input.importance ?? 75,
           confidence_score: input.confidenceScore ?? 0.9,
+          origin_scope: input.originScope ?? "session",
+          governance_level: input.governanceLevel ?? "session",
+          availability_scope: input.availabilityScope ?? "session_only",
+          promotion_status: input.promotionStatus ?? "active",
           next_version: existingRow.version + 1,
           supersedes_memory_id: existingRow.id
         }),
@@ -799,12 +841,12 @@ export async function createOrReplaceFactualMemory(input: {
     INSERT INTO memory (
       tenant_id, scope, status, version, memory_type, title, content, normalized_content,
       source_kind, source_ref, verification_status, fingerprint_requirement, tags, metadata,
-      importance, confidence_score, trace_id
+      importance, confidence_score, origin_scope, governance_level, availability_scope, promotion_status, trace_id
     )
     VALUES (
       $1, $2, 'active', 1, 'factual', $3, $4, $5,
       'memory_candidate', $6, $7, $8, $9::text[], $10::jsonb,
-      $11, $12, $13
+      $11, $12, $13, $14, $15, $16, $17
     )
     RETURNING id
     `,
@@ -821,6 +863,10 @@ export async function createOrReplaceFactualMemory(input: {
       toJson(input.metadata),
       input.importance ?? 75,
       input.confidenceScore ?? 0.9,
+      input.originScope ?? "session",
+      input.governanceLevel ?? "session",
+      input.availabilityScope ?? "session_only",
+      input.promotionStatus ?? "active",
       input.traceId
     ]
   );
@@ -844,6 +890,12 @@ export async function createOrReplaceRule(input: {
   sourceRefs?: unknown[];
   evidenceRefs?: unknown[];
   metadata?: Record<string, unknown>;
+  originScope?: string;
+  governanceLevel?: string;
+  availabilityScope?: string;
+  promotionStatus?: string;
+  ruleDomain?: string;
+  ruleScope?: string;
   traceId: string;
 }): Promise<string> {
   const pool = getPool();
@@ -855,13 +907,19 @@ export async function createOrReplaceRule(input: {
     normalized_statement: input.normalizedStatement ?? input.statement.toLowerCase(),
     applies_to: input.appliesTo ?? [],
     trigger_conditions: input.triggerConditions ?? {},
-    enforcement_level: input.enforcementLevel ?? "should_follow",
+    enforcement_level: input.enforcementLevel ?? "must",
     priority: input.priority ?? 75,
     risk_level: input.riskLevel ?? "medium",
     verification_status: input.verificationStatus,
     source_refs: input.sourceRefs ?? [],
     evidence_refs: input.evidenceRefs ?? [],
-    metadata: input.metadata ?? {}
+    metadata: input.metadata ?? {},
+    origin_scope: input.originScope ?? "session",
+    governance_level: input.governanceLevel ?? "session",
+    availability_scope: input.availabilityScope ?? "session_only",
+    promotion_status: input.promotionStatus ?? "active",
+    rule_domain: input.ruleDomain ?? input.ruleType.replace(/_rule$/, "") ?? "execution",
+    rule_scope: input.ruleScope ?? input.originScope ?? "session"
   };
   if (typeof input.metadata?.conflicts_with_rule_key === "string") {
     const proposal = await pool.query<{ id: string }>(
@@ -938,13 +996,15 @@ export async function createOrReplaceRule(input: {
       tenant_id, scope, status, version, rule_key, rule_type, title, statement,
       normalized_statement, applies_to, trigger_conditions, enforcement_level,
       priority, risk_level, verification_status, source_refs, evidence_refs,
-      supersedes_rule_id, metadata, trace_id
+      supersedes_rule_id, metadata, origin_scope, governance_level, availability_scope, promotion_status,
+      rule_domain, rule_scope, trace_id
     )
     VALUES (
       $1, $2, 'active', $3, $4, $5, $6, $7,
       $8, $9::jsonb, $10::jsonb, $11,
       $12, $13::risk_level, $14, $15::jsonb, $16::jsonb,
-      $17, $18::jsonb, $19
+      $17, $18::jsonb, $19, $20, $21, $22,
+      $23, $24, $25
     )
     RETURNING id
     `,
@@ -959,7 +1019,7 @@ export async function createOrReplaceRule(input: {
       input.normalizedStatement ?? input.statement.toLowerCase(),
       JSON.stringify(input.appliesTo ?? []),
       toJson(input.triggerConditions),
-      input.enforcementLevel ?? "should_follow",
+      input.enforcementLevel ?? "must",
       input.priority ?? 75,
       input.riskLevel ?? "medium",
       input.verificationStatus,
@@ -967,6 +1027,12 @@ export async function createOrReplaceRule(input: {
       JSON.stringify(input.evidenceRefs ?? []),
       existing.rows[0]?.id ?? null,
       toJson(input.metadata),
+      input.originScope ?? "session",
+      input.governanceLevel ?? "session",
+      input.availabilityScope ?? "session_only",
+      input.promotionStatus ?? "active",
+      input.ruleDomain ?? input.ruleType.replace(/_rule$/, "") ?? "execution",
+      input.ruleScope ?? input.originScope ?? "session",
       input.traceId
     ]
   );
@@ -1278,6 +1344,7 @@ export async function listActiveRules(input: { tenantId: string; scope: string }
     WHERE tenant_id = $1
       AND scope = $2
       AND status = 'active'
+      AND enforcement_level IN ('must', 'must_not')
     ORDER BY priority DESC, created_at DESC
     `,
     [input.tenantId, input.scope]

@@ -466,6 +466,10 @@ components:
         task_type:
           type: string
           enum: [design, execution, debugging, governance, review, ingestion, integration, answer]
+        task_phase:
+          type: string
+          enum: [planning, design, coding, testing, review, governance, reporting, integration]
+          description: Optional lifecycle phase for rule routing. When omitted, the service derives it from task_type.
         host:
           type: string
           description: Optional host/client identifier such as codex or claude_code for task binding.
@@ -575,6 +579,10 @@ components:
         task_type:
           type: string
           enum: [design, execution, debugging, governance, review, ingestion, integration, answer]
+        task_phase:
+          type: string
+          enum: [planning, design, coding, testing, review, governance, reporting, integration]
+          description: Optional lifecycle phase for rule gate routing.
         host:
           type: string
         project_ref:

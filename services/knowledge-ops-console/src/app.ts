@@ -69,34 +69,22 @@ function renderHtml() {
   <body>
     <div class="shell">
       <aside class="rail">
-        <div class="brand">Knowledge Ops</div>
+        <div class="brand">治理回显</div>
         <nav>
-          <button data-view="overview" class="active">Overview</button>
-          <button data-view="documents">Documents</button>
-          <button data-view="review">Review Queue</button>
-          <button data-view="proposals">Change Proposals</button>
-          <button data-view="runs">Governance Runs</button>
-          <button data-view="synthesis">Synthesized Knowledge</button>
-          <button data-view="graph">Graph</button>
+          <button data-view="hostgovernance" class="active">Host Governance 主机治理</button>
         </nav>
       </aside>
       <main class="main">
         <header class="hero">
           <div>
-            <p class="eyebrow">Unified Long-term Knowledge System</p>
-            <h1>Ops Console</h1>
-            <p class="subtitle">Review what the system ingested, extracted, linked, and used.</p>
+            <p class="eyebrow">Governance Review</p>
+            <h1>Host Governance</h1>
+            <p class="subtitle">直接读取真实会话记录与任务执行记录，只展示治理抽取层级和结果。</p>
           </div>
           <div id="config-pill" class="pill">loading...</div>
         </header>
-        <section id="overview-view" class="view active"></section>
-        <section id="documents-view" class="view"></section>
-        <section id="review-view" class="view"></section>
-        <section id="proposals-view" class="view"></section>
-        <section id="runs-view" class="view"></section>
-        <section id="synthesis-view" class="view"></section>
-        <section id="graph-view" class="view"></section>
-        <section id="document-detail-view" class="view"></section>
+        <section id="hostgovernance-view" class="view active"></section>
+        <section id="hostgovernance-detail-view" class="view"></section>
       </main>
     </div>
     <script type="module" src="/app.js"></script>
@@ -129,7 +117,7 @@ body {
 .shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 280px 1fr;
 }
 .rail {
   border-right: 1px solid var(--line);
@@ -146,13 +134,15 @@ body {
 .rail nav { display: grid; gap: 10px; }
 .rail button {
   border: 1px solid var(--line);
-  background: transparent;
+  background: rgba(255,255,255,0.4);
   border-radius: 14px;
   padding: 12px 14px;
   text-align: left;
   font-size: 14px;
   cursor: pointer;
   color: var(--ink);
+  line-height: 1.45;
+  white-space: normal;
 }
 .rail button.active {
   background: var(--accent);
@@ -340,23 +330,11 @@ h1 { margin: 0 0 8px; font-size: 42px; }
 function renderAppJs() {
   return `
 const views = {
-  overview: document.getElementById("overview-view"),
-  documents: document.getElementById("documents-view"),
-  review: document.getElementById("review-view"),
-  proposals: document.getElementById("proposals-view"),
-  runs: document.getElementById("runs-view"),
-  synthesis: document.getElementById("synthesis-view"),
-  graph: document.getElementById("graph-view")
+  hostgovernance: document.getElementById("hostgovernance-view"),
+  hostgovernanceDetail: document.getElementById("hostgovernance-detail-view")
 };
-const documentDetailView = document.getElementById("document-detail-view");
-let runDetailView = null;
 const configPill = document.getElementById("config-pill");
-let documentItems = [];
-let currentDocumentDetail = null;
-let synthesisDetailView = null;
-const documentPageSize = 50;
-let documentTotal = 0;
-let documentOffset = 0;
+let hostGovernanceState = { sessions: [], selected: null, preview: null, run: null };
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -369,12 +347,25 @@ function escapeHtml(value) {
 
 document.querySelectorAll("[data-view]").forEach((button) => {
   button.addEventListener("click", () => {
-    document.querySelectorAll("[data-view]").forEach((b) => b.classList.remove("active"));
-    Object.values(views).forEach((view) => view.classList.remove("active"));
-    button.classList.add("active");
-    views[button.dataset.view].classList.add("active");
+    switchView(button.dataset.view);
   });
 });
+
+function switchView(viewKey) {
+  document.querySelectorAll("[data-view]").forEach((b) => b.classList.remove("active"));
+  Object.values(views).forEach((view) => view.classList.remove("active"));
+  const navButton = document.querySelector(\`[data-view="\${viewKey}"]\`);
+  if (navButton) {
+    navButton.classList.add("active");
+  } else {
+    document.querySelector('[data-view="hostgovernance"]')?.classList.add("active");
+  }
+  if (viewKey === "hostgovernanceDetail") {
+    views.hostgovernanceDetail.classList.add("active");
+    return;
+  }
+  views[viewKey]?.classList.add("active");
+}
 
 function renderList(items, formatter) {
   if (!items || items.length === 0) {
@@ -383,631 +374,269 @@ function renderList(items, formatter) {
   return '<div class="list">' + items.map(formatter).join("") + '</div>';
 }
 
-function renderOverview(data) {
-  const corpus = data.corpus_governance || {};
-  views.overview.innerHTML = \`
-    <div class="cards">
-      <div class="card"><div class="label">Documents</div><div class="value">\${data.document_count}</div></div>
-      <div class="card"><div class="label">Sections</div><div class="value">\${data.section_count}</div></div>
-      <div class="card"><div class="label">Evidence</div><div class="value">\${data.evidence_count}</div></div>
-      <div class="card"><div class="label">Entities</div><div class="value">\${data.entity_count}</div></div>
-      <div class="card"><div class="label">Facts</div><div class="value">\${data.fact_count}</div></div>
-      <div class="card"><div class="label">Relations</div><div class="value">\${data.relation_count}</div></div>
-      <div class="card"><div class="label">Active Reviews</div><div class="value">\${data.active_review_count}</div></div>
-      <div class="card"><div class="label">Governance Runs</div><div class="value">\${data.governance_job_count}</div></div>
-    </div>
-    <div class="panel">
-      <h2>Corpus Governance</h2>
-      <div class="cards">
-        <div class="card"><div class="label">Active / Total Docs</div><div class="value">\${corpus.active_document_count ?? 0} / \${corpus.total_document_count ?? 0}</div></div>
-        <div class="card"><div class="label">Retired Docs</div><div class="value">\${corpus.retired_document_count ?? 0}</div></div>
-        <div class="card"><div class="label">Full Markdown Docs</div><div class="value">\${corpus.active_full_markdown_document_count ?? 0}</div></div>
-        <div class="card"><div class="label">Generated Docs</div><div class="value">\${corpus.active_generated_document_count ?? 0}</div></div>
-        <div class="card"><div class="label">Duplicate URL</div><div class="value">\${corpus.active_duplicate_canonical_source_uri_count ?? 0}</div></div>
-        <div class="card"><div class="label">Duplicate Markdown</div><div class="value">\${corpus.active_duplicate_markdown_hash_count ?? 0}</div></div>
-        <div class="card"><div class="label">Temp/Test Docs</div><div class="value">\${corpus.active_temp_test_document_count ?? 0}</div></div>
-        <div class="card"><div class="label">Active Derived Knowledge</div><div class="value">\${corpus.active_derived_knowledge_count ?? 0}</div></div>
-      </div>
-      <div class="notice">
-        Documents list is paginated. The first page shows 50 items by default; use Load More to inspect the rest.
-        Retired objects are excluded from normal review and recall surfaces but remain auditable in database history.
-      </div>
-    </div>
-    <div class="panel">
-      <h2>Manual Governance</h2>
-      <div class="actions">
-        <button class="ghost-button" data-governance-mode="batch_governance">Run Batch Governance</button>
-        <button class="ghost-button" data-governance-mode="library_alignment_governance">Run Library Alignment</button>
-        <button class="ghost-button" data-governance-mode="cross_source_synthesis_governance">Run Cross-source Synthesis</button>
-        <button class="ghost-button" data-governance-mode="global_governance">Run Global Governance</button>
-      </div>
-      <div class="notice">
-        Governance is intentionally manual. These actions write governance jobs, decisions, recall surface state, and possible derived knowledge; they do not run on a timer.
-      </div>
-      <div id="governance-action-status" class="action-status"></div>
-    </div>
-  \`;
-  views.overview.querySelectorAll("[data-governance-mode]").forEach((node) => {
-    node.addEventListener("click", () => runGovernance(node.dataset.governanceMode));
-  });
-}
-
-async function runGovernance(mode) {
-  const statusNode = document.getElementById("governance-action-status");
-  statusNode.innerHTML = '<div class="notice">Running ' + escapeHtml(mode) + '...</div>';
-  const response = await fetch("/api/governance/run", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      task_request_id: crypto.randomUUID(),
-      task_step_id: crypto.randomUUID(),
-      run_modes: [mode],
-      max_items: mode === "global_governance" ? 100 : 30,
-      include_graph_governance: true
-    })
-  });
-  const payload = await response.json();
-  if (!response.ok) {
-    statusNode.innerHTML = '<div class="notice">Governance failed: ' + escapeHtml(payload.error || payload.message || JSON.stringify(payload)) + '</div>';
-    return;
-  }
-  await load();
-  const refreshedStatusNode = document.getElementById("governance-action-status");
-  refreshedStatusNode.innerHTML = \`
-    <div class="item">
-      <div class="title">Governance completed: \${escapeHtml(mode)}</div>
-      <div class="meta">
-        <span>job: \${escapeHtml(payload.job_id)}</span>
-        <span>processed candidates: \${escapeHtml(payload.processed_candidate_count ?? 0)}</span>
-        <span>decisions: \${escapeHtml((payload.governance_decision_ids || []).length)}</span>
-        <span>derived knowledge: \${escapeHtml((payload.synthesized_knowledge_ids || []).length)}</span>
-      </div>
-      <div class="snippet">warnings: \${escapeHtml((payload.warnings || []).join(", ") || "none")}</div>
-    </div>
-  \`;
-}
-
-function renderReview(items) {
-  views.review.innerHTML = '<div class="panel"><h2>Review Queue</h2>' + renderList(items, (item) => \`
-    <div class="item">
-      <div class="title">\${item.review_reason}</div>
-      <div class="meta">
-        <span>target: \${item.target_object_type}</span>
-        <span>priority: \${item.priority}</span>
-        <span>status: \${item.status}</span>
-      </div>
-    </div>
-  \`) + '</div>';
-}
-
-function summarizeProposalPayload(payload) {
-  if (!payload || typeof payload !== "object") {
-    return "";
-  }
-  const title = payload.title || payload.rule_key || payload.skill_key || payload.source_ref || "";
-  const body = payload.statement || payload.content || payload.description || payload.reason || "";
-  return [title, body].filter(Boolean).join("\\n");
-}
-
-function renderProposals(items) {
-  views.proposals.innerHTML = \`
+function renderHostGovernance() {
+  const sessions = hostGovernanceState.sessions || [];
+  views.hostgovernance.innerHTML = \`
     <div class="panel">
       <div class="toolbar">
-        <h2>Change Proposals</h2>
-        <button class="ghost-button" id="refresh-proposals">Refresh</button>
+        <h2>Host Governance</h2>
+        <button class="ghost-button" id="refresh-host-governance">Refresh Sessions</button>
       </div>
-      <div class="notice">
-        这里是 memory / rule / skill 治理提案。Approve 后才会修改 active 对象，并自动重建 resident snapshot 与同步 retrieval index；Reject 只关闭提案，不改当前生效对象。
-      </div>
-      \${renderList(items, (item) => {
-        const payload = item.proposed_payload || {};
-        return \`
-          <div class="item" data-proposal-id="\${escapeHtml(item.id)}">
-            <div class="title">\${escapeHtml(item.proposed_action)}</div>
+      <div class="notice">直接读取真实 Codex 会话记录和执行记录，不写展示副本。选择线程后进入详情页，再查看抽取结果和治理结果。</div>
+      <div class="panel">
+        <h2>Codex Sessions</h2>
+        \${renderList(sessions, (item) => \`
+          <div class="item clickable" data-host-thread-id="\${escapeHtml(item.thread_id)}">
+            <div class="title">\${escapeHtml(item.thread_name || item.thread_id)}</div>
             <div class="meta">
-              <span>target: \${escapeHtml(item.target_object_type || "n/a")}</span>
-              <span>risk: \${escapeHtml(item.risk_level || "n/a")}</span>
-              <span>status: \${escapeHtml(item.status || "n/a")}</span>
-              <span>reason: \${escapeHtml(item.reason || "n/a")}</span>
+              <span>thread: \${escapeHtml(item.thread_id)}</span>
+              <span>updated: \${escapeHtml(item.updated_at || "n/a")}</span>
             </div>
-            <div class="snippet">\${escapeHtml(summarizeProposalPayload(payload))}</div>
-            <pre class="markdown-view proposal-payload">\${escapeHtml(JSON.stringify(payload, null, 2))}</pre>
-            <div class="actions">
-              <button class="ghost-button approve" data-proposal-action="approve" data-proposal-id="\${escapeHtml(item.id)}">Approve</button>
-              <button class="ghost-button reject" data-proposal-action="reject" data-proposal-id="\${escapeHtml(item.id)}">Reject</button>
-            </div>
+            <div class="snippet">\${escapeHtml(item.session_file || "no session file")}</div>
           </div>
-        \`;
-      })}
+        \`)}
+      </div>
     </div>
   \`;
-  document.getElementById("refresh-proposals")?.addEventListener("click", loadProposals);
-  views.proposals.querySelectorAll("[data-proposal-action]").forEach((node) => {
-    node.addEventListener("click", () => applyProposalAction(node.dataset.proposalId, node.dataset.proposalAction));
+  document.getElementById("refresh-host-governance")?.addEventListener("click", loadHostSessions);
+  views.hostgovernance.querySelectorAll("[data-host-thread-id]").forEach((node) => {
+    node.addEventListener("click", () => {
+      const threadId = node.dataset.hostThreadId;
+      hostGovernanceState.selected = sessions.find((item) => item.thread_id === threadId) || null;
+      hostGovernanceState.preview = null;
+      hostGovernanceState.run = null;
+      renderHostGovernanceDetail();
+      switchView("hostgovernanceDetail");
+    });
   });
 }
 
-async function loadProposals() {
-  const response = await fetch("/api/governance/change-proposals?status=recorded");
-  const payload = await response.json();
-  if (!response.ok) {
-    throw new Error(payload.error || payload.message || "Failed to load governance change proposals");
-  }
-  renderProposals(payload.items || []);
+function renderHostGovernanceDetail() {
+  const selected = hostGovernanceState.selected;
+  const preview = hostGovernanceState.preview;
+  const run = hostGovernanceState.run;
+  views.hostgovernanceDetail.innerHTML = \`
+    <div class="actions">
+      <button class="ghost-button" id="host-detail-back">Back to Sessions</button>
+      <button class="ghost-button" id="inspect-host-thread" \${selected ? "" : "disabled"}>Inspect Extraction</button>
+      <button class="ghost-button" id="run-host-thread-governance" \${selected ? "" : "disabled"}>Run Governance</button>
+    </div>
+    <div class="panel">
+      <h2>Selected Thread</h2>
+      \${selected ? \`
+        <div class="item">
+          <div class="title">\${escapeHtml(selected.thread_name || selected.thread_id)}</div>
+          <div class="meta">
+            <span>\${escapeHtml(selected.thread_id)}</span>
+            <span>\${escapeHtml(selected.updated_at || "n/a")}</span>
+          </div>
+          <div class="snippet">\${escapeHtml(selected.session_file || "")}</div>
+        </div>
+      \` : '<div class="empty">No thread selected.</div>'}
+    </div>
+    <div class="panel">
+      <h2>Extraction Preview</h2>
+      \${preview ? renderHostGovernancePreview(preview) : '<div class="empty">No preview loaded.</div>'}
+    </div>
+    <div class="panel">
+      <h2>Governance Run Result</h2>
+      \${run ? renderHostGovernanceRun(run) : '<div class="empty">No governance run executed from this view.</div>'}
+    </div>
+  \`;
+  document.getElementById("host-detail-back")?.addEventListener("click", () => {
+    switchView("hostgovernance");
+  });
+  document.getElementById("inspect-host-thread")?.addEventListener("click", inspectSelectedHostThread);
+  document.getElementById("run-host-thread-governance")?.addEventListener("click", runSelectedHostGovernance);
 }
 
-async function applyProposalAction(proposalId, action) {
-  if (!proposalId || (action !== "approve" && action !== "reject")) {
+function renderHostGovernancePreview(preview) {
+  const extraction = preview.extraction_preview || {};
+  return \`
+    <div class="item">
+      <div class="title">Input Summary</div>
+      <div class="meta">
+        <span>user: \${escapeHtml(preview.raw_inputs?.user_messages?.length ?? 0)}</span>
+        <span>commands: \${escapeHtml(preview.raw_inputs?.commands?.length ?? 0)}</span>
+        <span>tools: \${escapeHtml(preview.raw_inputs?.tool_calls?.length ?? 0)}</span>
+        <span>mcp: \${escapeHtml(preview.raw_inputs?.mcp_calls?.length ?? 0)}</span>
+      </div>
+    </div>
+    \${renderCandidateGroup("Rule", extraction.rule_candidates || [])}
+    \${renderCandidateGroup("Memory", extraction.memory_candidates || [])}
+    \${renderCandidateGroup("Skill Proposal", extraction.skill_proposal_candidates || [])}
+    \${renderCandidateGroup("Knowledge", extraction.knowledge_candidates || [])}
+    \${renderCandidateGroup("Governance Evidence", extraction.governance_evidence_candidates || [])}
+  \`;
+}
+
+function renderCandidateGroup(label, items) {
+  return \`
+    <div class="item">
+      <div class="title">\${escapeHtml(label)} (\${escapeHtml(items.length)})</div>
+      \${items.length === 0 ? '<div class="empty">No items.</div>' : items.map((item) => renderCandidateItem(label, item)).join("")}
+    </div>
+  \`;
+}
+
+function renderCandidateItem(label, item) {
+  if (label === "Skill Proposal" || item.target_skill || item.proposed_text) {
+    return \`
+      <div class="snippet"><strong>\${escapeHtml(item.title || "untitled")}</strong>
+target: \${escapeHtml(item.target_skill || "unknown")}  change: \${escapeHtml(item.change_type || "update")}
+quality: \${escapeHtml(item.proposal_quality || "n/a")}  sources: \${escapeHtml(item.merged_source_count || 1)}
+level: \${escapeHtml(item.governance_level || "n/a")}
+section: \${escapeHtml(item.current_section || "n/a")}
+current gap: \${escapeHtml(item.current_gap || "")}
+proposed: \${escapeHtml(item.proposed_text || item.content || "")}
+patch:
+\${escapeHtml(item.proposed_patch || "")}
+rationale: \${escapeHtml(item.rationale || "")}</div>
+      <div class="snippet">source: \${escapeHtml(item.source_excerpt || "")}</div>
+      <div class="snippet">reason: \${escapeHtml(item.reason || "")}</div>
+    \`;
+  }
+  if (label === "Rule" || item.rule_domain || item.rule_scope) {
+    return \`
+    <div class="snippet"><strong>\${escapeHtml(item.title || "untitled")}</strong>
+domain: \${escapeHtml(item.rule_domain || "n/a")}  scope: \${escapeHtml(item.rule_scope || item.origin_scope || "n/a")}
+level: \${escapeHtml(item.governance_level || "n/a")}
+availability: \${escapeHtml(item.availability_scope || "n/a")}  promotion: \${escapeHtml(item.promotion_status || "n/a")}
+\${escapeHtml(item.content || item.source_excerpt || "")}</div>
+    <div class="snippet">source: \${escapeHtml(item.source_excerpt || "")}</div>
+    <div class="snippet">reason: \${escapeHtml(item.reason || "")}</div>
+  \`;
+  }
+  return \`
+    <div class="snippet"><strong>\${escapeHtml(item.title || "untitled")}</strong>\n\${escapeHtml(item.content || item.source_excerpt || "")}</div>
+    <div class="snippet">source: \${escapeHtml(item.source_excerpt || "")}</div>
+    <div class="snippet">reason: \${escapeHtml(item.reason || "")}</div>
+  \`;
+}
+
+function renderHostGovernanceRun(run) {
+  const report = run.acceptance_report || {};
+  return \`
+    <div class="item">
+      <div class="title">Promoted Outputs</div>
+      <div class="meta">
+        <span>rules: \${escapeHtml(report.promoted_outputs?.rule_count ?? 0)}</span>
+        <span>memory: \${escapeHtml(report.promoted_outputs?.long_term_memory_count ?? 0)}</span>
+        <span>skill proposals: \${escapeHtml(report.promoted_outputs?.skill_proposal_count ?? 0)}</span>
+        <span>knowledge: \${escapeHtml(report.promoted_outputs?.synthesized_knowledge_count ?? 0)}</span>
+      </div>
+    </div>
+    <div class="item">
+      <div class="title">Retained Governance Evidence</div>
+      \${(report.governance_evidence_retained || []).length === 0 ? '<div class="empty">No retained evidence.</div>' : (report.governance_evidence_retained || []).map((item) => \`
+        <div class="snippet"><strong>\${escapeHtml(item.title || "untitled")}</strong> [\${escapeHtml(item.evidence_category || "n/a")}]\n\${escapeHtml(item.source_excerpt || "")}</div>
+      \`).join("")}
+    </div>
+    \${renderPromotedGroup("Promoted Rules", run.persisted?.rule_items || [])}
+    \${renderPromotedGroup("Promoted Memory", run.persisted?.memory_items || [])}
+    \${renderPromotedGroup("Promoted Skill Proposals", run.persisted?.skill_proposal_items || [])}
+    \${renderPromotedGroup("Promoted Knowledge", run.persisted?.knowledge_items || [])}
+  \`;
+}
+
+function renderPromotedGroup(label, items) {
+  return \`
+    <div class="item">
+      <div class="title">\${escapeHtml(label)} (\${escapeHtml(items.length)})</div>
+      \${items.length === 0 ? '<div class="empty">No items.</div>' : items.map((item) => renderPromotedItem(label, item)).join("")}
+    </div>
+  \`;
+}
+
+function renderPromotedItem(label, item) {
+  if (label.includes("Skill Proposals") || item.target_skill || item.proposed_text) {
+    return \`
+      <div class="snippet"><strong>\${escapeHtml(item.title || "untitled")}</strong>
+target: \${escapeHtml(item.target_skill || "unknown")}  change: \${escapeHtml(item.change_type || "update")}
+quality: \${escapeHtml(item.proposal_quality || "n/a")}  sources: \${escapeHtml(item.merged_source_count || 1)}
+level: \${escapeHtml(item.governance_level || "n/a")}
+path: \${escapeHtml(item.target_skill_path || "n/a")}
+section: \${escapeHtml(item.current_section || "n/a")}
+current: \${escapeHtml(item.current_text || "")}
+gap: \${escapeHtml(item.current_gap || "")}
+proposed: \${escapeHtml(item.proposed_text || "")}
+patch:
+\${escapeHtml(item.proposed_patch || "")}
+rationale: \${escapeHtml(item.rationale || "")}</div>
+    \`;
+  }
+  if (label.includes("Rules") || item.rule_domain || item.rule_scope) {
+    return \`
+    <div class="snippet"><strong>\${escapeHtml(item.title || "untitled")}</strong>
+domain: \${escapeHtml(item.rule_domain || "n/a")}  scope: \${escapeHtml(item.rule_scope || "n/a")}
+level: \${escapeHtml(item.governance_level || "n/a")}
+availability: \${escapeHtml(item.availability_scope || "n/a")}  promotion: \${escapeHtml(item.promotion_status || "n/a")}
+\${escapeHtml(item.statement || "")}</div>
+  \`;
+  }
+  return \`
+    <div class="snippet"><strong>\${escapeHtml(item.title || "untitled")}</strong>\n\${escapeHtml(item.content || item.statement || item.summary || "")}</div>
+  \`;
+}
+
+async function loadHostSessions() {
+  const response = await fetch("/api/host/codex/sessions?limit=20");
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(payload.error || payload.message || "Failed to load host sessions");
+  }
+  hostGovernanceState.sessions = payload.items || [];
+  renderHostGovernance();
+}
+
+async function inspectSelectedHostThread() {
+  if (!hostGovernanceState.selected?.thread_id) {
     return;
   }
-  const card = views.proposals.querySelector(\`[data-proposal-id="\${proposalId}"]\`);
-  if (card) {
-    card.querySelector(".actions").innerHTML = '<div class="notice">Applying ' + escapeHtml(action) + '...</div>';
-  }
-  const response = await fetch(\`/api/governance/change-proposals/\${proposalId}/actions\`, {
+  const response = await fetch("/api/host/codex/governance-preview", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      action,
-      fingerprint: "local-dev-v1",
-      payload: {
-        approved_by: "knowledge-ops-console",
-        rejected_by: action === "reject" ? "knowledge-ops-console" : undefined
-      }
-    })
+    body: JSON.stringify({ thread_id: hostGovernanceState.selected.thread_id, max_items: 12 })
   });
   const payload = await response.json();
   if (!response.ok) {
-    if (card) {
-      card.querySelector(".actions").innerHTML = '<div class="notice">Action failed: ' + escapeHtml(payload.error || payload.message || JSON.stringify(payload)) + '</div>';
-    }
+    throw new Error(payload.error || payload.message || "Failed to inspect host governance");
+  }
+  hostGovernanceState.preview = payload;
+  renderHostGovernanceDetail();
+  switchView("hostgovernanceDetail");
+}
+
+async function runSelectedHostGovernance() {
+  if (!hostGovernanceState.selected?.thread_id) {
     return;
   }
-  await loadProposals();
-  await load();
-}
-
-function renderDocuments(payload) {
-  const items = payload.items || [];
-  documentItems = items;
-  documentTotal = payload.total ?? items.length;
-  documentOffset = payload.offset ?? 0;
-  const shown = documentOffset + items.length;
-  views.documents.innerHTML = \`
-    <div class="panel">
-      <div class="toolbar">
-        <h2>Documents</h2>
-        <div class="count">Showing \${shown} / \${documentTotal} documents</div>
-      </div>
-      \${renderList(items, (item) => \`
-    <div class="item clickable" data-document-id="\${item.id}">
-      <div class="title">\${escapeHtml(item.title)}</div>
-      <div class="meta">
-        <span>sections: \${escapeHtml(item.section_count)}</span>
-        <span>domain: \${escapeHtml(item.memory_domain)}</span>
-        <span>source: \${escapeHtml(item.source_type)}</span>
-        <span class="badge \${item.markdown_content_hash ? "" : "muted"}">\${item.markdown_content_hash ? "full markdown" : "generated fact"}</span>
-      </div>
-      <div class="meta"><span>\${escapeHtml(item.source_uri)}</span></div>
-    </div>
-  \`)}
-      \${shown < documentTotal ? '<button class="ghost-button" id="load-more-documents">Load More</button>' : ""}
-    </div>
-  \`;
-  views.documents.querySelectorAll("[data-document-id]").forEach((node) => {
-    node.addEventListener("click", () => {
-      openDocumentDetail(node.dataset.documentId);
-    });
+  const response = await fetch("/api/host/codex/governance-run", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ thread_id: hostGovernanceState.selected.thread_id, max_items: 12 })
   });
-  document.getElementById("load-more-documents")?.addEventListener("click", async () => {
-    await loadDocuments(documentOffset + documentPageSize);
-  });
-}
-
-async function loadDocuments(offset = 0) {
-  const response = await fetch(\`/api/documents?limit=\${documentPageSize}&offset=\${offset}\`);
   const payload = await response.json();
   if (!response.ok) {
-    throw new Error(payload.error || payload.message || "Failed to load documents");
+    throw new Error(payload.error || payload.message || "Failed to run host governance");
   }
-  renderDocuments(payload);
-}
-
-function renderDocumentDetail(data) {
-  currentDocumentDetail = data;
-  const doc = data.document || {};
-  const hasMarkdown = Boolean(doc.markdown_content);
-  const markdownUrl = \`/api/documents/\${doc.id}/markdown\`;
-  document.querySelectorAll("[data-view]").forEach((b) => b.classList.remove("active"));
-  Object.values(views).forEach((view) => view.classList.remove("active"));
-  documentDetailView.classList.add("active");
-  documentDetailView.innerHTML = \`
-    <div class="actions">
-      <button class="ghost-button" id="detail-back">Back to Documents</button>
-      <button class="ghost-button" id="detail-open-source">Open Source Link</button>
-      \${hasMarkdown ? \`<a class="ghost-button" href="\${markdownUrl}" target="_blank" rel="noopener noreferrer">Open Full Markdown</a>\` : ""}
-    </div>
-    <div class="panel">
-      <h2>\${doc.title || "Document Detail"}</h2>
-      <div class="meta">
-        <span>domain: \${doc.memory_domain || "n/a"}</span>
-        <span>source: \${doc.source_type || "n/a"}</span>
-        <span>sections: \${doc.section_count || 0}</span>
-      </div>
-      <div class="snippet">\${doc.source_uri || ""}</div>
-    </div>
-    <div class="detail-grid">
-      <div>
-        <div class="panel">
-          <h2>Sections</h2>
-          \${renderList(data.sections || [], (item, index) => \`
-            <div class="item clickable inspectable" data-group="sections" data-index="\${index}">
-              <div class="title">\${item.title || item.section_key}</div>
-              <div class="meta"><span>ordinal: \${item.ordinal}</span><span>tokens: \${item.token_count ?? "n/a"}</span></div>
-              <div class="snippet">\${item.summary || item.content || ""}</div>
-            </div>
-          \`)}
-        </div>
-        <div class="panel">
-          <h2>Canonical Markdown</h2>
-          <div class="meta">
-            <span>converter: \${doc.markdown_converter || "n/a"}</span>
-            <span>hash: \${doc.markdown_content_hash || "n/a"}</span>
-          </div>
-          <div class="snippet">\${doc.markdown_content_ref || ""}</div>
-          \${hasMarkdown
-            ? \`<pre class="markdown-view">\${escapeHtml(doc.markdown_content)}</pre>\`
-            : \`<div class="notice">No canonical Markdown is stored for this document. This item was generated by memory/knowledge governance from a candidate fact, so it only has the governed fact text and graph edges. To inspect full source text, open a document marked <strong>full markdown</strong> in the Documents list.</div>\`
-          }
-        </div>
-      </div>
-      <div>
-        <div class="panel">
-          <h2>Facts</h2>
-          \${renderList(data.facts || [], (item, index) => \`
-            <div class="item clickable inspectable" data-group="facts" data-index="\${index}">
-              <div class="title">\${item.title}</div>
-              <div class="meta"><span>\${item.fact_kind}</span><span>importance: \${item.importance}</span></div>
-              <div class="snippet">\${item.statement || ""}</div>
-            </div>
-          \`)}
-        </div>
-        <div class="panel">
-          <h2>Relations</h2>
-          \${renderList(data.relations || [], (item, index) => \`
-            <div class="item clickable inspectable" data-group="relations" data-index="\${index}">
-              <div class="title">\${item.relation_type}</div>
-              <div class="meta"><span>\${item.from_object_type} -> \${item.to_object_type}</span><span>confidence: \${item.confidence_score}</span></div>
-              <div class="snippet">\${item.statement || ""}</div>
-            </div>
-          \`)}
-        </div>
-        <div class="panel">
-          <h2>Evidence</h2>
-          \${renderList(data.evidence || [], (item, index) => \`
-            <div class="item clickable inspectable" data-group="evidence" data-index="\${index}">
-              <div class="title">\${item.evidence_type}</div>
-              <div class="meta"><span>\${item.source_type}</span></div>
-              <div class="snippet">\${item.content_excerpt || item.source_uri || ""}</div>
-            </div>
-          \`)}
-        </div>
-        <div class="panel inspector" id="detail-inspector">
-          <h2>Detail</h2>
-          <div class="empty">Click a section, fact, relation, or evidence card to inspect it.</div>
-        </div>
-      </div>
-    </div>
-  \`;
-  document.getElementById("detail-back").addEventListener("click", () => {
-    document.querySelector('[data-view="documents"]').classList.add("active");
-    documentDetailView.classList.remove("active");
-    views.documents.classList.add("active");
-  });
-  document.getElementById("detail-open-source").addEventListener("click", () => {
-    if (doc.source_uri) {
-      window.open(doc.source_uri, "_blank", "noopener,noreferrer");
-    }
-  });
-  documentDetailView.querySelectorAll(".inspectable").forEach((node) => {
-    node.addEventListener("click", () => {
-      openInspector(node.dataset.group, Number(node.dataset.index));
-    });
-  });
-}
-
-function openInspector(group, index) {
-  if (!currentDocumentDetail) {
-    return;
-  }
-  const item = currentDocumentDetail[group]?.[index];
-  if (!item) {
-    return;
-  }
-  const title = item.title || item.relation_type || item.evidence_type || item.section_key || (group + " item");
-  const content =
-    item.content ||
-    item.statement ||
-    item.content_excerpt ||
-    item.source_uri ||
-    JSON.stringify(item, null, 2);
-  const inspector = document.getElementById("detail-inspector");
-  inspector.innerHTML = \`
-    <h2>Detail</h2>
-    <div class="item">
-      <div class="title">\${escapeHtml(title)}</div>
-      <div class="meta"><span>group: \${group}</span></div>
-      <div class="snippet">\${escapeHtml(content)}</div>
-    </div>
-  \`;
-}
-
-async function openDocumentDetail(documentId) {
-  const response = await fetch(\`/api/documents/\${documentId}\`);
-  const payload = await response.json();
-  if (!response.ok) {
-    throw new Error(payload.error || payload.message || "Failed to load document detail");
-  }
-  renderDocumentDetail(payload);
-}
-
-function renderRuns(items) {
-  views.runs.innerHTML = '<div class="panel"><h2>Governance Runs</h2>' + renderList(items, (item) => \`
-    <div class="item clickable" data-run-id="\${item.id}">
-      <div class="title">\${item.job_type}</div>
-      <div class="meta">
-        <span>trigger: \${item.trigger_type}</span>
-        <span>status: \${item.run_status}</span>
-        <span>created: \${new Date(item.created_at).toLocaleString()}</span>
-      </div>
-    </div>
-  \`) + '</div>';
-  views.runs.querySelectorAll("[data-run-id]").forEach((node) => {
-    node.addEventListener("click", () => {
-      openRunDetail(node.dataset.runId);
-    });
-  });
-}
-
-function renderSynthesis(items) {
-  views.synthesis.innerHTML = '<div class="panel"><h2>Synthesized Knowledge</h2>' + renderList(items, (item) => \`
-    <div class="item clickable" data-synthesis-id="\${escapeHtml(item.id)}">
-      <div class="title">\${escapeHtml(item.title)}</div>
-      <div class="meta">
-        <span>\${escapeHtml(item.knowledge_type)}</span>
-        <span>confidence: \${escapeHtml(item.confidence_score)}</span>
-        <span>risk: \${escapeHtml(item.risk_level)}</span>
-        <span>recall: \${escapeHtml(item.recall_state)}</span>
-      </div>
-      <div class="snippet">\${escapeHtml(item.content || "")}</div>
-      <div class="snippet">治理依据：\${escapeHtml(item.reasoning_summary || "")}</div>
-    </div>
-  \`) + '</div>';
-  views.synthesis.querySelectorAll("[data-synthesis-id]").forEach((node) => {
-    node.addEventListener("click", () => {
-      openSynthesisDetail(node.dataset.synthesisId);
-    });
-  });
-}
-
-async function openSynthesisDetail(synthesisId) {
-  const response = await fetch(\`/api/synthesized-knowledge/\${synthesisId}\`);
-  const payload = await response.json();
-  if (!response.ok) {
-    throw new Error(payload.error || payload.message || "Failed to load synthesized knowledge detail");
-  }
-  renderSynthesisDetail(payload);
-}
-
-function renderSynthesisDetail(data) {
-  if (!synthesisDetailView) {
-    synthesisDetailView = document.createElement("section");
-    synthesisDetailView.id = "synthesis-detail-view";
-    synthesisDetailView.className = "view";
-    document.querySelector(".main").appendChild(synthesisDetailView);
-  }
-  document.querySelectorAll("[data-view]").forEach((b) => b.classList.remove("active"));
-  Object.values(views).forEach((view) => view.classList.remove("active"));
-  documentDetailView.classList.remove("active");
-  if (runDetailView) runDetailView.classList.remove("active");
-  synthesisDetailView.classList.add("active");
-
-  const item = data.item || {};
-  const evidence = data.evidence_trace || [];
-  synthesisDetailView.innerHTML = \`
-    <div class="actions">
-      <button class="ghost-button" id="synthesis-detail-back">Back to Synthesized Knowledge</button>
-    </div>
-    <div class="detail-grid">
-      <div>
-        <div class="panel">
-          <h2>\${escapeHtml(item.title || "Synthesized Knowledge")}</h2>
-          <div class="meta">
-            <span>\${escapeHtml(item.knowledge_type || "n/a")}</span>
-            <span>confidence: \${escapeHtml(item.confidence_score || "n/a")}</span>
-            <span>risk: \${escapeHtml(item.risk_level || "n/a")}</span>
-            <span>recall: \${escapeHtml(item.recall_state || "n/a")}</span>
-          </div>
-          <pre class="markdown-view">\${escapeHtml(item.content || "")}</pre>
-        </div>
-        <div class="panel">
-          <h2>Governance Reasoning</h2>
-          <div class="snippet">\${escapeHtml(item.reasoning_summary || "")}</div>
-        </div>
-        <div class="panel">
-          <h2>Metadata</h2>
-          <pre class="markdown-view">\${escapeHtml(JSON.stringify(item.metadata || {}, null, 2))}</pre>
-        </div>
-      </div>
-      <div>
-        <div class="panel">
-          <h2>Evidence Trace</h2>
-          \${renderList(evidence, (ev) => \`
-            <div class="item">
-              <div class="title">\${escapeHtml(ev.fact_title || ev.evidence_id || "Evidence")}</div>
-              <div class="meta">
-                <span>support: \${escapeHtml(ev.support_role || "supports")}</span>
-                <span>fact: \${escapeHtml(ev.fact_id || "n/a")}</span>
-              </div>
-              <div class="snippet">\${escapeHtml(ev.fact_statement || ev.content_excerpt || "")}</div>
-              <div class="snippet">\${escapeHtml(ev.source_uri || "")}</div>
-            </div>
-          \`)}
-        </div>
-      </div>
-    </div>
-  \`;
-  document.getElementById("synthesis-detail-back").addEventListener("click", () => {
-    synthesisDetailView.classList.remove("active");
-    document.querySelector('[data-view="synthesis"]').classList.add("active");
-    views.synthesis.classList.add("active");
-  });
-}
-
-async function openRunDetail(runId) {
-  const response = await fetch(\`/api/governance-runs/\${runId}\`);
-  const payload = await response.json();
-  if (!response.ok) {
-    throw new Error(payload.error || payload.message || "Failed to load governance run detail");
-  }
-  renderRunDetail(payload);
-}
-
-function renderRunDetail(data) {
-  if (!runDetailView) {
-    runDetailView = document.createElement("section");
-    runDetailView.id = "run-detail-view";
-    runDetailView.className = "view";
-    document.querySelector(".main").appendChild(runDetailView);
-  }
-  document.querySelectorAll("[data-view]").forEach((b) => b.classList.remove("active"));
-  Object.values(views).forEach((view) => view.classList.remove("active"));
-  documentDetailView.classList.remove("active");
-  runDetailView.classList.add("active");
-  const job = data.job || {};
-  const resultPayload = job.result_payload || {};
-  runDetailView.innerHTML = \`
-    <div class="actions">
-      <button class="ghost-button" id="run-detail-back">Back to Governance Runs</button>
-    </div>
-    <div class="panel">
-      <h2>Governance Run Detail</h2>
-      <div class="meta">
-        <span>job: \${escapeHtml(job.id)}</span>
-        <span>status: \${escapeHtml(job.run_status)}</span>
-        <span>type: \${escapeHtml(job.job_type)}</span>
-        <span>trigger: \${escapeHtml(job.trigger_type)}</span>
-      </div>
-      <div class="snippet">updated_objects: \${escapeHtml(JSON.stringify(resultPayload.updated_objects || {}, null, 2))}</div>
-    </div>
-    <div class="columns">
-      <div class="panel">
-        <h2>Decisions</h2>
-        \${renderList(data.decisions || [], (item) => \`
-          <div class="item">
-            <div class="title">\${escapeHtml(item.governance_type)} / \${escapeHtml(item.decision)}</div>
-            <div class="meta"><span>\${escapeHtml(item.target_object_type)}</span><span>confidence: \${escapeHtml(item.confidence_score)}</span><span>risk: \${escapeHtml(item.risk_level)}</span></div>
-            <div class="snippet">\${escapeHtml(item.reason)}</div>
-          </div>
-        \`)}
-      </div>
-      <div class="panel">
-        <h2>Cleaning Logs</h2>
-        \${renderList(data.cleaning_logs || [], (item) => \`
-          <div class="item">
-            <div class="title">\${escapeHtml(item.document_title || item.document_id)}</div>
-            <div class="meta"><span>\${escapeHtml(item.cleaning_type)}</span><span>removed lines: \${escapeHtml(item.removed_line_count)}</span><span>kept lines: \${escapeHtml(item.kept_line_count)}</span></div>
-            <div class="snippet">\${escapeHtml(JSON.stringify(item.removed_sections_summary || [], null, 2))}</div>
-          </div>
-        \`)}
-      </div>
-      <div class="panel">
-        <h2>Recall Surface</h2>
-        \${renderList(data.recall_surface_states || [], (item) => \`
-          <div class="item">
-            <div class="title">\${escapeHtml(item.object_type)} / \${escapeHtml(item.recall_state)}</div>
-            <div class="meta"><span>assembly: \${escapeHtml(item.context_assembly_state)}</span></div>
-            <div class="snippet">\${escapeHtml(item.reason)}</div>
-          </div>
-        \`)}
-      </div>
-    </div>
-    <div class="panel">
-      <h2>Synthesized Knowledge In This Run</h2>
-      \${renderList(data.synthesized_knowledge || [], (item) => \`
-        <div class="item">
-          <div class="title">\${escapeHtml(item.title)}</div>
-          <div class="meta"><span>\${escapeHtml(item.knowledge_type)}</span><span>confidence: \${escapeHtml(item.confidence_score)}</span><span>risk: \${escapeHtml(item.risk_level)}</span></div>
-          <div class="snippet">\${escapeHtml(item.content)}</div>
-        </div>
-      \`)}
-    </div>
-  \`;
-  document.getElementById("run-detail-back").addEventListener("click", () => {
-    runDetailView.classList.remove("active");
-    document.querySelector('[data-view="runs"]').classList.add("active");
-    views.runs.classList.add("active");
-  });
-}
-
-function renderGraph(entities, facts, relations) {
-  views.graph.innerHTML = \`
-    <div class="columns">
-      <div class="panel">
-        <h2>Entities</h2>
-        \${renderList(entities, (item) => \`
-          <div class="item">
-            <div class="title">\${item.canonical_name}</div>
-            <div class="meta"><span>\${item.entity_type}</span><span>\${item.memory_domain}</span></div>
-          </div>
-        \`)}
-      </div>
-      <div class="panel">
-        <h2>Facts</h2>
-        \${renderList(facts, (item) => \`
-          <div class="item">
-            <div class="title">\${item.title}</div>
-            <div class="meta"><span>\${item.fact_kind}</span><span>importance: \${item.importance}</span></div>
-          </div>
-        \`)}
-      </div>
-      <div class="panel">
-        <h2>Relations</h2>
-        \${renderList(relations, (item) => \`
-          <div class="item">
-            <div class="title">\${item.relation_type}</div>
-            <div class="meta"><span>\${item.from_object_type} -> \${item.to_object_type}</span><span>confidence: \${item.confidence_score}</span></div>
-          </div>
-        \`)}
-      </div>
-    </div>
-  \`;
+  hostGovernanceState.run = payload;
+  renderHostGovernanceDetail();
+  switchView("hostgovernanceDetail");
 }
 
 async function load() {
-  const [config, overview, review, proposals, runs, synthesis, entities, facts, relations] = await Promise.all([
-    fetch("/api/config").then((r) => r.json()),
-    fetch("/api/overview").then((r) => r.json()),
-    fetch("/api/review-queue").then((r) => r.json()),
-    fetch("/api/governance/change-proposals?status=recorded").then((r) => r.json()),
-    fetch("/api/governance-runs").then((r) => r.json()),
-    fetch("/api/synthesized-knowledge").then((r) => r.json()),
-    fetch("/api/graph/entities").then((r) => r.json()),
-    fetch("/api/graph/facts").then((r) => r.json()),
-    fetch("/api/graph/relations").then((r) => r.json())
-  ]);
+  const [config, hostSessions] = await Promise.all([
+      fetch("/api/config").then((r) => r.json()),
+      fetch("/api/host/codex/sessions?limit=20").then((r) => r.json())
+    ]);
   configPill.textContent = \`\${config.tenant_id} / \${config.scope}\`;
-  renderOverview(overview);
-  await loadDocuments(0);
-  renderReview(review.items || []);
-  renderProposals(proposals.items || []);
-  renderRuns(runs.items || []);
-  renderSynthesis(synthesis.items || []);
-  renderGraph(entities.items || [], facts.items || [], relations.items || []);
+  hostGovernanceState.sessions = hostSessions.items || [];
+  renderHostGovernance();
 }
 
 load().catch((error) => {
-  views.overview.innerHTML = '<div class="panel"><h2>Load Error</h2><div class="empty">' + error.message + '</div></div>';
+  views.hostgovernance.innerHTML = '<div class="panel"><h2>Load Error</h2><div class="empty">' + error.message + '</div></div>';
 });
 `;
 }
@@ -1183,6 +812,58 @@ export function buildKnowledgeOpsConsoleApp(options: ConsoleAppOptions = {}) {
       tracePrefix,
       path: "/internal/knowledge/governance/runs",
       fetchImpl
+    });
+    reply.status(result.statusCode);
+    return result.ok ? result.body : { error: result.body };
+  });
+
+  app.get("/api/host/codex/sessions", async (request, reply) => {
+    const query = (request.query ?? {}) as { limit?: string | number | null };
+    const result = await proxyJson({
+      apiBaseUrl,
+      tenantId,
+      scope,
+      tracePrefix,
+      path: `/internal/host-capture/codex/sessions?limit=${encodeURIComponent(String(query.limit ?? 20))}`,
+      fetchImpl
+    });
+    reply.status(result.statusCode);
+    return result.ok ? result.body : { error: result.body };
+  });
+
+  app.post("/api/host/codex/governance-preview", async (request, reply) => {
+    const body = (request.body ?? {}) as { thread_id?: string | null; max_items?: number | null };
+    const result = await proxyJson({
+      apiBaseUrl,
+      tenantId,
+      scope,
+      tracePrefix,
+      path: "/internal/host-capture/codex/governance-batch-preview",
+      fetchImpl,
+      method: "POST",
+      payload: {
+        thread_id: body.thread_id ?? null,
+        max_items: body.max_items ?? 12
+      }
+    });
+    reply.status(result.statusCode);
+    return result.ok ? result.body : { error: result.body };
+  });
+
+  app.post("/api/host/codex/governance-run", async (request, reply) => {
+    const body = (request.body ?? {}) as { thread_id?: string | null; max_items?: number | null };
+    const result = await proxyJson({
+      apiBaseUrl,
+      tenantId,
+      scope,
+      tracePrefix,
+      path: "/internal/host-capture/codex/governance-run",
+      fetchImpl,
+      method: "POST",
+      payload: {
+        thread_id: body.thread_id ?? null,
+        max_items: body.max_items ?? 12
+      }
     });
     reply.status(result.statusCode);
     return result.ok ? result.body : { error: result.body };

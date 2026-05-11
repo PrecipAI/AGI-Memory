@@ -34,12 +34,21 @@ function inferRuleType(artifactTag: string): string {
 function inferEnforcementLevel(candidate: NormalizedCandidate): string {
   const explicit = candidate.candidate_payload.enforcement_level;
   if (typeof explicit === "string" && explicit.trim()) {
-    return explicit;
+    const normalized = explicit.trim().toLowerCase();
+    if (normalized === "must" || normalized === "must_not") {
+      return normalized;
+    }
+    if (normalized === "must_follow" || normalized === "hard_block") {
+      return "must";
+    }
+    if (normalized === "forbidden" || normalized === "block") {
+      return "must_not";
+    }
   }
-  if (candidate.artifact_tag === "rejection_preference" || candidate.artifact_tag === "policy_constraint") {
-    return "must_follow";
+  if (candidate.artifact_tag === "rejection_preference") {
+    return "must_not";
   }
-  return "should_follow";
+  return "must";
 }
 
 export class RuleBuilder {

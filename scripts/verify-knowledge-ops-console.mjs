@@ -44,6 +44,7 @@ try {
     url: "/app.js"
   });
   assert.equal(js.statusCode, 200, "console js failed");
+  assert.match(js.body, /Host Governance/i, "console js should include host governance view");
 
   const config = await consoleApp.inject({
     method: "GET",
@@ -93,7 +94,7 @@ try {
         title: "Console proposal smoke rule",
         content: "Console proposal smoke seed rule should become active before update.",
         applies_to: ["knowledge-ops-console"],
-        enforcement_level: "should_follow"
+        enforcement_level: "must"
       }
     }
   });
@@ -117,7 +118,7 @@ try {
         title: "Console proposal smoke rule updated",
         content: "Console proposal smoke update should create a human-review proposal.",
         applies_to: ["knowledge-ops-console"],
-        enforcement_level: "should_follow"
+        enforcement_level: "must"
       }
     }
   });
@@ -152,6 +153,13 @@ try {
   });
   assert.equal(runs.statusCode, 200, "console governance runs failed");
   assert.ok(Array.isArray(runs.json().items), "console governance runs items missing");
+
+  const hostSessions = await consoleApp.inject({
+    method: "GET",
+    url: "/api/host/codex/sessions?limit=5"
+  });
+  assert.equal(hostSessions.statusCode, 200, "console host sessions failed");
+  assert.ok(Array.isArray(hostSessions.json().items), "console host sessions items missing");
 
   const entities = await consoleApp.inject({
     method: "GET",

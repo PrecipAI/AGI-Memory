@@ -1,0 +1,21 @@
+{
+  "messages": [
+    {
+      "timestamp": "2026-05-06T03:00:00.000Z",
+      "role": "user",
+      "content": "opencode 接入时也必须走宿主模型治理，不能让 memory-service 强绑定某个模型。"
+    },
+    {
+      "timestamp": "2026-05-06T03:01:00.000Z",
+      "role": "assistant",
+      "content": "我会输出 host_model_result，再交给 memory-service 校验和落库。"
+    },
+    {
+      "timestamp": "2026-05-06T03:02:00.000Z",
+      "command": "opencode verify governance",
+      "cwd": "D:\\workspace\\projects\\SuperAgentSystem-main",
+      "exit_code": 0,
+      "stdout": "passed"
+    }
+  ]
+}

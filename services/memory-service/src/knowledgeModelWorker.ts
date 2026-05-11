@@ -312,12 +312,18 @@ export class KnowledgeModelWorker {
             output_policy: {
               derived_knowledge_is_primary_recall_object: true,
               facts_are_evidence_only: true,
+              external_general_knowledge_only: true,
+              local_adopted_decisions_are_not_knowledge: true,
+              route_local_adoption_or_project_specific_norms_to_memory_candidate: true,
+              route_internal_process_or_validation_material_to_audit_only: true,
               route_execution_experience_to_skill_candidate: true,
               route_user_project_environment_preferences_to_memory_candidate: true,
               keep_weak_or_uncertain_links_audit_only: true,
               allow_knowledge_islands_when_relation_is_weak: true,
               require_evidence_chain: true,
               reject_if_topic_mixed: true,
+              reject_if_sources_are_internal_or_mixed: true,
+              reject_if_output_uses_local_adoption_wording_for_external_knowledge: true,
               reject_if_only_tutorial_toc_citation_install_or_metadata: true,
               use_active_recall_only_for_high_confidence_low_risk_model_outputs: true
             },

@@ -1,0 +1,4 @@
+{"timestamp":"2026-05-06T02:00:00.000Z","role":"user","text":"OpenClaw 接入治理时默认读取宿主会话与执行记录，但是治理结果要由 OpenClaw 当前模型输出统一 JSON。"}
+{"timestamp":"2026-05-06T02:01:00.000Z","role":"assistant","text":"记录读取和模型治理结果会分离，memory-service 不绑定模型。"}
+{"timestamp":"2026-05-06T02:02:00.000Z","cmd":"openclaw run governance","working_directory":"D:\\workspace\\projects\\SuperAgentSystem-main","exitCode":0,"output":"ok"}
+{"timestamp":"2026-05-06T02:03:00.000Z","server":"memory-v3","tool":"memory_health","status":"success","result":"ok"}

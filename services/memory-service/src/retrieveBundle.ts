@@ -53,6 +53,17 @@ const TASK_LAYER_DEFAULTS: Record<string, string[]> = {
   ]
 };
 
+const TASK_PHASE_DEFAULTS: Record<string, string> = {
+  design: "design",
+  execution: "coding",
+  debugging: "coding",
+  governance: "governance",
+  review: "review",
+  ingestion: "integration",
+  integration: "integration",
+  answer: "planning"
+};
+
 type RetrievalLayer =
   | "conversation_summary"
   | "resident_snapshot"
@@ -69,6 +80,12 @@ function asStringArray(value: unknown): string[] {
 function resolveTaskType(value: unknown): string {
   const taskType = typeof value === "string" && value.length > 0 ? value : "answer";
   return TASK_LAYER_DEFAULTS[taskType] ? taskType : "answer";
+}
+
+function resolveTaskPhase(value: unknown, taskType: string): string {
+  const taskPhase = typeof value === "string" && value.length > 0 ? value : TASK_PHASE_DEFAULTS[taskType] ?? "planning";
+  const allowed = new Set(["planning", "design", "coding", "testing", "review", "governance", "reporting", "integration"]);
+  return allowed.has(taskPhase) ? taskPhase : TASK_PHASE_DEFAULTS[taskType] ?? "planning";
 }
 
 function resolveRequestedLayers(body: MemoryRetrieveRequest): Set<RetrievalLayer> {
@@ -91,6 +108,7 @@ function buildQueryHash(input: {
   host?: unknown;
   projectRef?: unknown;
   operationIntent?: unknown;
+  taskPhase?: unknown;
 }): string {
   return Buffer.from(JSON.stringify(input)).toString("base64url").slice(0, 64);
 }
@@ -153,6 +171,7 @@ function applyContextBudget<T extends Record<string, unknown>>(items: T[], token
 function buildContextPackage(input: {
   body: MemoryRetrieveRequest;
   taskType: string;
+  taskPhase: string;
   requestedLayers: Set<RetrievalLayer>;
   compressionMode: string;
   contextBudgetTokens: number;
@@ -192,7 +211,7 @@ function buildContextPackage(input: {
         layer: "runtime",
         priority: 2,
         placement: "front",
-        items: [{ query: input.body.query, task_type: input.taskType, runtime_summary: input.body.runtime_summary ?? null }]
+        items: [{ query: input.body.query, task_type: input.taskType, task_phase: input.taskPhase, runtime_summary: input.body.runtime_summary ?? null }]
       },
       {
         name: "Relevant Memory",
@@ -296,6 +315,7 @@ export async function buildRetrieveBundle(input: {
   assertRetrieveContract(input.body);
   const bodyRecord = input.body as Record<string, unknown>;
   const taskType = resolveTaskType(bodyRecord.task_type);
+  const taskPhase = resolveTaskPhase(bodyRecord.task_phase, taskType);
   const requestedLayers = resolveRequestedLayers(input.body);
   const currentLayerVersions = await queryMemoryLayerVersions({
     tenantId: input.tenantId,
@@ -304,6 +324,7 @@ export async function buildRetrieveBundle(input: {
   const queryHash = buildQueryHash({
     query: input.body.query,
     taskType,
+    taskPhase,
     fingerprintStatus: input.body.fingerprint_status,
     layers: [...requestedLayers].sort(),
     host: bodyRecord.host ?? null,
@@ -357,6 +378,7 @@ export async function buildRetrieveBundle(input: {
           scope: input.scope,
           query: input.body.query,
           taskType: typeof bodyRecord.task_type === "string" ? taskType : null,
+          taskPhase,
           limit: input.body.limit ?? 10
         })
       : Promise.resolve([]),
@@ -427,6 +449,7 @@ export async function buildRetrieveBundle(input: {
   const contextPackage = buildContextPackage({
     body: input.body,
     taskType,
+    taskPhase,
     requestedLayers,
     compressionMode,
     contextBudgetTokens,
@@ -445,6 +468,7 @@ export async function buildRetrieveBundle(input: {
     fingerprint: input.body.fingerprint ?? null,
     fingerprint_status: input.body.fingerprint_status,
     task_type: taskType,
+    task_phase: taskPhase,
     host: bodyRecord.host ?? null,
     project_ref: bodyRecord.project_ref ?? null,
     operation_intent: bodyRecord.operation_intent ?? null,
@@ -492,6 +516,7 @@ export async function buildRetrieveBundle(input: {
     layer_versions: currentLayerVersions,
     assembly_context: {
       task_type: taskType,
+      task_phase: taskPhase,
       query_hash: queryHash,
       requested_layers: [...requestedLayers],
       task_bindings: taskBindings,

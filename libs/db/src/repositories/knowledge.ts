@@ -1007,12 +1007,38 @@ export async function createSynthesizedKnowledge(input: {
     await pool.query(
       `
       UPDATE kp_synthesized_knowledge
-      SET metadata = metadata || $2::jsonb,
-          governance_job_id = COALESCE($3, governance_job_id),
+      SET title = $2,
+          content = $3,
+          normalized_content = $4,
+          source_object_ids = $5::jsonb,
+          evidence_ids = $6::jsonb,
+          reasoning_summary = $7,
+          confidence_score = $8,
+          risk_level = $9::risk_level,
+          lifecycle_state = $10,
+          review_state = $11,
+          recall_state = $12,
+          metadata = metadata || $13::jsonb,
+          governance_job_id = COALESCE($14, governance_job_id),
           updated_at = now()
       WHERE id = $1
       `,
-      [existing.rows[0].id, toJson(input.metadata), input.governanceJobId ?? null]
+      [
+        existing.rows[0].id,
+        input.title,
+        input.content,
+        input.normalizedContent,
+        toJsonArray(input.sourceObjectIds ?? []),
+        toJsonArray(input.evidenceIds ?? []),
+        input.reasoningSummary,
+        input.confidenceScore ?? 0.82,
+        input.riskLevel ?? "low",
+        input.lifecycleState ?? "curated",
+        input.reviewState ?? "model_accepted",
+        input.recallState ?? "active",
+        toJson(input.metadata),
+        input.governanceJobId ?? null
+      ]
     );
     return { id: existing.rows[0].id, existed: true };
   }

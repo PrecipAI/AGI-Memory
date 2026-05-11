@@ -1,8 +1,8 @@
 {
   "client": "generic",
   "memory_service_mode": "fake",
-  "memory_service_url": "http://127.0.0.1:56160",
-  "mcp_server_command": "D:\\nodejs\\node.exe D:\\workspace\\projects\\SuperAgentSystem-main\\services\\memory-mcp-server\\dist\\services\\memory-mcp-server\\src\\cli.js start --config C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-client-smoke-jbJ0VL\\.memory-mcp\\config.json",
+  "memory_service_url": "http://127.0.0.1:55066",
+  "mcp_server_command": "D:\\nodejs\\node.exe D:\\workspace\\projects\\SuperAgentSystem-main\\services\\memory-mcp-server\\dist\\services\\memory-mcp-server\\src\\cli.js start --config C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\memory-mcp-client-smoke-Ru4bsw\\.memory-mcp\\config.json",
   "tools_listed": true,
   "resources_listed": true,
   "memory_health": true,
