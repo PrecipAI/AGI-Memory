@@ -1,11 +1,13 @@
 {
-  "tool_count": 6,
+  "tool_count": 8,
   "resource_count": 2,
   "tool_names": [
     "memory_health",
     "memory_ingest_candidate",
+    "memory_preview_host_governance",
     "memory_query_layer",
     "memory_retrieve_context",
+    "memory_run_full_governance",
     "memory_run_governance",
     "rule_gate_check"
   ],
@@ -13,5 +15,5 @@
     "memory://defaults",
     "memory://health"
   ],
-  "adapter_request_count": 6
+  "adapter_request_count": 10
 }

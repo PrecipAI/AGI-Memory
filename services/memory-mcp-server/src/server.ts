@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod/v4";
 import type { MemoryMcpConfig } from "./config.js";
@@ -6,6 +7,21 @@ import { MemoryEngineAdapter } from "./engineAdapter.js";
 const looseObjectSchema = z.object({}).catchall(z.unknown());
 const fingerprintStatusSchema = z.enum(["matched", "matched_or_na", "mismatch", "unknown"]);
 const queryKindSchema = z.enum(["resident", "factual", "procedural", "summary", "candidate"]);
+const codexHostGovernanceInputSchema = z.object({
+  codex_home: z.string().optional(),
+  thread_id: z.string().optional(),
+  max_items: z.number().int().min(1).max(500).optional(),
+  task_request_id: z.string().uuid().optional(),
+  fingerprint: z.string().optional(),
+  governance_mode: z.enum(["rules_fallback", "host_model"]).optional(),
+  host_model_result: looseObjectSchema.optional()
+});
+const codexFullGovernanceInputSchema = codexHostGovernanceInputSchema.extend({
+  refresh_memory: z.boolean().optional(),
+  rebuild_resident: z.boolean().optional(),
+  sync_index: z.boolean().optional(),
+  run_lifecycle: z.boolean().optional()
+});
 
 function jsonText(value: unknown): string {
   return JSON.stringify(value, null, 2);
@@ -16,6 +32,20 @@ function requireToolArgument<T>(value: T | undefined, fieldName: string, errorCo
     throw new Error(`${errorCode}: missing required field '${fieldName}'`);
   }
   return value;
+}
+
+function readTaskRequestId(value: unknown, fallback?: string): string | undefined {
+  if (typeof fallback === "string" && fallback.length > 0) {
+    return fallback;
+  }
+  if (typeof value !== "object" || value === null) {
+    return undefined;
+  }
+
+  const record = value as Record<string, unknown>;
+  return typeof record.task_request_id === "string" && record.task_request_id.length > 0
+    ? record.task_request_id
+    : undefined;
 }
 
 export function buildMemoryMcpServer(config: MemoryMcpConfig) {
@@ -183,6 +213,91 @@ export function buildMemoryMcpServer(config: MemoryMcpConfig) {
     },
     async (args) => {
       const result = await adapter.runGovernance(args);
+      return {
+        content: [
+          {
+            type: "text",
+            text: jsonText(result)
+          }
+        ],
+        structuredContent: result
+      };
+    }
+  );
+
+  server.registerTool(
+    "memory_preview_host_governance",
+    {
+      title: "Memory Preview Host Governance",
+      description:
+        "Preview the full Codex host-capture governance path before writing candidates. Use before a full governance run when the user asks what evidence will be governed.",
+      inputSchema: codexHostGovernanceInputSchema
+    },
+    async (args) => {
+      const result = await adapter.previewCodexHostGovernance(args);
+      return {
+        content: [
+          {
+            type: "text",
+            text: jsonText(result)
+          }
+        ],
+        structuredContent: result
+      };
+    }
+  );
+
+  server.registerTool(
+    "memory_run_full_governance",
+    {
+      title: "Memory Full Governance Run",
+      description:
+        "Run the complete Codex host-capture governance path, then optionally refresh Memory MCP summary, resident snapshot, index, and lifecycle. Prefer this when the user asks to run governance.",
+      inputSchema: codexFullGovernanceInputSchema
+    },
+    async (args) => {
+      const { refresh_memory: refreshMemory, rebuild_resident, sync_index, run_lifecycle, ...hostArgs } = args;
+      const taskRequestId = args.task_request_id ?? randomUUID();
+      const ruleGate = await adapter.checkRuleGate({
+        task_request_id: taskRequestId,
+        task_type: "governance",
+        host: "codex",
+        operation: "run_full_host_governance",
+        evidence: {
+          thread_id: args.thread_id ?? null,
+          max_items: args.max_items ?? null,
+          codex_home_provided: typeof args.codex_home === "string" && args.codex_home.length > 0,
+          refresh_memory: refreshMemory !== false,
+          rebuild_resident: rebuild_resident ?? null,
+          sync_index: sync_index ?? null,
+          run_lifecycle: run_lifecycle ?? null
+        }
+      });
+      if (ruleGate.decision === "ask_user" || ruleGate.decision === "block") {
+        throw new Error(`RULE_GATE_${ruleGate.decision.toUpperCase()}: full host governance was not executed`);
+      }
+
+      const hostGovernance = await adapter.runCodexHostGovernance({
+        ...hostArgs,
+        task_request_id: taskRequestId
+      });
+      const refreshTaskRequestId = readTaskRequestId(hostGovernance, taskRequestId);
+      const memoryRefresh =
+        refreshMemory === false || refreshTaskRequestId === undefined
+          ? null
+          : await adapter.runGovernance({
+              task_request_id: refreshTaskRequestId,
+              fingerprint: args.fingerprint,
+              rebuild_resident,
+              sync_index,
+              run_lifecycle
+            });
+      const result = {
+        rule_gate: ruleGate,
+        host_governance: hostGovernance,
+        memory_refresh: memoryRefresh
+      };
+
       return {
         content: [
           {

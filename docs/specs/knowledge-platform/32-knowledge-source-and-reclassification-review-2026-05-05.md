@@ -159,7 +159,7 @@
    - internal process / validation material 默认去 `audit_only`
 
 3. `apply-codex-governance-synthesis.mjs`
-   旧版 legacy synthesis 脚本默认禁用，防止再次灌入老式混层知识
+   旧版 legacy synthesis 脚本已删除，防止再次灌入老式混层知识；后续只走 runtime knowledge / host-capture governance 链路。
 
 ---
 
@@ -179,5 +179,5 @@
 当前状态已经比之前稳得多：
 
 - 不再把内部会话和验证结果写成 `knowledge`
-- 不再允许 legacy 手工脚本继续污染
+- 不再保留 legacy 手工脚本，避免继续污染
 - 新合成链路开始按“外部知识 vs 本地采纳”做边界控制

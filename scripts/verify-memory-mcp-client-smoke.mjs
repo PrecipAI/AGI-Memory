@@ -57,8 +57,10 @@ try {
     assert.deepEqual(toolNames, [
       "memory_health",
       "memory_ingest_candidate",
+      "memory_preview_host_governance",
       "memory_query_layer",
       "memory_retrieve_context",
+      "memory_run_full_governance",
       "memory_run_governance",
       "rule_gate_check"
     ]);
@@ -132,6 +134,28 @@ try {
     });
     assert.equal(gateResult.isError, undefined);
 
+    if (memoryServiceMode === "fake") {
+      const hostGovernancePreview = await client.callTool({
+        name: "memory_preview_host_governance",
+        arguments: {
+          thread_id: "thread-stub",
+          max_items: 10
+        }
+      });
+      assert.equal(hostGovernancePreview.isError, undefined);
+
+      const fullGovernanceResult = await client.callTool({
+        name: "memory_run_full_governance",
+        arguments: {
+          thread_id: "thread-stub",
+          max_items: 10,
+          task_request_id: "00000000-0000-4000-8000-000000000112",
+          refresh_memory: true
+        }
+      });
+      assert.equal(fullGovernanceResult.isError, undefined);
+    }
+
     const report = {
       client: "generic",
       memory_service_mode: memoryServiceMode,
@@ -146,6 +170,8 @@ try {
       retrieve_context_matched: true,
       retrieve_context_missing_fingerprint_status_rejected: true,
       retrieve_context_missing_fingerprint_rejected: true,
+      memory_preview_host_governance: memoryServiceMode === "fake",
+      memory_run_full_governance: memoryServiceMode === "fake",
       rule_gate_check: true,
       status: "PASS"
     };

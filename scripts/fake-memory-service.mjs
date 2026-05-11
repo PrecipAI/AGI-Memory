@@ -116,6 +116,60 @@ export async function startFakeMemoryService(options = {}) {
       });
     }
 
+    if (request.method === "POST" && url.pathname === "/internal/host-capture/codex/governance-batch-preview") {
+      return sendJson(response, 200, {
+        host: "codex",
+        thread_id: body.thread_id ?? "thread-stub",
+        ingestion_readiness: "ready",
+        raw_inputs: {
+          user_messages: 2,
+          assistant_commentary_messages: 1,
+          command_events: 1,
+          tool_calls: 3,
+          mcp_tool_calls: 1
+        },
+        extraction_preview: {
+          memory_candidates: 1,
+          knowledge_candidates: 0,
+          skill_candidates: 1,
+          rule_candidates: 0,
+          governance_evidence_events: 2
+        }
+      });
+    }
+
+    if (request.method === "POST" && url.pathname === "/internal/host-capture/codex/governance-run") {
+      return sendJson(response, 200, {
+        host: "codex",
+        thread_id: body.thread_id ?? "thread-stub",
+        task_request_id: body.task_request_id ?? randomUUID(),
+        persisted: {
+          memory: 1,
+          knowledge: 0,
+          skill: 1,
+          rule: 0,
+          governance_evidence: 2
+        },
+        acceptance_report: {
+          raw_inputs: {
+            user_messages: 2,
+            assistant_commentary_messages: 1,
+            command_events: 1,
+            tool_calls: 3,
+            mcp_tool_calls: 1
+          },
+          candidates: {
+            memory: 1,
+            knowledge: 0,
+            skill: 1,
+            rule: 0,
+            governance_evidence: 2
+          }
+        },
+        warnings: []
+      });
+    }
+
     if (request.method === "POST" && url.pathname === "/internal/memory/governance/run") {
       return sendJson(response, 200, {
         governance_status: "completed",

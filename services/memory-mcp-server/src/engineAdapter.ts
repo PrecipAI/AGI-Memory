@@ -17,8 +17,22 @@ type EngineCallPath =
   | "/internal/memory/query"
   | "/internal/memory/candidates"
   | "/internal/memory/retrieve"
+  | "/internal/host-capture/codex/governance-batch-preview"
+  | "/internal/host-capture/codex/governance-run"
   | "/internal/memory/governance/run"
   | "/internal/rules/gate/check";
+
+export type CodexHostGovernanceRequest = {
+  codex_home?: string | null;
+  thread_id?: string | null;
+  max_items?: number | null;
+  task_request_id?: string | null;
+  fingerprint?: string | null;
+  governance_mode?: "rules_fallback" | "host_model" | null;
+  host_model_result?: Record<string, unknown> | null;
+};
+
+export type CodexHostGovernanceResponse = Record<string, unknown>;
 
 export class MemoryEngineAdapter {
   constructor(private readonly config: MemoryMcpConfig) {}
@@ -54,6 +68,14 @@ export class MemoryEngineAdapter {
     return this.call("/internal/memory/candidates", body);
   }
 
+  async previewCodexHostGovernance(body: CodexHostGovernanceRequest): Promise<CodexHostGovernanceResponse> {
+    return this.call("/internal/host-capture/codex/governance-batch-preview", body);
+  }
+
+  async runCodexHostGovernance(body: CodexHostGovernanceRequest): Promise<CodexHostGovernanceResponse> {
+    return this.call("/internal/host-capture/codex/governance-run", body);
+  }
+
   async runGovernance(body: GovernanceRunRequest): Promise<GovernanceRunResponse> {
     return this.call("/internal/memory/governance/run", body);
   }
@@ -68,7 +90,13 @@ export class MemoryEngineAdapter {
 
   private async call<TResponse>(
     url: EngineCallPath,
-    payload: MemoryQueryRequest | MemoryRetrieveRequest | MemoryCandidateRequest | GovernanceRunRequest | RuleGateCheckRequest
+    payload:
+      | MemoryQueryRequest
+      | MemoryRetrieveRequest
+      | MemoryCandidateRequest
+      | GovernanceRunRequest
+      | RuleGateCheckRequest
+      | CodexHostGovernanceRequest
   ): Promise<TResponse> {
     const defaults = this.getDefaults();
     const traceId = `trace-memory-mcp-${Date.now()}-${randomUUID()}`;

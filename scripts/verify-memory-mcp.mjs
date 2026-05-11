@@ -51,8 +51,10 @@ try {
     assert.deepEqual(toolNames, [
       "memory_health",
       "memory_ingest_candidate",
+      "memory_preview_host_governance",
       "memory_query_layer",
       "memory_retrieve_context",
+      "memory_run_full_governance",
       "memory_run_governance",
       "rule_gate_check"
     ]);
@@ -123,6 +125,34 @@ try {
     });
     assert.equal(candidateResult.isError, undefined);
 
+    const hostGovernancePreview = await client.callTool({
+      name: "memory_preview_host_governance",
+      arguments: {
+        thread_id: "thread-stub",
+        max_items: 10
+      }
+    });
+    assert.equal(hostGovernancePreview.isError, undefined);
+
+    const fullGovernanceResult = await client.callTool({
+      name: "memory_run_full_governance",
+      arguments: {
+        thread_id: "thread-stub",
+        max_items: 10,
+        task_request_id: "00000000-0000-4000-8000-000000000003",
+        fingerprint: "fp-valid",
+        refresh_memory: true,
+        rebuild_resident: true,
+        sync_index: true,
+        run_lifecycle: true
+      }
+    });
+    assert.equal(fullGovernanceResult.isError, undefined);
+    const fullGovernance = JSON.parse(fullGovernanceResult.content[0].text);
+    assert.equal(fullGovernance.rule_gate.decision, "allow");
+    assert.equal(fullGovernance.host_governance.host, "codex");
+    assert.equal(fullGovernance.memory_refresh.governance_status, "completed");
+
     const governanceResult = await client.callTool({
       name: "memory_run_governance",
       arguments: {
@@ -154,6 +184,14 @@ try {
     assert.equal(fakeService.requests.some((request) => request.path === "/internal/memory/query"), true);
     assert.equal(fakeService.requests.some((request) => request.path === "/internal/memory/retrieve"), true);
     assert.equal(fakeService.requests.some((request) => request.path === "/internal/memory/candidates"), true);
+    assert.equal(
+      fakeService.requests.some((request) => request.path === "/internal/host-capture/codex/governance-batch-preview"),
+      true
+    );
+    assert.equal(
+      fakeService.requests.some((request) => request.path === "/internal/host-capture/codex/governance-run"),
+      true
+    );
     assert.equal(fakeService.requests.some((request) => request.path === "/internal/memory/governance/run"), true);
     assert.equal(fakeService.requests.some((request) => request.path === "/internal/rules/gate/check"), true);
 

@@ -214,7 +214,7 @@
   本轮治理修正成功的依据：
   - 历史脏 `knowledge` 已退役
   - host governance 不再从内部会话误产 `knowledge`
-  - legacy synthesis 脚本默认禁用
+  - legacy synthesis 脚本已删除
 - 为什么是治理证据：
   - 这是治理成效说明
   - 不应直接长期暴露成 `knowledge`

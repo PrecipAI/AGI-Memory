@@ -12,6 +12,8 @@
   "retrieve_context_matched": true,
   "retrieve_context_missing_fingerprint_status_rejected": true,
   "retrieve_context_missing_fingerprint_rejected": true,
+  "memory_preview_host_governance": true,
+  "memory_run_full_governance": true,
   "rule_gate_check": true,
   "status": "PASS"
 }
