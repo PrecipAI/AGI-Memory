@@ -19,8 +19,18 @@ const postMortemSchema = z.object({
   ),
   future_trigger: z.string().describe(
     "Under what 2-3 specific future scenarios should this memory be recalled? Describe as trigger conditions, not as a narrative."
+  ),
+  layer_classifications: z.array(z.object({
+    layer: z.enum(["knowledge", "rule", "memory", "skill"]).describe(
+      "The target storage layer for this extracted asset."
+    ),
+    payload: looseObjectSchema.describe(
+      "Layer-specific structured payload. MUST conform to the Four-Layer Extraction Protocol: knowledge={entity, attribute, value}, rule={condition, mandate, is_user_preference}, memory={symptom, root_cause, fix_action}, skill={name, usage, executable, parameters_list}."
+    )
+  })).optional().describe(
+    "Classified extraction items. Each MUST follow its target layer's mandatory format. Reject any item that fails the layer quality gate."
   )
-}).describe("Post-Mortem Protocol: Before filling this out, switch perspective — you are writing a survival guide for a future agent facing the same problem. Prioritize CAUSAL reasoning over execution steps. Strip all ephemeral variables.");
+}).describe("Post-Mortem Protocol: Before filling this out, switch perspective — you are writing a survival guide for a future agent facing the same problem. Prioritize CAUSAL reasoning over execution steps. Strip all ephemeral variables. Classify each asset into knowledge/rule/memory/skill and apply the layer-specific format.");
 
 const codexHostGovernanceInputSchema = z.object({
   codex_home: z.string().optional(),
@@ -114,6 +124,85 @@ When analyzing execution traces, separate the CAUSAL CHAIN (why we did something
 - The root cause of failures, not just the error messages
 
 Dense command sequences (ls, cat, npm run, git status) are execution noise. Extract only the causal turning points.
+
+## MANDATORY: Four-Layer Extraction Quality Protocol (四层抽取质量协议)
+
+You are AGI-Memory's Chief Knowledge Architect. Your goal is NOT to write a diary — it is to build industrial-grade assets for future agents. Before persisting ANY candidate, run this quality gate for its target layer:
+
+### Layer 1 — Knowledge (知识层: Objective Facts & Environment Profile)
+
+Purpose: Stateless, absolutely objective workspace properties. No actions, no temporal states.
+
+MANDATORY FORMAT: Entity-Attribute key-value pairs.
+\`\`\`json
+{"entity": "Local Backend API", "attribute": "port", "value": "8080"}
+{"entity": "Dev Environment", "attribute": "os", "value": "Windows 11"}
+\`\`\`
+
+FORBIDDEN: Any action verbs ("we installed...", "we changed...") or temporal states ("currently failing...").
+
+BAD: "To fix the CORS issue, we changed the backend API port from 3000 to 8080 and restarted the service."
+GOOD: {"entity": "Backend API", "attribute": "port", "value": "8080"}
+
+### Layer 2 — Rule (规则层: Mandatory Constraints & Behavioral Norms)
+
+Purpose: Enforceable, black-and-white conditional mandates. These are LAW for the agent.
+
+MANDATORY FORMAT: IF [trigger condition] THEN [mandatory requirement OR absolute prohibition].
+- User preference rules triggered by complaints/frustration MUST be prefixed with [UP-Override] and receive highest recall priority (L1).
+
+FORBIDDEN: Fuzzy qualifiers like "try to", "preferably", "it would be nice". Rules must be binary.
+
+BAD: "The user seems to dislike Docker deployments, so maybe avoid Docker going forward."
+GOOD: "[UP-Override] IF executing project deployment THEN absolutely DO NOT build Docker images; MUST use PM2 to start directly on the host."
+
+### Layer 3 — Memory (记忆层: Episodic Experience & Pitfall Survival Guides)
+
+Purpose: Validated crisis-resolution chains for future recall when the same problem recurs.
+
+MANDATORY FORMAT: Three-part causal chain:
+\`\`\`json
+{
+  "symptom": "The observable error or failure symptom",
+  "root_cause": "The underlying reason (NOT the error message)",
+  "fix_action": "The decisive command or code change that resolves it",
+  "future_trigger": "2-3 conditions under which this memory should be recalled"
+}
+\`\`\`
+
+FORBIDDEN: Raw error logs, unverified guesses, or "trial and error" sequences where the lucky fix had no causal explanation.
+
+BAD: "Python script errored, tried pip install cv2 which failed, then checked StackOverflow, apt-get install libgl1 worked."
+GOOD: {"symptom": "libgl.so.1: cannot open shared object file when running OpenCV", "root_cause": "Missing system-level graphics library dependency, not a Python package issue", "fix_action": "sudo apt-get update && sudo apt-get install -y libgl1", "future_trigger": "Headless Linux + OpenCV + libgl.so error"}
+
+### Layer 4 — Skill (技能层: Reusable Tools & Parameterized Scripts)
+
+Purpose: Generalized, parameterized tools — not one-off commands. Future agents should be able to invoke them directly.
+
+MANDATORY FORMAT: Parameterized function with explicit parameter list.
+\`\`\`json
+{
+  "name": "Descriptive skill name",
+  "usage": "When to invoke this skill",
+  "executable": "The command/script with {placeholder} variables",
+  "parameters_list": ["param1: description", "param2: description"]
+}
+\`\`\`
+
+FORBIDDEN: Any hardcoded ephemeral values — test usernames, temp file paths, specific timestamps, one-time tokens.
+
+BAD: {"executable": "python scripts/clean_db.py --user=test_user_7788 --table=orders"}
+GOOD: {"name": "Targeted test data cleanup", "usage": "When cleaning dirty test data", "executable": "python scripts/clean_db.py --user={target_user_id} --table={target_table_name}", "parameters_list": ["target_user_id: the user ID to clean", "target_table_name: the table to operate on"]}
+
+### The Quality Gate
+
+Before persisting, ask for EACH candidate:
+- Knowledge: Is it absolutely objective with all action verbs removed?
+- Rule: Is it binary (IF/THEN), strong enough to be the sole behavioral guide?
+- Memory: Does it have a clear trigger that lets a future agent pull this solution the instant it sees the same error?
+- Skill: Have ALL hardcoded ephemeral values been replaced with parameter placeholders?
+
+If ANY answer is NO, either re-refine the candidate or discard it.
 
 ## Retrieval
 
@@ -224,7 +313,7 @@ Procedural memory retrieval requires fingerprint_status=matched. Use matched_or_
     "memory_ingest_candidate",
     {
       title: "Memory Ingest Candidate",
-      description: "Persist a structured memory candidate. CRITICAL — Before ingesting, apply the Post-Mortem Protocol:\n1. Variable Stripping: Replace ALL ephemeral values (PIDs, temp paths, timestamps, one-time tokens) with logical placeholders.\n2. Causality Over Execution: Emphasize WHY decisions were made, not WHAT commands were run. Dense command sequences are noise.\n3. Structure the candidate_payload around: Pitfall Warnings, Breakthrough Actions, Environment Constraints.\nOnly generalizable knowledge that survives variable stripping should be persisted. Route deterministically into memory or skill.",
+      description: "Persist a structured memory candidate. CRITICAL — Apply the Four-Layer Extraction Quality Protocol before ingesting:\n- KNOWLEDGE: Must be Entity-Attribute key-value pairs. No action verbs or temporal states.\n- RULE: Must be IF/THEN mandates. Prefix user preferences with [UP-Override]. No fuzzy language.\n- MEMORY: Must be {symptom, root_cause, fix_action, future_trigger}. No raw logs.\n- SKILL: Must be parameterized with {placeholders}. Include parameters_list. No hardcoded ephemeral values.\nOnly candidates that pass their layer's quality gate should be persisted.",
       inputSchema: z.object({
         task_request_id: z.string().uuid(),
         task_step_id: z.string().uuid(),
@@ -287,7 +376,7 @@ Procedural memory retrieval requires fingerprint_status=matched. Use matched_or_
     {
       title: "Memory Preview Host Governance",
       description:
-        "Preview what evidence will be governed before committing. Use this to inspect the execution trace and apply the Post-Mortem Protocol: identify pitfall warnings, breakthrough actions, and environment constraints. Strip ephemeral variables before passing to full governance.",
+        "Preview what evidence will be governed before committing. Use this to inspect the execution trace, apply the Post-Mortem Protocol, and pre-classify each candidate into its target layer (knowledge/rule/memory/skill). Verify each candidate passes its layer's quality gate before running full governance.",
       inputSchema: codexHostGovernanceInputSchema
     },
     async (args) => {
@@ -309,7 +398,7 @@ Procedural memory retrieval requires fingerprint_status=matched. Use matched_or_
     {
       title: "Memory Full Governance Run",
       description:
-        "Run the complete host-capture governance path, then optionally refresh memory layers. BEFORE calling: switch to Post-Mortem perspective — extract causality, strip ephemeral variables, and populate the post_mortem field with (task_context, core_resolution, future_trigger). This is NOT a log dump; it is a survival guide for a future agent.",
+        "Run the complete host-capture governance path, then optionally refresh memory layers. BEFORE calling: apply the Post-Mortem Protocol and the Four-Layer Extraction Quality Protocol. Populate post_mortem with (task_context, core_resolution, future_trigger) and layer_classifications with structured payloads conforming to each layer's mandatory format (knowledge=entity-attribute, rule=IF/THEN, memory=symptom→root_cause→fix, skill=parameterized tool). This is NOT a log dump.",
       inputSchema: codexFullGovernanceInputSchema
     },
     async (args) => {

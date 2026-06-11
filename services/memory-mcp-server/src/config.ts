@@ -338,6 +338,16 @@ Extract only:
 
 **Causality Over Execution**: Separate WHY from WHAT. Dense command sequences are noise.
 
+### Four-Layer Extraction Quality Protocol
+
+Before persisting, classify each candidate and enforce its layer format:
+- **Knowledge**: Entity-Attribute pairs only. No action verbs or temporal states.
+- **Rule**: IF/THEN mandates. \`[UP-Override]\` prefix for user preferences. No fuzzy language.
+- **Memory**: \`{symptom, root_cause, fix_action, future_trigger}\`. No raw logs.
+- **Skill**: Parameterized with \`{placeholders}\` and \`parameters_list\`. No hardcoded ephemeral values.
+
+Reject any candidate that fails its layer's quality gate.
+
 ## When to run governance
 
 - Only when explicitly requested or at a planned checkpoint.
@@ -424,6 +434,33 @@ After applying the Post-Mortem Protocol, call \`memory_ingest_candidate\` with t
 
 Do not ingest transient logs, unverified guesses, credentials, or private noise.
 
+### Four-Layer Extraction Quality Protocol (四层抽取质量协议)
+
+Before persisting ANY candidate, classify it into one of four layers and enforce its mandatory format:
+
+**Knowledge (知识层)** — Objective, stateless workspace properties.
+- Format: Entity-Attribute key-value pairs: \`{"entity": "...", "attribute": "...", "value": "..."}\`
+- FORBIDDEN: Action verbs ("we installed..."), temporal states ("currently failing...").
+- Quality gate: Is it absolutely objective with all action verbs removed?
+
+**Rule (规则层)** — Enforceable, binary behavioral mandates.
+- Format: IF [trigger condition] THEN [mandatory requirement OR absolute prohibition].
+- User preferences from complaints/frustration MUST be prefixed with \`[UP-Override]\` for highest recall priority (L1).
+- FORBIDDEN: Fuzzy qualifiers ("try to", "preferably", "it would be nice").
+- Quality gate: Is it binary and strong enough to be the sole behavioral guide?
+
+**Memory (记忆层)** — Validated crisis-resolution chains.
+- Format: \`{"symptom": "...", "root_cause": "...", "fix_action": "...", "future_trigger": "..."}\`
+- FORBIDDEN: Raw error logs, unverified guesses, trial-and-error sequences.
+- Quality gate: Does it have a clear trigger for future recall?
+
+**Skill (技能层)** — Generalized, parameterized tools.
+- Format: \`{"name": "...", "usage": "...", "executable": "...with {placeholders}", "parameters_list": ["param: description"]}\`
+- FORBIDDEN: Any hardcoded ephemeral values (test usernames, temp paths, specific timestamps).
+- Quality gate: Have ALL hardcoded values been replaced with parameter placeholders?
+
+If ANY candidate fails its layer's quality gate, either re-refine it or discard it.
+
 ## Governance
 
 Run \`memory_run_full_governance\` or \`memory_run_governance\` only when explicitly requested or at planned checkpoints. When running governance, always populate the \`post_mortem\` field with the structured analysis (task_context, failed_attempts_analysis, core_resolution, future_trigger). Governance can be model/token expensive and should not run after every small task.
@@ -462,6 +499,16 @@ When writing memories or running governance, you are NOT recording a log — you
 **Causality Over Execution**: Separate WHY from WHAT. Dense command sequences are noise. Extract only causal turning points.
 
 When calling \`memory_run_full_governance\`, always populate the \`post_mortem\` field with structured analysis.
+
+### Four-Layer Extraction Quality Protocol
+
+Classify each candidate before persisting:
+- **Knowledge**: Entity-Attribute pairs only. No action verbs or temporal states.
+- **Rule**: IF/THEN mandates. Prefix user preferences with \`[UP-Override]\`. No fuzzy language.
+- **Memory**: \`{symptom, root_cause, fix_action, future_trigger}\`. No raw logs.
+- **Skill**: Parameterized with \`{placeholders}\` and \`parameters_list\`. No hardcoded ephemeral values.
+
+Reject any candidate that fails its layer's quality gate.
 `;
 }
 
@@ -481,6 +528,16 @@ Only run \`memory_run_governance\` when asked by the user or at a deliberate che
 ### Post-Mortem Protocol
 
 When writing memories or running governance, write a survival guide for a future agent — NOT a log. Extract: Pitfall Warnings (why an approach failed), Breakthrough Actions (the decisive fix), and Environment Constraints (preconditions). Strip all ephemeral variables (PIDs, temp paths, timestamps) into logical placeholders. Prioritize causality over execution steps. Populate the \`post_mortem\` field in governance calls with structured analysis.
+
+### Four-Layer Extraction Quality Protocol
+
+Classify each candidate before persisting:
+- **Knowledge**: Entity-Attribute pairs only. No action verbs.
+- **Rule**: IF/THEN mandates. \`[UP-Override]\` for user preferences. No fuzzy language.
+- **Memory**: \`{symptom, root_cause, fix_action, future_trigger}\`. No raw logs.
+- **Skill**: Parameterized with \`{placeholders}\` and \`parameters_list\`. No hardcoded values.
+
+Reject any candidate that fails its layer's quality gate.
 `;
 }
 
@@ -501,6 +558,14 @@ When \`memory-v3\` is enabled under OpenCode \`mcp\`, use it as an optional long
 ## Post-Mortem Protocol
 
 When writing memories or running governance, write a survival guide for a future agent — NOT a log. Extract: Pitfall Warnings (why an approach failed), Breakthrough Actions (the decisive fix), and Environment Constraints (preconditions). Strip all ephemeral variables into logical placeholders. Prioritize causality over execution steps. Populate the \`post_mortem\` field in governance calls.
+
+### Four-Layer Extraction Quality Protocol
+
+- **Knowledge**: Entity-Attribute pairs. No action verbs.
+- **Rule**: IF/THEN mandates. \`[UP-Override]\` for user preferences.
+- **Memory**: \`{symptom, root_cause, fix_action, future_trigger}\`.
+- **Skill**: Parameterized with \`{placeholders}\` and \`parameters_list\`.
+Reject candidates that fail their layer's quality gate.
 `;
 }
 
@@ -531,6 +596,14 @@ Run governance only on explicit user request or checkpoint.
 ## Post-Mortem Protocol
 
 When writing memories or running governance, write a survival guide for a future agent — NOT a log. Extract: Pitfall Warnings (why an approach failed), Breakthrough Actions (the decisive fix), and Environment Constraints (preconditions). Strip all ephemeral variables into logical placeholders. Prioritize causality over execution steps. Populate the \`post_mortem\` field in governance calls.
+
+### Four-Layer Extraction Quality Protocol
+
+- **Knowledge**: Entity-Attribute pairs. No action verbs.
+- **Rule**: IF/THEN mandates. \`[UP-Override]\` for user preferences.
+- **Memory**: \`{symptom, root_cause, fix_action, future_trigger}\`.
+- **Skill**: Parameterized with \`{placeholders}\` and \`parameters_list\`.
+Reject candidates that fail their layer's quality gate.
 `;
 }
 
