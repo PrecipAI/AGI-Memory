@@ -325,10 +325,24 @@ Use the Memory MCP server as an optional long-term memory and knowledge layer.
 - After discovering a stable environment constraint.
 - After producing a reusable workflow or skill candidate.
 
+### Post-Mortem Protocol (Before Ingesting or Running Governance)
+
+You are NOT recording a log. You are writing a survival guide for a future agent.
+
+Extract only:
+1. **Pitfall Warnings**: What dead-end was hit and WHY it failed.
+2. **Breakthrough Actions**: The decisive command/code change that solved it.
+3. **Environment Constraints**: Preconditions for this solution to hold.
+
+**Variable Stripping**: Replace PIDs, temp paths, timestamps, and one-time tokens with logical placeholders. Only generalizable knowledge survives.
+
+**Causality Over Execution**: Separate WHY from WHAT. Dense command sequences are noise.
+
 ## When to run governance
 
 - Only when explicitly requested or at a planned checkpoint.
-- Do not run governance automatically for every small task; it can be model/token expensive.
+- Always populate the \`post_mortem\` field with structured analysis.
+- Do not run governance automatically for every small task.
 
 ## Contract
 
@@ -379,22 +393,40 @@ High-risk operations include:
 
 If \`rule_gate_check\` returns \`block\`, do not continue the operation. If it returns \`ask_user\`, ask the user before continuing. If it returns \`warn\`, continue only after reporting the warning.
 
-## Task completion
+## Task completion — Post-Mortem Protocol
 
-After verified outcomes, call \`memory_ingest_candidate\` for:
+After verified outcomes, before calling \`memory_ingest_candidate\` or triggering governance, switch perspective:
 
-- stable design decisions;
-- verified fixes;
-- recurring failure modes;
-- reusable workflows;
-- environment constraints;
-- positive or rejection preferences that affect future work.
+**You are writing a survival guide for a future agent facing this exact problem.**
+
+Do NOT record a play-by-play log. Instead, extract only three categories:
+
+1. **Pitfall Warnings (防坑警示)**: What dead-end was hit? Why did that approach fail? Focus on the REASON, not the error output. Omit failures with no reusable insight.
+2. **Breakthrough Actions (制胜关键)**: What was the single decisive action or code change that broke the deadlock? Include the critical command or code snippet.
+3. **Environment Constraints (环境约束)**: Under what preconditions does this solution hold? (OS, dependency versions, database state, etc.)
+
+### Variable Stripping Rule (变量剥离)
+
+Before packaging any memory payload, abstract away ALL ephemeral values:
+- Replace specific PIDs, port numbers, temp file paths, timestamps, and one-time tokens with logical placeholders.
+- BAD: "Kill process 14532 on port 8080"
+- GOOD: "Kill the process occupying the required port"
+- BAD: "pip install requests==2.31.0 fixed ModuleNotFoundError in /tmp/script_v3.py"
+- GOOD: "When a Python script fails with ModuleNotFoundError for a known library, pin the dependency version to avoid pulling incompatible latest"
+
+Only memories that survive variable stripping have generalizable recall value.
+
+### Causality Over Execution (因果优先于执行)
+
+When analyzing execution traces, separate the CAUSAL CHAIN (why we did something) from the EXECUTION CHAIN (what commands we ran). Dense command sequences (ls, cat, npm run, git status) are execution noise. Extract only the causal turning points.
+
+After applying the Post-Mortem Protocol, call \`memory_ingest_candidate\` with the distilled, abstracted, causally-structured payload.
 
 Do not ingest transient logs, unverified guesses, credentials, or private noise.
 
 ## Governance
 
-Run \`memory_run_governance\` only when explicitly requested or at planned checkpoints. Governance can be model/token expensive and should not run after every small task.
+Run \`memory_run_full_governance\` or \`memory_run_governance\` only when explicitly requested or at planned checkpoints. When running governance, always populate the \`post_mortem\` field with the structured analysis (task_context, failed_attempts_analysis, core_resolution, future_trigger). Governance can be model/token expensive and should not run after every small task.
 
 ## Fallback
 
@@ -416,6 +448,20 @@ If the \`memory-v3\` MCP server is available, use it as the long-term memory and
 - After verified design decisions, fixes, reusable workflows, environment constraints, or important preferences, call \`memory_ingest_candidate\`.
 - Run \`memory_run_governance\` only when the user explicitly asks or at a planned checkpoint.
 - If Memory MCP is unavailable, continue in degraded mode and mention that memory was unavailable.
+
+### Post-Mortem Protocol (Governance & Ingestion)
+
+When writing memories or running governance, you are NOT recording a log — you are writing a survival guide for a future agent. Extract only:
+
+1. **Pitfall Warnings**: What dead-end was hit and WHY it failed (not the error output).
+2. **Breakthrough Actions**: The decisive command/code change that solved it.
+3. **Environment Constraints**: Preconditions required for this solution to hold.
+
+**Variable Stripping**: Replace all PIDs, temp paths, timestamps, and one-time tokens with logical placeholders before persisting. Only generalizable knowledge survives.
+
+**Causality Over Execution**: Separate WHY from WHAT. Dense command sequences are noise. Extract only causal turning points.
+
+When calling \`memory_run_full_governance\`, always populate the \`post_mortem\` field with structured analysis.
 `;
 }
 
@@ -431,6 +477,10 @@ Treat returned \`Execution Rules\` and \`rule_checklist\` as mandatory. Before w
 At the end of verified work, write reusable decisions, fixes, constraints, and preferences with \`memory_ingest_candidate\`. Do not write transient reasoning, secrets, or unverified guesses.
 
 Only run \`memory_run_governance\` when asked by the user or at a deliberate checkpoint. If memory is unavailable, continue and report degraded mode.
+
+### Post-Mortem Protocol
+
+When writing memories or running governance, write a survival guide for a future agent — NOT a log. Extract: Pitfall Warnings (why an approach failed), Breakthrough Actions (the decisive fix), and Environment Constraints (preconditions). Strip all ephemeral variables (PIDs, temp paths, timestamps) into logical placeholders. Prioritize causality over execution steps. Populate the \`post_mortem\` field in governance calls with structured analysis.
 `;
 }
 
@@ -447,6 +497,10 @@ When \`memory-v3\` is enabled under OpenCode \`mcp\`, use it as an optional long
 - Write back verified reusable outcomes with \`memory_ingest_candidate\`.
 - Do not run governance automatically; run it only on explicit request/checkpoint.
 - Continue without blocking if memory is unavailable.
+
+## Post-Mortem Protocol
+
+When writing memories or running governance, write a survival guide for a future agent — NOT a log. Extract: Pitfall Warnings (why an approach failed), Breakthrough Actions (the decisive fix), and Environment Constraints (preconditions). Strip all ephemeral variables into logical placeholders. Prioritize causality over execution steps. Populate the \`post_mortem\` field in governance calls.
 `;
 }
 
@@ -473,6 +527,10 @@ Write memory after verified reusable outcomes:
 - stable user/project preferences.
 
 Run governance only on explicit user request or checkpoint.
+
+## Post-Mortem Protocol
+
+When writing memories or running governance, write a survival guide for a future agent — NOT a log. Extract: Pitfall Warnings (why an approach failed), Breakthrough Actions (the decisive fix), and Environment Constraints (preconditions). Strip all ephemeral variables into logical placeholders. Prioritize causality over execution steps. Populate the \`post_mortem\` field in governance calls.
 `;
 }
 

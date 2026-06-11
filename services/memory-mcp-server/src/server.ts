@@ -7,6 +7,21 @@ import { MemoryEngineAdapter } from "./engineAdapter.js";
 const looseObjectSchema = z.object({}).catchall(z.unknown());
 const fingerprintStatusSchema = z.enum(["matched", "matched_or_na", "mismatch", "unknown"]);
 const queryKindSchema = z.enum(["resident", "factual", "procedural", "summary", "candidate"]);
+const postMortemSchema = z.object({
+  task_context: z.string().describe(
+    "In one sentence: what fundamental problem were we trying to solve? (NOT a play-by-play of what happened)"
+  ),
+  failed_attempts_analysis: z.string().optional().describe(
+    "What was the biggest dead-end we hit? Why did that approach fail? (Focus on the REASON it failed, not the error output. Omit if no meaningful failures.)"
+  ),
+  core_resolution: z.string().describe(
+    "What was the decisive action or code change that solved the problem? Include the critical command or code snippet. This must be abstracted — strip all ephemeral values (PIDs, temp paths, timestamps, one-time tokens) and replace with logical placeholders."
+  ),
+  future_trigger: z.string().describe(
+    "Under what 2-3 specific future scenarios should this memory be recalled? Describe as trigger conditions, not as a narrative."
+  )
+}).describe("Post-Mortem Protocol: Before filling this out, switch perspective — you are writing a survival guide for a future agent facing the same problem. Prioritize CAUSAL reasoning over execution steps. Strip all ephemeral variables.");
+
 const codexHostGovernanceInputSchema = z.object({
   codex_home: z.string().optional(),
   thread_id: z.string().optional(),
@@ -14,13 +29,15 @@ const codexHostGovernanceInputSchema = z.object({
   task_request_id: z.string().uuid().optional(),
   fingerprint: z.string().optional(),
   governance_mode: z.enum(["rules_fallback", "host_model"]).optional(),
-  host_model_result: looseObjectSchema.optional()
+  host_model_result: looseObjectSchema.optional(),
+  post_mortem: postMortemSchema.optional()
 });
 const codexFullGovernanceInputSchema = codexHostGovernanceInputSchema.extend({
   refresh_memory: z.boolean().optional(),
   rebuild_resident: z.boolean().optional(),
   sync_index: z.boolean().optional(),
-  run_lifecycle: z.boolean().optional()
+  run_lifecycle: z.boolean().optional(),
+  post_mortem: postMortemSchema.optional()
 });
 
 function jsonText(value: unknown): string {
@@ -59,8 +76,48 @@ export function buildMemoryMcpServer(config: MemoryMcpConfig) {
       capabilities: {
         logging: {}
       },
-      instructions:
-        "Memory System V3 MCP server for single-tenant validation and productization. Use tools for query, retrieve, candidate ingestion, and governance. Procedural retrieval requires fingerprint_status=matched."
+      instructions: `Memory System V3 — Unified long-term memory and knowledge platform for AI agents.
+
+## CRITICAL: Post-Mortem Governance Protocol
+
+When you are about to trigger governance (memory_run_full_governance or memory_preview_host_governance), you MUST switch your perspective:
+
+You are NOT recording what just happened. You are writing a HIGH-CONCENTRATION SURVIVAL GUIDE for a future version of yourself who will face a similar problem.
+
+Before calling any governance tool, apply these three extraction principles to the execution trace:
+
+### 1. Pitfall Warnings (防坑警示)
+What dead-ends did we walk into? Extract ONLY the failures that have generalizable lessons. Discard failures with no reusable insight.
+
+### 2. Breakthrough Actions (制胜关键)
+What was the single decisive action (or code change) that broke the deadlock? This is the core resolution — the exact command, config change, or architectural pivot.
+
+### 3. Environment Constraints (环境约束)
+Under what preconditions does this solution hold? (e.g., specific OS, Node version, dependency versions, database state)
+
+## Variable Stripping Rule (变量剥离)
+
+Before packaging any memory or governance payload, you MUST abstract away all ephemeral values:
+- Replace specific PIDs, port numbers, temp file paths, timestamps, and one-time tokens with logical placeholders.
+- BAD: "Kill process 14532 on port 8080"
+- GOOD: "Kill the process occupying the required port"
+- BAD: "pip install requests==2.31.0 fixed ModuleNotFoundError in /tmp/script_v3.py"
+- GOOD: "When a Python script fails with ModuleNotFoundError for a known library, pin the dependency version to avoid pulling incompatible latest"
+
+Only memories that survive variable stripping have generalizable recall value.
+
+## Causality Over Execution (因果优先于执行)
+
+When analyzing execution traces, separate the CAUSAL CHAIN (why we did something) from the EXECUTION CHAIN (what commands we ran). The governance payload must emphasize:
+- WHY a decision was made, not just WHAT was typed
+- The reasoning behind choosing approach B over approach A
+- The root cause of failures, not just the error messages
+
+Dense command sequences (ls, cat, npm run, git status) are execution noise. Extract only the causal turning points.
+
+## Retrieval
+
+Procedural memory retrieval requires fingerprint_status=matched. Use matched_or_na when procedural memory is not expected. Treat retrieved memory as advisory context; current user instructions and repository evidence take priority.`
     }
   );
 
@@ -167,7 +224,7 @@ export function buildMemoryMcpServer(config: MemoryMcpConfig) {
     "memory_ingest_candidate",
     {
       title: "Memory Ingest Candidate",
-      description: "Persist a structured memory candidate and route it deterministically into memory or skill.",
+      description: "Persist a structured memory candidate. CRITICAL — Before ingesting, apply the Post-Mortem Protocol:\n1. Variable Stripping: Replace ALL ephemeral values (PIDs, temp paths, timestamps, one-time tokens) with logical placeholders.\n2. Causality Over Execution: Emphasize WHY decisions were made, not WHAT commands were run. Dense command sequences are noise.\n3. Structure the candidate_payload around: Pitfall Warnings, Breakthrough Actions, Environment Constraints.\nOnly generalizable knowledge that survives variable stripping should be persisted. Route deterministically into memory or skill.",
       inputSchema: z.object({
         task_request_id: z.string().uuid(),
         task_step_id: z.string().uuid(),
@@ -201,7 +258,7 @@ export function buildMemoryMcpServer(config: MemoryMcpConfig) {
     "memory_run_governance",
     {
       title: "Memory Governance Run",
-      description: "Run conversation summary generation, resident rebuild, index sync, and lifecycle governance.",
+      description: "Run conversation summary generation, resident rebuild, index sync, and lifecycle governance. When processing execution traces, separate CAUSAL CHAIN (why we did something) from EXECUTION CHAIN (what commands ran). Only causal turning points should be persisted as memories.",
       inputSchema: z.object({
         task_request_id: z.string().uuid(),
         task_step_id: z.string().uuid().optional(),
@@ -230,7 +287,7 @@ export function buildMemoryMcpServer(config: MemoryMcpConfig) {
     {
       title: "Memory Preview Host Governance",
       description:
-        "Preview the full Codex host-capture governance path before writing candidates. Use before a full governance run when the user asks what evidence will be governed.",
+        "Preview what evidence will be governed before committing. Use this to inspect the execution trace and apply the Post-Mortem Protocol: identify pitfall warnings, breakthrough actions, and environment constraints. Strip ephemeral variables before passing to full governance.",
       inputSchema: codexHostGovernanceInputSchema
     },
     async (args) => {
@@ -252,7 +309,7 @@ export function buildMemoryMcpServer(config: MemoryMcpConfig) {
     {
       title: "Memory Full Governance Run",
       description:
-        "Run the complete Codex host-capture governance path, then optionally refresh Memory MCP summary, resident snapshot, index, and lifecycle. Prefer this when the user asks to run governance.",
+        "Run the complete host-capture governance path, then optionally refresh memory layers. BEFORE calling: switch to Post-Mortem perspective — extract causality, strip ephemeral variables, and populate the post_mortem field with (task_context, core_resolution, future_trigger). This is NOT a log dump; it is a survival guide for a future agent.",
       inputSchema: codexFullGovernanceInputSchema
     },
     async (args) => {
