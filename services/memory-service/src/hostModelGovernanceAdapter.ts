@@ -475,8 +475,12 @@ function looksLikeProcedure(value: unknown): boolean {
     "修复",
     "playbook",
     "runbook",
-    "step",
-    "workflow"
+    /\bstep\s*\d/i,
+    /\bstep\s+by\s+step/i,
+    /\bworkflow\b/i,
   ];
-  return procedureSignals.some((signal) => normalized.includes(signal));
+  return procedureSignals.some((signal) => {
+    if (signal instanceof RegExp) return signal.test(normalized);
+    return normalized.includes(signal);
+  });
 }
