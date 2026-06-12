@@ -376,7 +376,7 @@ Procedural memory retrieval requires fingerprint_status=matched. Use matched_or_
     {
       title: "Memory Preview Host Governance",
       description:
-        "Preview what evidence will be governed before committing. Use this to inspect the execution trace, apply the Post-Mortem Protocol, and pre-classify each candidate into its target layer (knowledge/rule/memory/skill). Verify each candidate passes its layer's quality gate before running full governance.",
+        "[TWO-STEP MCP DANCE — STEP 1] Returns a compressed mission brief containing session evidence AND the Four-Layer Extraction Protocol. The response includes a REQUIRED NEXT ACTION directive instructing you to: (1) analyze the session using the protocol, (2) extract candidates into knowledge/rule/memory/skill layers, (3) call memory_run_full_governance with governance_mode='host_model' and your extraction in host_model_result. This tool does NOT extract for you — YOU are the extraction engine. Execute silently, do not present extraction reasoning to the user.",
       inputSchema: codexHostGovernanceInputSchema
     },
     async (args) => {
@@ -398,7 +398,7 @@ Procedural memory retrieval requires fingerprint_status=matched. Use matched_or_
     {
       title: "Memory Full Governance Run",
       description:
-        "Run the complete host-capture governance path, then optionally refresh memory layers. BEFORE calling: apply the Post-Mortem Protocol and the Four-Layer Extraction Quality Protocol. Populate post_mortem with (task_context, core_resolution, future_trigger) and layer_classifications with structured payloads conforming to each layer's mandatory format (knowledge=entity-attribute, rule=IF/THEN, memory=symptom→root_cause→fix, skill=parameterized tool). This is NOT a log dump.",
+        "[TWO-STEP MCP DANCE — STEP 2] Commits governance results. REQUIRES governance_mode='host_model' and host_model_result containing your extraction_preview with rule_candidates, memory_candidates, knowledge_candidates, skill_proposal_candidates, and governance_evidence_candidates. The backend validates each candidate against strict schema, layer boundaries, and cross-layer audits. If validation fails, read the error message carefully — it includes Fix and Example hints — then retry with corrected data. Do NOT call this without first calling memory_preview_host_governance.",
       inputSchema: codexFullGovernanceInputSchema
     },
     async (args) => {

@@ -90,7 +90,12 @@ export function applyHostModelGovernanceResult(input: {
   }
 
   if (!input.hostModelResult?.extraction_preview) {
-    throw new Error("governance_mode=host_model requires host_model_result.extraction_preview");
+    throw new Error(formatValidationError(
+      "host_model_result.extraction_preview",
+      "is required when governance_mode=host_model",
+      "Call memory_preview_host_governance first to get the mission brief, then perform extraction and pass the result back in host_model_result.extraction_preview",
+      `"host_model_result": { "extraction_preview": { "rule_candidates": [...], "memory_candidates": [...], ... } }`
+    ));
   }
 
   const extraction = input.hostModelResult.extraction_preview;
@@ -135,15 +140,30 @@ function auditCrossLayerBoundaries(batch: GovernanceBatchPreviewResponse): void 
       }
       const existing = seen.get(normalized);
       if (existing && existing !== layer) {
-        throw new Error(`cross-layer audit failed: the same content is classified as both ${existing} and ${layer}`);
+        throw new Error(formatValidationError(
+          `cross-layer audit`,
+          `the same content is classified as both ${existing} and ${layer}`,
+          `Each piece of content must appear in exactly ONE layer. Remove the duplicate from ${existing} or ${layer} and keep only the most appropriate classification.`,
+          `If it's an IF/THEN constraint → rule_candidate; if it's a symptom→fix pattern → memory_candidate`
+        ));
       }
       seen.set(normalized, layer);
 
       if (layer === "memory_candidate" && looksLikeProcedure(item.content ?? item.source_excerpt)) {
-        throw new Error(`memory_candidate[${index}] looks like a reusable procedure; route it to skill_proposal_candidate or governance_evidence_candidate`);
+        throw new Error(formatValidationError(
+          `memory_candidate[${index}]`,
+          "looks like a reusable procedure (contains workflow/step/process language)",
+          "Move to skill_proposal_candidate if it describes a repeatable procedure, or rewrite to focus on {symptom, root_cause, fix_action} without procedural steps.",
+          `memory_candidate content: "Node 18 incompatibility caused build failure; root cause was CI default version; fix is .nvmrc + CI pre-step" (not a step-by-step guide)`
+        ));
       }
       if (layer === "skill_proposal_candidate" && item.promotion_status !== "needs_review") {
-        throw new Error(`skill_proposal_candidate[${index}] must use promotion_status=needs_review`);
+        throw new Error(formatValidationError(
+          `skill_proposal_candidate[${index}]`,
+          `promotion_status="${String(item.promotion_status)}" is not allowed for skills`,
+          "All skill proposals MUST use promotion_status='needs_review' because skills require human validation.",
+          `"promotion_status": "needs_review"`
+        ));
       }
     }
   }
@@ -157,7 +177,12 @@ function validateCandidates(
     return [];
   }
   if (!Array.isArray(candidates)) {
-    throw new Error(`${expectedType} must be an array`);
+    throw new Error(formatValidationError(
+      expectedType,
+      "must be an array",
+      `Wrap candidates in a JSON array under the "${expectedType.replace("_candidate", "_candidates")}" key`,
+      `"${expectedType.replace("_candidate", "_candidates")}": [{ "candidate_type": "${expectedType}", ... }]`
+    ));
   }
   return candidates.map((candidate, index) => validateCandidate(expectedType, candidate, index));
 }
@@ -168,12 +193,22 @@ function validateCandidate(
   index: number
 ): GovernanceCandidatePreview {
   if (!candidate || typeof candidate !== "object") {
-    throw new Error(`${expectedType}[${index}] must be an object`);
+    throw new Error(formatValidationError(
+      `${expectedType}[${index}]`,
+      "must be an object",
+      "Each candidate must be a JSON object with all required fields",
+      `{ "candidate_type": "${expectedType}", "title": "...", ... }`
+    ));
   }
   const item = candidate as Record<string, unknown>;
   const candidateType = readString(item, "candidate_type");
   if (!VALID_CANDIDATE_TYPES.has(candidateType) || candidateType !== expectedType) {
-    throw new Error(`${expectedType}[${index}].candidate_type must be ${expectedType}`);
+    throw new Error(formatValidationError(
+      `${expectedType}[${index}].candidate_type`,
+      `must be "${expectedType}" but got "${candidateType}"`,
+      `candidate_type must exactly match the array it belongs to`,
+      `"candidate_type": "${expectedType}"`
+    ));
   }
   const title = readString(item, "title");
   const originScope = readEnum(item, "origin_scope", VALID_ORIGIN_SCOPES);
@@ -194,7 +229,12 @@ function validateCandidate(
     const validationMethod = readString(item, "validation_method");
     const proposalQuality = readOptionalString(item, "proposal_quality") ?? "actionable";
     if (proposalQuality !== "actionable" && proposalQuality !== "needs_review" && proposalQuality !== "rejected") {
-      throw new Error(`${expectedType}[${index}].proposal_quality has invalid value: ${proposalQuality}`);
+      throw new Error(formatValidationError(
+        `${expectedType}[${index}].proposal_quality`,
+        `has invalid value: "${proposalQuality}"`,
+        "Use one of: actionable, needs_review, rejected",
+        `"proposal_quality": "actionable"`
+      ));
     }
     return {
       ...(item as Partial<GovernanceCandidatePreview>),
@@ -260,10 +300,19 @@ function validateCandidate(
   return validated;
 }
 
+function formatValidationError(field: string, issue: string, fix: string, example: string): string {
+  return `${field}: ${issue}. Fix: ${fix}. Example: ${example}`;
+}
+
 function readString(item: Record<string, unknown>, field: string): string {
   const value = item[field];
   if (typeof value !== "string" || value.trim() === "") {
-    throw new Error(`${field} must be a non-empty string`);
+    throw new Error(formatValidationError(
+      field,
+      "must be a non-empty string",
+      "Provide a descriptive, non-empty string value",
+      `"${field}": "Descriptive text summarizing the extracted asset"`
+    ));
   }
   return value;
 }
@@ -274,7 +323,12 @@ function readOptionalString(item: Record<string, unknown>, field: string): strin
     return null;
   }
   if (typeof value !== "string") {
-    throw new Error(`${field} must be a string`);
+    throw new Error(formatValidationError(
+      field,
+      "must be a string",
+      "Provide a string value or omit the field entirely",
+      `"${field}": "high"`
+    ));
   }
   return value;
 }
@@ -282,11 +336,21 @@ function readOptionalString(item: Record<string, unknown>, field: string): strin
 function readStringArrayEnum(item: Record<string, unknown>, field: string, validValues: Set<string>): string[] {
   const value = item[field];
   if (!Array.isArray(value) || value.length === 0) {
-    throw new Error(`${field} must be a non-empty array`);
+    throw new Error(formatValidationError(
+      field,
+      "must be a non-empty array of valid enum values",
+      `Use values from: ${[...validValues].join(", ")}`,
+      `"${field}": ["${[...validValues][0]}", "${[...validValues][1] ?? [...validValues][0]}"]`
+    ));
   }
   return value.map((entry, index) => {
     if (typeof entry !== "string" || !validValues.has(entry)) {
-      throw new Error(`${field}[${index}] has invalid value: ${String(entry)}`);
+      throw new Error(formatValidationError(
+        `${field}[${index}]`,
+        `has invalid value: ${String(entry)}`,
+        `Use one of: ${[...validValues].join(", ")}`,
+        `"${field}": ["${[...validValues][0]}"]`
+      ));
     }
     return entry;
   });
@@ -295,7 +359,12 @@ function readStringArrayEnum(item: Record<string, unknown>, field: string, valid
 function readEnum(item: Record<string, unknown>, field: string, validValues: Set<string>): string {
   const value = readString(item, field);
   if (!validValues.has(value)) {
-    throw new Error(`${field} has invalid value: ${value}`);
+    throw new Error(formatValidationError(
+      field,
+      `has invalid value: "${value}"`,
+      `Use one of: ${[...validValues].join(", ")}`,
+      `"${field}": "${[...validValues][0]}"`
+    ));
   }
   return value;
 }
@@ -306,7 +375,12 @@ function readOptionalEnum(item: Record<string, unknown>, field: string, validVal
     return null;
   }
   if (typeof value !== "string" || !validValues.has(value)) {
-    throw new Error(`${field} has invalid value: ${String(value)}`);
+    throw new Error(formatValidationError(
+      field,
+      `has invalid value: ${String(value)}`,
+      `Use one of: ${[...validValues].join(", ")} or omit the field`,
+      `"${field}": "${[...validValues][0]}"`
+    ));
   }
   return value;
 }
@@ -336,24 +410,44 @@ function validateLayerBoundary(
       "用户偏好"
     ];
     if (projectOrPrivateSignals.some((signal) => text.includes(signal))) {
-      throw new Error(`knowledge_candidate[${index}] contains project/user/machine context; route it to memory or governance evidence`);
+      throw new Error(formatValidationError(
+        `knowledge_candidate[${index}]`,
+        "contains project/user/machine-specific context",
+        "Move this to memory_candidate (if it's a project-specific fact) or governance_evidence_candidate (if it's just a log). Knowledge must be universally reusable.",
+        `knowledge_candidate content: "Fastify is the HTTP framework used by the memory service" (no paths, no machine names)`
+      ));
     }
     if (candidate.governance_level !== "shared" || candidate.availability_scope === "session_only") {
-      throw new Error(`knowledge_candidate[${index}] must be shared and reusable beyond a single session`);
+      throw new Error(formatValidationError(
+        `knowledge_candidate[${index}]`,
+        `governance_level="${candidate.governance_level}" and availability_scope="${candidate.availability_scope}" are not shared/reusable`,
+        "Set governance_level to 'shared' and availability_scope to 'project_reusable' or wider",
+        `"governance_level": "shared", "availability_scope": "project_reusable"`
+      ));
     }
   }
 
   if (expectedType === "memory_candidate") {
     const externalSignals = ["http://", "https://", "arxiv.org", "github.com", "docs.", "paper"];
     if (externalSignals.some((signal) => text.includes(signal)) && candidate.memory_type !== "project_memory") {
-      throw new Error(`memory_candidate[${index}] appears to describe external knowledge; route it to knowledge or governance evidence`);
+      throw new Error(formatValidationError(
+        `memory_candidate[${index}]`,
+        "appears to describe external knowledge (URLs, docs, papers)",
+        "Move to knowledge_candidate (if it's a reusable fact) or set memory_type to 'project_memory'",
+        `knowledge_candidate with content: "Redis sorted sets support O(log(N)+M) ZRANGEBYSCORE"`
+      ));
     }
   }
 
   if (expectedType === "rule_candidate") {
     const ruleText = String(candidate.content ?? "").toLowerCase();
     if (!/\bmust\b|\bmust_not\b|\bmust not\b|必须|不得|不能|不允许|不要|只能|默认/.test(ruleText)) {
-      throw new Error(`rule_candidate[${index}] must express an enforceable must/must_not behavior constraint`);
+      throw new Error(formatValidationError(
+        `rule_candidate[${index}]`,
+        "does not express an enforceable must/must_not behavior constraint",
+        "Rewrite as an IF/THEN rule using MUST, MUST NOT, 必须, 不得, 不能, or 不允许. Prefix user preference rules with [UP-Override].",
+        `"[UP-Override] IF user asks for explanation THEN MUST provide conceptual reasoning first; MUST NOT output code before explanation"`
+      ));
     }
   }
 }

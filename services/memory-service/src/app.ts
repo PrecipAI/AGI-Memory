@@ -34,6 +34,8 @@ import { listCodexHostSessions, previewCodexHostCapture } from "./codexHostCaptu
 import { formatFrozenErrorResponse } from "./errors.js";
 import { listHostSessions, normalizeHost, previewHostCapture } from "./hostCapture.js";
 import { buildGovernanceBatchPreview } from "./hostCaptureGovernanceBatch.js";
+import { summarizeSession } from "./sessionSummarizer.js";
+import { buildMissionBrief } from "./governancePromptBuilder.js";
 import { runCodexHostGovernance } from "./hostCaptureGovernanceRun.js";
 import { ingestKnowledgeDocument } from "./knowledgeDocumentIngest.js";
 import { handleGovernanceRun } from "./governanceRun.js";
@@ -358,7 +360,18 @@ export function buildMemoryServiceApp() {
         thread_id: body.thread_id ?? null,
         max_items: body.max_items ?? null
       });
-      return buildGovernanceBatchPreview(preview);
+      const batch = buildGovernanceBatchPreview(preview);
+
+      // Two-Step MCP Dance — Step 1: build mission brief for host LLM extraction
+      let mission_brief: { text: string; governance_mode: "host_model" } | null = null;
+      try {
+        const summarized = summarizeSession(preview);
+        mission_brief = buildMissionBrief(summarized);
+      } catch {
+        // Mission brief is best-effort; batch preview still valid without it
+      }
+
+      return { ...batch, mission_brief };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       reply.status(400);
@@ -394,7 +407,18 @@ export function buildMemoryServiceApp() {
         thread_id: body.thread_id ?? null,
         max_items: body.max_items ?? null
       });
-      return buildGovernanceBatchPreview(preview);
+      const batch = buildGovernanceBatchPreview(preview);
+
+      // Two-Step MCP Dance — Step 1: build mission brief for host LLM extraction
+      let mission_brief: { text: string; governance_mode: "host_model" } | null = null;
+      try {
+        const summarized = summarizeSession(preview);
+        mission_brief = buildMissionBrief(summarized);
+      } catch {
+        // Mission brief is best-effort; batch preview still valid without it
+      }
+
+      return { ...batch, mission_brief };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       reply.status(400);
