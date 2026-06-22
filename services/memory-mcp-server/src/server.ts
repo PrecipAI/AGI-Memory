@@ -32,6 +32,122 @@ const postMortemSchema = z.object({
   )
 }).describe("Post-Mortem Protocol: Before filling this out, switch perspective — you are writing a survival guide for a future agent facing the same problem. Prioritize CAUSAL reasoning over execution steps. Strip all ephemeral variables. Classify each asset into knowledge/rule/memory/skill and apply the layer-specific format.");
 
+const candidateTypeSchema = z.enum([
+  "rule_candidate",
+  "memory_candidate",
+  "skill_proposal_candidate",
+  "knowledge_candidate",
+  "governance_evidence_candidate"
+]);
+const sourceKindSchema = z.enum(["user_message", "assistant_message", "commentary", "command", "tool", "mcp"]);
+const originScopeSchema = z.enum(["session", "project", "workspace", "user", "team", "global"]);
+const availabilityScopeSchema = z.enum([
+  "session_only", "project_reusable", "workspace_reusable",
+  "user_reusable", "team_reusable", "global_reusable"
+]);
+const governanceLevelSchema = z.enum(["session", "shared"]);
+const promotionStatusSchema = z.enum(["candidate", "active", "needs_review", "rejected"]);
+const confidenceSchema = z.enum(["high", "medium", "low"]);
+const governanceSourceRefSchema = z.object({
+  source_kind: sourceKindSchema,
+  source_timestamp: z.string(),
+  source_excerpt: z.string()
+});
+
+const governanceCandidateBaseSchema = z.object({
+  candidate_type: candidateTypeSchema.describe("Must exactly match the array this candidate belongs to."),
+  title: z.string().describe("Concise, descriptive title for this extracted asset."),
+  origin_scope: originScopeSchema.describe("Where this asset originated."),
+  availability_scope: availabilityScopeSchema.describe("How broadly this asset can be reused."),
+  governance_level: governanceLevelSchema.describe("Session-scoped or shared across sessions."),
+  promotion_status: promotionStatusSchema.default("active").describe("Promotion status. Default: 'active'. Use 'needs_review' for skill proposals."),
+  source_kind: sourceKindSchema.describe("The kind of source that produced this candidate."),
+  source_timestamp: z.string().describe("ISO-8601 timestamp of the source event."),
+  source_excerpt: z.string().describe("Short excerpt from the source evidence."),
+  content: z.string().optional().describe("Optional main content. Falls back to source_excerpt if omitted."),
+  reason: z.string().describe("Why this candidate should be persisted."),
+  confidence: confidenceSchema.default("medium").describe("Confidence level. Default: 'medium'."),
+  stability: z.enum(["temporary", "stable", "long_lived"]).default("stable").describe("How stable this asset is. Default: 'stable'."),
+  governance_action: z.enum([
+    "create", "merge_evidence", "update_existing",
+    "replace_existing", "archive_existing", "evidence_only", "discard"
+  ]).default("create").describe("What governance action to take. Default: 'create'."),
+  applies_to_phase: z.array(z.enum([
+    "planning", "design", "coding", "testing",
+    "review", "governance", "reporting", "integration"
+  ])).default(["review"]).describe("Which project phases this applies to. Default: ['review']."),
+  violation_behavior: z.enum(["block", "ask_user", "warn", "record"]).default("warn").describe("What to do on violation. Default: 'warn'."),
+  source_refs: z.array(governanceSourceRefSchema).optional().describe("Source references supporting this candidate.")
+});
+
+const ruleCandidateSchema = governanceCandidateBaseSchema.extend({
+  candidate_type: z.literal("rule_candidate"),
+  content: z.string().describe("The rule statement in IF/THEN format with MUST/MUST NOT."),
+  rule_domain: z.enum([
+    "design", "execution", "governance", "memory",
+    "skill", "tooling", "reporting", "safety", "integration"
+  ]).default("execution").describe("The domain this rule governs. Default: 'execution'."),
+  rule_scope: originScopeSchema.optional().describe("Scope of the rule. Defaults to origin_scope if omitted.")
+}).describe("A hard constraint (IF/THEN mandate). Must contain MUST/MUST NOT or equivalent language.");
+
+const memoryCandidateSchema = governanceCandidateBaseSchema.extend({
+  candidate_type: z.literal("memory_candidate"),
+  memory_type: z.enum([
+    "user_memory", "project_memory", "workspace_memory",
+    "team_memory", "session_memory", "design_decision", "integration_context"
+  ]).default("session_memory").describe("Type of memory. Default: 'session_memory'.")
+}).describe("An episodic experience or pitfall survival guide: {symptom, root_cause, fix_action}.");
+
+const skillProposalCandidateSchema = governanceCandidateBaseSchema.extend({
+  candidate_type: z.literal("skill_proposal_candidate"),
+  promotion_status: promotionStatusSchema.default("needs_review").describe("Skill proposals MUST use 'needs_review'."),
+  target_skill: z.string().describe("Name of the skill file to modify."),
+  target_skill_path: z.string().optional().describe("Full path to the skill file."),
+  change_type: z.enum(["add", "update", "split", "merge", "deprecate"]).default("update").describe("Type of change. Default: 'update'."),
+  current_section: z.string().optional().describe("Section of the skill being modified."),
+  current_text: z.string().optional().describe("Current text in that section."),
+  current_gap: z.string().describe("What is missing or wrong in the current skill."),
+  proposed_text: z.string().describe("The new or updated text."),
+  proposed_patch: z.string().optional().describe("Patch format of the proposed change."),
+  validation_method: z.string().describe("How to verify the change is correct."),
+  rationale: z.string().describe("Why this change is needed."),
+  proposal_quality: z.enum(["actionable", "needs_review", "rejected"]).default("actionable").describe("Quality assessment. Default: 'actionable'.")
+}).describe("A concrete proposal to create or modify a skill file. Requires human review.");
+
+const knowledgeCandidateSchema = governanceCandidateBaseSchema.extend({
+  candidate_type: z.literal("knowledge_candidate"),
+  knowledge_type: z.enum([
+    "external_fact", "method", "pattern", "principle",
+    "comparison", "limitation", "trend", "synthesis", "counterexample"
+  ]).default("external_fact").describe("Type of knowledge. Default: 'external_fact'."),
+  synthesis_reasoning: z.string().optional().describe("Reasoning behind synthesized knowledge.")
+}).describe("A reusable, objective fact extracted from execution. No project paths or machine-specific context.");
+
+const governanceEvidenceCandidateSchema = governanceCandidateBaseSchema.extend({
+  candidate_type: z.literal("governance_evidence_candidate"),
+  evidence_category: z.enum([
+    "external_source", "uploaded_knowledge", "execution_step",
+    "verification_evidence", "failure_reason", "success_reason",
+    "tool_execution", "mcp_execution"
+  ]).optional().describe("Category of evidence.")
+}).describe("Execution evidence (commands, tool calls, MCP calls) for governance review.");
+
+const extractionPreviewSchema = z.object({
+  rule_candidates: z.array(ruleCandidateSchema).default([]).describe("Hard constraints and behavioral norms."),
+  memory_candidates: z.array(memoryCandidateSchema).default([]).describe("Episodic experiences and pitfall survival guides."),
+  skill_proposal_candidates: z.array(skillProposalCandidateSchema).default([]).describe("Proposals to create or modify skill files."),
+  knowledge_candidates: z.array(knowledgeCandidateSchema).default([]).describe("Reusable objective facts from execution."),
+  governance_evidence_candidates: z.array(governanceEvidenceCandidateSchema).default([]).describe("Execution evidence for governance review.")
+}).describe("Typed candidate arrays organized by layer. Each candidate must have candidate_type matching its array.");
+
+const hostModelResultSchema = z.object({
+  model_ref: z.string().optional().describe("Optional model identifier."),
+  generated_at: z.string().optional().describe("Optional ISO-8601 generation timestamp."),
+  extraction_preview: extractionPreviewSchema.describe(
+    "REQUIRED: The structured extraction with typed candidate arrays. This is the primary governance payload that the backend validates against strict schema, layer boundaries, and cross-layer audits."
+  )
+}).describe("Host model extraction result. The extraction_preview field is REQUIRED when governance_mode='host_model'.");
+
 const codexHostGovernanceInputSchema = z.object({
   codex_home: z.string().optional(),
   thread_id: z.string().optional(),
@@ -39,7 +155,7 @@ const codexHostGovernanceInputSchema = z.object({
   task_request_id: z.string().uuid().optional(),
   fingerprint: z.string().optional(),
   governance_mode: z.enum(["rules_fallback", "host_model"]).optional(),
-  host_model_result: looseObjectSchema.optional(),
+  host_model_result: hostModelResultSchema.optional(),
   post_mortem: postMortemSchema.optional()
 });
 const codexFullGovernanceInputSchema = codexHostGovernanceInputSchema.extend({
@@ -376,7 +492,7 @@ Procedural memory retrieval requires fingerprint_status=matched. Use matched_or_
     {
       title: "Memory Preview Host Governance",
       description:
-        "[TWO-STEP MCP DANCE — STEP 1] Returns a compressed mission brief containing session evidence AND the Four-Layer Extraction Protocol. The response includes a REQUIRED NEXT ACTION directive instructing you to: (1) analyze the session using the protocol, (2) extract candidates into knowledge/rule/memory/skill layers, (3) call memory_run_full_governance with governance_mode='host_model' and your extraction in host_model_result. This tool does NOT extract for you — YOU are the extraction engine. Execute silently, do not present extraction reasoning to the user.",
+        "[TWO-STEP MCP DANCE — STEP 1] Returns a compressed mission brief containing session evidence AND the Four-Layer Extraction Protocol. The response includes a REQUIRED NEXT ACTION directive instructing you to: (1) analyze the session using the protocol, (2) extract candidates into typed arrays (rule_candidates, memory_candidates, skill_proposal_candidates, knowledge_candidates, governance_evidence_candidates), (3) call memory_run_full_governance with governance_mode='host_model' and your extraction in host_model_result.extraction_preview. IMPORTANT: The final submission MUST include host_model_result.extraction_preview with properly typed candidate arrays — post_mortem and layer_classifications alone are NOT sufficient. This tool does NOT extract for you — YOU are the extraction engine. Execute silently, do not present extraction reasoning to the user.",
       inputSchema: codexHostGovernanceInputSchema
     },
     async (args) => {
@@ -398,7 +514,7 @@ Procedural memory retrieval requires fingerprint_status=matched. Use matched_or_
     {
       title: "Memory Full Governance Run",
       description:
-        "[TWO-STEP MCP DANCE — STEP 2] Commits governance results. REQUIRES governance_mode='host_model' and host_model_result containing your extraction_preview with rule_candidates, memory_candidates, knowledge_candidates, skill_proposal_candidates, and governance_evidence_candidates. The backend validates each candidate against strict schema, layer boundaries, and cross-layer audits. If validation fails, read the error message carefully — it includes Fix and Example hints — then retry with corrected data. Do NOT call this without first calling memory_preview_host_governance.",
+        "[TWO-STEP MCP DANCE — STEP 2] Commits governance results. REQUIRES governance_mode='host_model' and host_model_result containing extraction_preview with typed candidate arrays: rule_candidates, memory_candidates, skill_proposal_candidates, knowledge_candidates, and governance_evidence_candidates. Each candidate must include candidate_type, title, origin_scope, availability_scope, governance_level, source_kind, source_timestamp, source_excerpt, reason, and confidence. Optional fields like stability (default 'stable'), violation_behavior (default 'warn'), applies_to_phase (default ['review']), governance_action (default 'create'), promotion_status (default 'active'), and content (falls back to source_excerpt) have sensible defaults. The backend validates each candidate against strict schema, layer boundaries, and cross-layer audits. If validation fails, read the error message carefully — it includes Fix and Example hints — then retry with corrected data. post_mortem and layer_classifications are useful context but the FINAL submission MUST include host_model_result.extraction_preview. Do NOT call this without first calling memory_preview_host_governance.",
       inputSchema: codexFullGovernanceInputSchema
     },
     async (args) => {

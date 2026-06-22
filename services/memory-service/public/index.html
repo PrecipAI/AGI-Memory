@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AGI-Memory 控制台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --bg-primary: #0B1120;
+      --bg-secondary: #151e32;
+      --bg-tertiary: #1e293b;
+      --bg-card: #162032;
+      --bg-hover: #1a2d45;
+      --bg-input: #0f172a;
+      --border-color: #334155;
+      --border-light: #475569;
+      --accent-cyan: #06B6D4;
+      --accent-blue: #3B82F6;
+      --accent-purple: #8B5CF6;
+      --accent-emerald: #10B981;
+      --accent-amber: #F59E0B;
+      --accent-rose: #F43F5E;
+      --text-primary: #F1F5F9;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --text-dim: #475569;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      overflow: hidden;
+      height: 100vh; width: 100vw;
+    }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in { animation: fade-in 0.25s ease-out; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 8px;
+      cursor: pointer; transition: all 0.15s ease;
+      color: var(--text-secondary); font-size: 13px; font-weight: 500;
+      border: 1px solid transparent; margin-bottom: 4px;
+    }
+    .nav-item:hover { background: rgba(30,41,59,0.6); color: var(--text-primary); }
+    .nav-item.active { background: rgba(6,182,212,0.1); color: var(--accent-cyan); border-color: rgba(6,182,212,0.2); }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: 6px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: all 0.15s ease; border: 1px solid transparent;
+      font-family: inherit; background: var(--bg-hover); color: var(--text-secondary);
+    }
+    .btn:hover { color: var(--text-primary); }
+    .btn-primary { background: var(--accent-cyan); color: #0B1120; border-color: var(--accent-cyan); }
+    .btn-primary:hover { background: #22d3ee; }
+    .btn-success { background: rgba(16,185,129,0.15); color: var(--accent-emerald); border-color: rgba(16,185,129,0.3); }
+    .btn-success:hover { background: rgba(16,185,129,0.25); }
+    .btn-danger { background: rgba(239,68,68,0.15); color: var(--danger); border-color: rgba(239,68,68,0.3); }
+    .btn-danger:hover { background: rgba(239,68,68,0.25); }
+    .btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border-color); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 4px;
+      font-size: 11px; font-weight: 600;
+    }
+    .badge-rule { background: rgba(139,92,246,0.15); color: var(--accent-purple); }
+    .badge-skill { background: rgba(16,185,129,0.15); color: var(--accent-emerald); }
+    .badge-memory { background: rgba(6,182,212,0.15); color: var(--accent-cyan); }
+    .badge-knowledge { background: rgba(59,130,246,0.15); color: var(--accent-blue); }
+    .badge-pending { background: rgba(245,158,11,0.15); color: var(--accent-amber); }
+    .badge-approved { background: rgba(16,185,129,0.15); color: var(--accent-emerald); }
+    .badge-rejected { background: rgba(239,68,68,0.15); color: var(--danger); }
+
+    .search-input {
+      background: var(--bg-input); border: 1px solid var(--border-color);
+      border-radius: 6px; padding: 7px 12px;
+      color: var(--text-primary); font-size: 12px;
+      font-family: inherit; outline: none; width: 260px;
+    }
+    .search-input:focus { border-color: var(--accent-cyan); }
+
+    .table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .table th {
+      text-align: left; padding: 10px 12px;
+      color: var(--text-muted); font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+    }
+    .table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(51,65,85,0.4);
+      color: var(--text-secondary);
+    }
+    .table tr { cursor: pointer; }
+    .table tr:hover td { background: rgba(30,41,59,0.4); color: var(--text-primary); }
+
+    .stat-value {
+      font-size: 28px; font-weight: 700; color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .stat-label {
+      font-size: 11px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+
+    .progress-bar {
+      height: 6px; background: rgba(51,65,85,0.5);
+      border-radius: 3px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 3px;
+    }
+
+    .proposal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .proposal-card:hover { border-color: var(--border-light); background: var(--bg-hover); }
+    .proposal-card.selected { border-color: var(--accent-cyan); background: rgba(6,182,212,0.06); }
+
+    .source-ref {
+      background: rgba(30,41,59,0.4);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px; margin-bottom: 10px;
+      font-size: 12px; line-height: 1.6;
+    }
+    .source-ref .label {
+      font-size: 10px; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .section-header {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-muted); margin-bottom: 10px;
+    }
+
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      padding: 12px 18px; border-radius: 8px;
+      font-size: 13px; font-weight: 500; z-index: 1000;
+      animation: fade-in 0.3s ease-out;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .toast-success { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: var(--accent-emerald); }
+    .toast-error { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: var(--danger); }
+
+    .json-key { color: #93C5FD; }
+    .json-string { color: #86EFAC; }
+    .json-number { color: #FCA5A5; }
+    .json-boolean { color: #FDBA74; }
+    .json-null { color: #FDBA74; }
+
+    .code-block {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.7;
+      overflow-x: auto;
+      white-space: pre;
+      color: var(--text-secondary);
+    }
+
+    .sop-step {
+      display: flex; gap: 12px; margin-bottom: 10px;
+      padding: 10px 12px;
+      background: rgba(30,41,59,0.4);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+    }
+    .sop-num {
+      flex-shrink: 0;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: rgba(6,182,212,0.15);
+      color: var(--accent-cyan);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .detail-field {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(51,65,85,0.3);
+    }
+    .detail-field:last-child { border-bottom: none; }
+    .detail-field .label {
+      font-size: 11px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      padding-top: 2px;
+    }
+    .detail-field .value {
+      font-size: 13px; color: var(--text-primary);
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <header style="height: 52px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 20px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+        <rect width="28" height="28" rx="6" fill="rgba(6,182,212,0.12)"/>
+        <path d="M8 14c0-3.3 2.7-6 6-6s6 2.7 6 6-2.7 6-6 6" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="14" cy="14" r="2" fill="#06B6D4"/>
+      </svg>
+      <div>
+        <div style="font-size: 15px; font-weight: 700;">AGI-Memory</div>
+        <div style="font-size: 9px; color: var(--text-muted);">CONSOLE</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; font-size: 11px; color: var(--text-muted);">
+      <span>待审批: <strong id="header-pending" style="color: var(--accent-amber);">-</strong></span>
+      <span>已通过: <strong id="header-approved" style="color: var(--accent-emerald);">-</strong></span>
+      <span>已驳回: <strong id="header-rejected" style="color: var(--danger);">-</strong></span>
+    </div>
+  </header>
+
+  <div style="display: grid; grid-template-columns: 220px 1fr; height: calc(100vh - 52px); overflow: hidden;">
+    <div style="border-right: 1px solid var(--border-color); background: var(--bg-secondary); padding: 16px 12px; display: flex; flex-direction: column;">
+      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em;">视图</div>
+      <div class="nav-item active" data-section="overview" onclick="switchSection('overview')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+        <span>总览</span>
+      </div>
+      <div class="nav-item" data-section="memory" onclick="switchSection('memory')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 6v6l4 2"/></svg>
+        <span>记忆（memory）</span>
+      </div>
+      <div class="nav-item" data-section="knowledge" onclick="switchSection('knowledge')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span>知识（knowledge）</span>
+      </div>
+      <div class="nav-item" data-section="rule" onclick="switchSection('rule')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>规则（rule）</span>
+      </div>
+      <div class="nav-item" data-section="skill" onclick="switchSection('skill')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        <span>技能（skill）</span>
+      </div>
+      <div style="height: 1px; background: var(--border-color); margin: 10px 0;"></div>
+      <div class="nav-item" data-section="approvals" onclick="switchSection('approvals')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span>待办审批</span>
+        <span id="nav-pending" style="margin-left: auto; background: rgba(245,158,11,0.15); color: var(--accent-amber); padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 700;">-</span>
+      </div>
+      <div class="nav-item" data-section="history" onclick="switchSection('history')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span>审批历史</span>
+      </div>
+      <div class="nav-item" data-section="dashboard" onclick="switchSection('dashboard')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+        <span>仪表盘</span>
+      </div>
+      <div style="flex:1"></div>
+      <div style="padding: 14px 0 0; border-top: 1px solid var(--border-color); font-size: 11px; color: var(--text-muted);">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--accent-emerald); box-shadow: 0 0 6px rgba(16,185,129,0.4);"></span>
+          <span style="font-size: 12px; color: var(--text-secondary);">运行中</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="overflow: auto; padding: 20px;" id="main-content">
+      <!-- 总览 -->
+      <div id="section-overview" class="section-content animate-fade-in">
+        <div style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">系统总览</div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+          <div class="card" style="cursor: pointer;" onclick="switchSection('memory')"><div class="stat-label">记忆（memory）</div><div class="stat-value" id="stat-memory">-</div></div>
+          <div class="card" style="cursor: pointer;" onclick="switchSection('knowledge')"><div class="stat-label">知识（knowledge）</div><div class="stat-value" id="stat-knowledge">-</div></div>
+          <div class="card" style="cursor: pointer;" onclick="switchSection('rule')"><div class="stat-label">规则（rule）</div><div class="stat-value" id="stat-rule">-</div></div>
+          <div class="card" style="cursor: pointer;" onclick="switchSection('skill')"><div class="stat-label">技能（skill）</div><div class="stat-value" id="stat-skill">-</div></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+          <div class="card">
+            <div style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">知识库构成</div>
+            <div id="corpus-stats"></div>
+          </div>
+          <div class="card">
+            <div style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">治理任务状态</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div><div class="stat-label">待审任务</div><div class="stat-value" style="color: var(--accent-amber); font-size: 24px;" id="review-count">-</div></div>
+              <div><div class="stat-label">治理任务</div><div class="stat-value" style="color: var(--accent-rose); font-size: 24px;" id="job-count">-</div></div>
+              <div><div class="stat-label">事实总数</div><div class="stat-value" style="color: var(--accent-cyan); font-size: 24px;" id="fact-count">-</div></div>
+              <div><div class="stat-label">证据总数</div><div class="stat-value" style="color: var(--accent-blue); font-size: 24px;" id="evidence-count">-</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div style="font-size: 14px; font-weight: 600;">待审批提议</div>
+            <button class="btn btn-ghost" onclick="loadOverview()">刷新</button>
+          </div>
+          <div id="overview-proposals"></div>
+        </div>
+
+        <div class="card">
+          <div style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">最近治理运行</div>
+          <div id="governance-runs"></div>
+        </div>
+      </div>
+
+      <!-- 记忆列表 -->
+      <div id="section-memory" class="section-content" style="display: none;">
+        <div id="memory-list-view">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div style="font-size: 18px; font-weight: 700;">记忆（memory）</div>
+            <div style="display: flex; gap: 8px;">
+              <select id="memory-kind" class="search-input" style="width: 140px;">
+                <option value="resident">Resident</option>
+                <option value="working">Working</option>
+                <option value="session">Session</option>
+                <option value="ephemeral">Ephemeral</option>
+              </select>
+              <button class="btn btn-primary" onclick="loadMemory()">刷新</button>
+            </div>
+          </div>
+          <div class="card" id="memory-list"></div>
+        </div>
+        <div id="memory-detail-view" style="display: none;"></div>
+      </div>
+
+      <!-- 知识列表 -->
+      <div id="section-knowledge" class="section-content" style="display: none;">
+        <div id="knowledge-list-view">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div style="font-size: 18px; font-weight: 700;">知识（knowledge）</div>
+            <button class="btn btn-primary" onclick="loadKnowledge()">刷新</button>
+          </div>
+          <div class="card" id="knowledge-list"></div>
+        </div>
+        <div id="knowledge-detail-view" style="display: none;"></div>
+      </div>
+
+      <!-- 规则列表 -->
+      <div id="section-rule" class="section-content" style="display: none;">
+        <div id="rule-list-view">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div style="font-size: 18px; font-weight: 700;">规则（rule）</div>
+            <button class="btn btn-primary" onclick="loadRules()">刷新</button>
+          </div>
+          <div class="card" id="rule-list"></div>
+        </div>
+        <div id="rule-detail-view" style="display: none;"></div>
+      </div>
+
+      <!-- 技能列表 -->
+      <div id="section-skill" class="section-content" style="display: none;">
+        <div id="skill-list-view">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div style="font-size: 18px; font-weight: 700;">技能（skill）</div>
+            <button class="btn btn-primary" onclick="loadSkills()">刷新</button>
+          </div>
+          <div class="card" id="skill-list"></div>
+        </div>
+        <div id="skill-detail-view" style="display: none;"></div>
+      </div>
+
+      <!-- 审批 -->
+      <div id="section-approvals" class="section-content" style="display: none; flex-direction: column; height: 100%;">
+        <div style="padding: 0 0 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 16px; font-weight: 700;">待办审批</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">审查 Rule、Skill、Memory、Knowledge 真实治理提议</div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" class="search-input" placeholder="搜索提议..." id="approval-search">
+            <button class="btn btn-ghost" onclick="loadProposals()">刷新</button>
+          </div>
+        </div>
+        <div style="display: flex; flex: 1; overflow: hidden; margin-top: 12px;">
+          <div style="width: 380px; border-right: 1px solid var(--border-color); overflow-y: auto; padding: 12px;">
+            <div id="proposal-list"></div>
+          </div>
+          <div style="flex: 1; overflow-y: auto; padding: 16px 20px;" id="proposal-detail">
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">
+              <div style="font-size: 14px;">选择左侧提议查看详情</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 审批历史 -->
+      <div id="section-history" class="section-content" style="display: none; flex-direction: column; height: 100%;">
+        <div style="padding: 0 0 12px; border-bottom: 1px solid var(--border-color);">
+          <div style="font-size: 16px; font-weight: 700;">审批历史</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">已批准或驳回的治理提议</div>
+        </div>
+        <div style="display: flex; flex: 1; overflow: hidden; margin-top: 12px;">
+          <div style="width: 380px; border-right: 1px solid var(--border-color); overflow-y: auto; padding: 12px;">
+            <div id="history-list"></div>
+          </div>
+          <div style="flex: 1; overflow-y: auto; padding: 16px 20px;" id="history-detail">
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">
+              <div style="font-size: 14px;">选择左侧历史记录查看详情</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 仪表盘 -->
+      <div id="section-dashboard" class="section-content" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <div>
+            <div style="font-size: 18px; font-weight: 700;">治理仪表盘</div>
+            <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Knowledge Ops 与治理状态</div>
+          </div>
+          <button class="btn btn-primary" onclick="loadDashboard()">刷新数据</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+          <div class="card"><div class="stat-label">文档总数</div><div class="stat-value" style="color: var(--accent-cyan);" id="doc-count">-</div></div>
+          <div class="card"><div class="stat-label">段落总数</div><div class="stat-value" style="color: var(--accent-blue);" id="section-count">-</div></div>
+          <div class="card"><div class="stat-label">实体总数</div><div class="stat-value" style="color: var(--accent-purple);" id="entity-count">-</div></div>
+          <div class="card"><div class="stat-label">关系总数</div><div class="stat-value" style="color: var(--accent-emerald);" id="relation-count">-</div></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+          <div class="card">
+            <div style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">知识库构成</div>
+            <div id="dashboard-corpus-stats"></div>
+          </div>
+          <div class="card">
+            <div style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">治理任务状态</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div><div class="stat-label">待审任务</div><div class="stat-value" style="color: var(--accent-amber); font-size: 24px;" id="dash-review-count">-</div></div>
+              <div><div class="stat-label">治理任务</div><div class="stat-value" style="color: var(--accent-rose); font-size: 24px;" id="dash-job-count">-</div></div>
+              <div><div class="stat-label">事实总数</div><div class="stat-value" style="color: var(--accent-cyan); font-size: 24px;" id="dash-fact-count">-</div></div>
+              <div><div class="stat-label">证据总数</div><div class="stat-value" style="color: var(--accent-blue); font-size: 24px;" id="dash-evidence-count">-</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">最近治理运行</div>
+          <div id="dashboard-governance-runs"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "";
+    let proposals = [];
+    let history = [];
+    let selectedProposal = null;
+    let selectedHistory = null;
+    let memoryCache = [];
+    let knowledgeCache = [];
+    let ruleCache = [];
+    let skillCache = [];
+
+    async function apiGet(path) {
+      const res = await fetch(`${API_BASE}${path}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }
+
+    async function apiPost(path, body) {
+      const res = await fetch(`${API_BASE}${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }
+
+    function formatTime(iso) {
+      if (!iso) return "-";
+      const d = new Date(iso);
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+    }
+
+    function escapeHtml(text) {
+      if (text === null || text === undefined) return "";
+      const div = document.createElement("div");
+      div.textContent = String(text);
+      return div.innerHTML;
+    }
+
+    function syntaxHighlight(json) {
+      if (!json) return "";
+      return json.replace(/(".*?"):\s*(".*?"|\d+|true|false|null)/g, (match, key, value) => {
+        let valClass = 'json-string';
+        if (/^\d+$/.test(value)) valClass = 'json-number';
+        else if (/^(true|false)$/.test(value)) valClass = 'json-boolean';
+        else if (value === 'null') valClass = 'json-null';
+        return `<span class="json-key">${key}</span>: <span class="${valClass}">${value}</span>`;
+      }).replace(/(".*?")/g, '<span class="json-string">$1</span>');
+    }
+
+    function renderBar(label, value, max, color) {
+      const pct = max > 0 ? Math.round((value / max) * 100) : 0;
+      return `
+        <div style="margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+            <span style="color: var(--text-secondary);">${escapeHtml(label)}</span>
+            <span style="color: var(--text-primary); font-weight: 600;">${value}</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%; background: ${color};"></div></div>
+        </div>
+      `;
+    }
+
+    function showToast(message, type) {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function getTypeLabel(type) {
+      return { rule: "规则", skill: "技能", memory: "记忆", knowledge: "知识" }[type] || type || "未知";
+    }
+    function getActionLabel(action) {
+      return {
+        "replace_rule": "替换规则",
+        "create_conflicting_rule": "创建冲突规则",
+        "mark_rule_dirty_for_conflict": "标记规则冲突",
+        "upsert_skill": "新增/更新技能",
+        "upsert_memory": "新增/更新记忆",
+        "merge_knowledge": "合并知识",
+        "create_knowledge": "创建知识"
+      }[action] || action;
+    }
+    function getRiskLabel(risk) {
+      return { low: "低", medium: "中", high: "高", critical: "极高" }[risk] || risk || "-";
+    }
+
+    function renderSourceEvidence(p) {
+      const refs = Array.isArray(p.source_refs) && p.source_refs.length
+        ? p.source_refs
+        : p.source_ref ? [p.source_ref] : [];
+      if (!refs.length && !p.source_excerpt) {
+        return `<div style="color: var(--text-muted); font-size: 12px;">无原始上下文记录</div>`;
+      }
+      let html = "";
+      if (p.source_excerpt) {
+        html += `<div class="source-ref">
+          <div class="label">原始摘录</div>
+          <div style="color: var(--text-secondary); white-space: pre-wrap;">${escapeHtml(p.source_excerpt)}</div>
+        </div>`;
+      }
+      refs.forEach(ref => {
+        const r = typeof ref === "string" ? { uri: ref } : ref;
+        html += `<div class="source-ref">
+          <div class="label">来源引用</div>
+          <div style="font-family: 'JetBrains Mono', monospace; color: var(--accent-cyan); word-break: break-all;">${escapeHtml(r.uri || r.source_ref || JSON.stringify(ref))}</div>
+          ${r.excerpt ? `<div style="margin-top: 8px; color: var(--text-secondary); white-space: pre-wrap;">${escapeHtml(r.excerpt)}</div>` : ""}
+        </div>`;
+      });
+      return html;
+    }
+
+    // ============ 总览 ============
+    async function loadOverview() {
+      try {
+        const [memory, knowledge, rules, skills, overview, runs, proposals] = await Promise.all([
+          apiPost("/internal/memory/query", { kind: "resident", limit: 1 }).catch(() => ({ items: [] })),
+          apiGet("/internal/knowledge/synthesized-knowledge?limit=1").catch(() => ({ items: [] })),
+          apiGet("/internal/rules?limit=1").catch(() => ({ items: [] })),
+          apiGet("/internal/skills?limit=1").catch(() => ({ items: [] })),
+          apiGet("/internal/knowledge/ops/overview").catch(() => ({
+            document_count: 0, section_count: 0, evidence_count: 0, entity_count: 0,
+            fact_count: 0, relation_count: 0, active_review_count: 0, governance_job_count: 0,
+            corpus_governance: {}
+          })),
+          apiGet("/internal/knowledge/governance/runs?limit=10").catch(() => ({ items: [] })),
+          apiGet("/internal/governance/change-proposals?status=recorded&limit=100").catch(() => ({ items: [] }))
+        ]);
+
+        document.getElementById("stat-memory").textContent = memory.items?.length ?? 0;
+        document.getElementById("stat-knowledge").textContent = knowledge.items?.length ?? 0;
+        document.getElementById("stat-rule").textContent = rules.items?.length ?? 0;
+        document.getElementById("stat-skill").textContent = skills.items?.length ?? 0;
+
+        document.getElementById("review-count").textContent = overview.active_review_count ?? 0;
+        document.getElementById("job-count").textContent = overview.governance_job_count ?? 0;
+        document.getElementById("fact-count").textContent = overview.fact_count ?? 0;
+        document.getElementById("evidence-count").textContent = overview.evidence_count ?? 0;
+
+        const cg = overview.corpus_governance || {};
+        const maxVal = Math.max(
+          cg.active_document_count || 0, cg.retired_document_count || 0,
+          cg.active_full_markdown_document_count || 0, cg.active_generated_document_count || 0,
+          cg.active_derived_knowledge_count || 0, 1
+        );
+        document.getElementById("corpus-stats").innerHTML = `
+          ${renderBar("活跃文档", cg.active_document_count || 0, maxVal, "var(--accent-cyan)")}
+          ${renderBar("退役文档", cg.retired_document_count || 0, maxVal, "var(--text-muted)")}
+          ${renderBar("完整 Markdown 文档", cg.active_full_markdown_document_count || 0, maxVal, "var(--accent-blue)")}
+          ${renderBar("生成文档", cg.active_generated_document_count || 0, maxVal, "var(--accent-purple)")}
+          ${renderBar("派生知识", cg.active_derived_knowledge_count || 0, maxVal, "var(--accent-emerald)")}
+        `;
+
+        const propItems = proposals.items || [];
+        document.getElementById("overview-proposals").innerHTML = propItems.length
+          ? propItems.slice(0, 5).map(p => {
+              const payload = p.proposed_payload || {};
+              const title = payload.title || payload.skill_name || payload.rule_key || p.reason || p.id;
+              const type = p.target_object_type || "knowledge";
+              return `
+                <div class="proposal-card" style="margin-bottom: 8px;" onclick="switchSection('approvals')">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <span class="badge badge-${type}">${getTypeLabel(type)}</span>
+                    <span class="badge badge-pending">待审批</span>
+                  </div>
+                  <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">${escapeHtml(title)}</div>
+                </div>
+              `;
+            }).join("")
+          : `<div style="color: var(--text-muted);">暂无待审批提议</div>`;
+
+        const runItems = runs.items || [];
+        document.getElementById("governance-runs").innerHTML = runItems.length ? `
+          <table class="table">
+            <thead><tr><th>ID</th><th>状态</th><th>阶段</th><th>创建时间</th><th>更新时间</th></tr></thead>
+            <tbody>${runItems.map(r => `
+              <tr>
+                <td>${r.id?.slice(0, 16) || "-"}...</td>
+                <td><span style="color: ${r.status === 'completed' ? 'var(--accent-emerald)' : r.status === 'failed' ? 'var(--accent-rose)' : 'var(--accent-amber)'};">${r.status || "-"}</span></td>
+                <td>${escapeHtml(r.stage || "-")}</td>
+                <td>${formatTime(r.created_at)}</td>
+                <td>${formatTime(r.updated_at)}</td>
+              </tr>
+            `).join("")}</tbody>
+          </table>
+        ` : `<div style="color: var(--text-muted);">暂无治理运行记录</div>`;
+
+        updateHeaderCounts(proposals.items || [], history);
+      } catch (e) {
+        console.error("loadOverview failed", e);
+      }
+    }
+
+    // ============ 记忆 ============
+    async function loadMemory() {
+      const kind = document.getElementById("memory-kind").value;
+      try {
+        const data = await apiPost("/internal/memory/query", { kind, limit: 100 });
+        memoryCache = data.items || [];
+        const items = memoryCache;
+        document.getElementById("memory-list").innerHTML = items.length ? `
+          <table class="table">
+            <thead><tr><th>ID</th><th>标题</th><th>类型</th><th>重要性</th><th>置信度</th><th>状态</th><th>创建时间</th></tr></thead>
+            <tbody>${items.map((m, i) => `
+              <tr onclick="showMemoryDetail(${i})">
+                <td>${m.id?.slice(0, 12) || "-"}...</td>
+                <td>${escapeHtml(m.title || "-")}</td>
+                <td>${escapeHtml(m.memory_type || m.kind || "-")}</td>
+                <td>${m.importance ?? "-"}</td>
+                <td>${m.confidence_score ?? "-"}</td>
+                <td><span class="badge badge-memory">${m.status || "active"}</span></td>
+                <td>${formatTime(m.created_at)}</td>
+              </tr>
+            `).join("")}</tbody>
+          </table>
+        ` : `<div style="color: var(--text-muted);">暂无记忆数据</div>`;
+      } catch (e) {
+        document.getElementById("memory-list").innerHTML = `<div style="color: var(--text-muted);">加载失败: ${e.message}</div>`;
+      }
+    }
+
+    function showMemoryDetail(index) {
+      const m = memoryCache[index];
+      if (!m) return;
+      document.getElementById("memory-list-view").style.display = "none";
+      const view = document.getElementById("memory-detail-view");
+      view.style.display = "block";
+      view.classList.add("animate-fade-in");
+
+      const scope = m.availability_scope || m.origin_scope || m.scope || "-";
+      const scopeLabel = scope === "global" ? "全局级生效" : "项目级生效";
+
+      view.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <button class="btn btn-ghost" onclick="backToMemoryList()">← 返回列表</button>
+          <span class="badge badge-memory">记忆（memory）</span>
+        </div>
+        <div style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">${escapeHtml(m.title || "未命名记忆")}</div>
+        <div style="font-size: 12px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 20px;">${m.id}</div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="section-header">基础属性</div>
+          <div class="detail-field"><div class="label">偏好标题</div><div class="value">${escapeHtml(m.title || "-")}</div></div>
+          <div class="detail-field"><div class="label">生效半径</div><div class="value">${escapeHtml(scopeLabel)}</div></div>
+          <div class="detail-field"><div class="label">记忆类型</div><div class="value">${escapeHtml(m.memory_type || m.kind || "-")}</div></div>
+          <div class="detail-field"><div class="label">重要性</div><div class="value">${m.importance ?? "-"}</div></div>
+          <div class="detail-field"><div class="label">置信度</div><div class="value">${m.confidence_score ?? "-"}</div></div>
+          <div class="detail-field"><div class="label">状态</div><div class="value"><span class="badge badge-memory">${m.status || "active"}</span></div></div>
+          <div class="detail-field"><div class="label">创建时间</div><div class="value">${formatTime(m.created_at)}</div></div>
+        </div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="section-header">偏好正文</div>
+          <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.7; white-space: pre-wrap;">${escapeHtml(m.content || m.content_text || "-")}</div>
+        </div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="section-header">证据溯源 · 原始上下文（Raw Context）</div>
+          ${renderMemorySource(m)}
+        </div>
+
+        <div class="card">
+          <div class="section-header">状态变迁日志</div>
+          <div class="detail-field"><div class="label">版本</div><div class="value">v${m.version ?? 1}</div></div>
+          <div class="detail-field"><div class="label">覆写目标</div><div class="value">${m.supersedes_id ? escapeHtml(m.supersedes_id) : "无（首次创建）"}</div></div>
+          <div class="detail-field"><div class="label">来源类型</div><div class="value">${escapeHtml(m.source_kind || "-")}</div></div>
+          <div class="detail-field"><div class="label">来源引用</div><div class="value" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent-cyan);">${escapeHtml(m.source_ref || "-")}</div></div>
+          <div class="detail-field"><div class="label">验证状态</div><div class="value">${escapeHtml(m.verification_status || "-")}</div></div>
+          <div class="detail-field"><div class="label">更新时间</div><div class="value">${formatTime(m.updated_at)}</div></div>
+        </div>
+      `;
+    }
+
+    function renderMemorySource(m) {
+      const refs = Array.isArray(m.source_refs) ? m.source_refs : (m.source_ref ? [m.source_ref] : []);
+      if (!refs.length && !m.metadata?.source_excerpt) {
+        return `<div style="color: var(--text-muted); font-size: 12px;">无原始上下文记录</div>`;
+      }
+      let html = "";
+      if (m.metadata?.source_excerpt) {
+        html += `<div class="source-ref">
+          <div class="label">原始摘录</div>
+          <div style="color: var(--text-secondary); white-space: pre-wrap;">${escapeHtml(m.metadata.source_excerpt)}</div>
+        </div>`;
+      }
+      refs.forEach(ref => {
+        const r = typeof ref === "string" ? { uri: ref } : ref;
+        html += `<div class="source-ref">
+          <div class="label">来源引用</div>
+          <div style="font-family: 'JetBrains Mono', monospace; color: var(--accent-cyan); word-break: break-all;">${escapeHtml(r.uri || r.source_ref || JSON.stringify(ref))}</div>
+          ${r.excerpt ? `<div style="margin-top: 8px; color: var(--text-secondary); white-space: pre-wrap;">${escapeHtml(r.excerpt)}</div>` : ""}
+        </div>`;
+      });
+      return html;
+    }
+
+    function backToMemoryList() {
+      document.getElementById("memory-detail-view").style.display = "none";
+      document.getElementById("memory-list-view").style.display = "block";
+    }
+
+    // ============ 知识 ============
+    async function loadKnowledge() {
+      try {
+        const data = await apiGet("/internal/knowledge/synthesized-knowledge?limit=100");
+        knowledgeCache = data.items || [];
+        const items = knowledgeCache;
+        document.getElementById("knowledge-list").innerHTML = items.length ? `
+          <table class="table">
+            <thead><tr><th>ID</th><th>标题</th><th>类型</th><th>置信度</th><th>状态</th><th>创建时间</th></tr></thead>
+            <tbody>${items.map((k, i) => `
+              <tr onclick="showKnowledgeDetail(${i})">
+                <td>${k.id?.slice(0, 12) || "-"}...</td>
+                <td>${escapeHtml(k.title || "-")}</td>
+                <td>${escapeHtml(k.knowledge_type || "-")}</td>
+                <td>${k.confidence_score ?? "-"}</td>
+                <td><span class="badge badge-knowledge">${k.recall_state || "active"}</span></td>
+                <td>${formatTime(k.created_at)}</td>
+              </tr>
+            `).join("")}</tbody>
+          </table>
+        ` : `<div style="color: var(--text-muted);">暂无知识数据</div>`;
+      } catch (e) {
+        document.getElementById("knowledge-list").innerHTML = `<div style="color: var(--text-muted);">加载失败: ${e.message}</div>`;
+      }
+    }
+
+    function showKnowledgeDetail(index) {
+      const k = knowledgeCache[index];
+      if (!k) return;
+      document.getElementById("knowledge-list-view").style.display = "none";
+      const view = document.getElementById("knowledge-detail-view");
+      view.style.display = "block";
+      view.classList.add("animate-fade-in");
+
+      const scope = k.scope || "-";
+      const scopeLabel = scope === "global" ? "全局级生效" : "项目级生效";
+
+      view.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <button class="btn btn-ghost" onclick="backToKnowledgeList()">← 返回列表</button>
+          <span class="badge badge-knowledge">知识（knowledge）</span>
+        </div>
+        <div style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">${escapeHtml(k.title || "未命名知识")}</div>
+        <div style="font-size: 12px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 20px;">${k.id}</div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="section-header">基础属性</div>
+          <div class="detail-field"><div class="label">概念/实体名称</div><div class="value">${escapeHtml(k.title || "-")}</div></div>
+          <div class="detail-field"><div class="label">生效半径</div><div class="value">${escapeHtml(scopeLabel)}</div></div>
+          <div class="detail-field"><div class="label">知识类型</div><div class="value">${escapeHtml(k.knowledge_type || "-")}</div></div>
+          <div class="detail-field"><div class="label">生命周期</div><div class="value">${escapeHtml(k.lifecycle_state || "-")}</div></div>
+          <div class="detail-field"><div class="label">召回状态</div><div class="value"><span class="badge badge-knowledge">${k.recall_state || "active"}</span></div></div>
+          <div class="detail-field"><div class="label">创建时间</div><div class="value">${formatTime(k.created_at)}</div></div>
+        </div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="section-header">因果解构 · 核心推导结论</div>
+          <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.7; white-space: pre-wrap;">${escapeHtml(k.content || "-")}</div>
+        </div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="section-header">因果解构 · 避坑指南</div>
+          <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.7; white-space: pre-wrap;">${escapeHtml(k.reasoning_summary || k.metadata?.pitfall || "无防错性陈述")}</div>
+        </div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="section-header">可信度溯源</div>
+          <div class="detail-field"><div class="label">置信度</div><div class="value"><strong style="color: var(--accent-emerald);">${k.confidence_score ?? "-"}</strong></div></div>
+          <div class="detail-field"><div class="label">风险等级</div><div class="value">${escapeHtml(k.risk_level || "-")}</div></div>
+          <div class="detail-field"><div class="label">审查状态</div><div class="value">${escapeHtml(k.review_state || "-")}</div></div>
+          <div class="detail-field"><div class="label">原始溯源链接</div><div class="value">${renderKnowledgeSources(k)}</div></div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">JSON 完整数据</div>
+          <pre class="code-block">${syntaxHighlight(JSON.stringify(k, null, 2))}</pre>
+        </div>
+      `;
+    }
+
+    function renderKnowledgeSources(k) {
+      const ids = Array.isArray(k.source_object_ids) ? k.source_object_ids : [];
+      const evidenceIds = Array.isArray(k.evidence_ids) ? k.evidence_ids : [];
+      if (!ids.length && !evidenceIds.length) return `<span style="color: var(--text-muted);">无</span>`;
+      let html = "";
+      ids.forEach(id => {
+        html += `<div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent-cyan); margin-bottom: 4px;">${escapeHtml(id)}</div>`;
+      });
+      evidenceIds.forEach(id => {
+        html += `<div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent-blue); margin-bottom: 4px;">证据: ${escapeHtml(id)}</div>`;
+      });
+      return html;
+    }
+
+    function backToKnowledgeList() {
+      document.getElementById("knowledge-detail-view").style.display = "none";
+      document.getElementById("knowledge-list-view").style.display = "block";
+    }
+
+    // ============ 规则 ============
+    async function loadRules() {
+      try {
+        const data = await apiGet("/internal/rules?limit=100");
+        ruleCache = data.items || [];
+        const items = ruleCache;
+        document.getElementById("rule-list").innerHTML = items.length ? `
+          <table class="table">
+            <thead><tr><th>ID</th><th>标题</th><th>规则键</th><th>执行级别</th><th>优先级</th><th>风险</th><th>创建时间</th></tr></thead>
+            <tbody>${items.map((r, i) => `
+              <tr onclick="showRuleDetail(${i})">
+                <td>${r.id?.slice(0, 12) || "-"}...</td>
+                <td>${escapeHtml(r.title || "-")}</td>
+                <td>${escapeHtml(r.rule_key || "-")}</td>
+                <td><span class="badge badge-rule">${r.enforcement_level || "-"}</span></td>
+                <td>${r.priority ?? "-"}</td>
+                <td>${escapeHtml(r.risk_level || "-")}</td>
+                <td>${formatTime(r.created_at)}</td>
+              </tr>
+            `).join("")}</tbody>
+          </table>
+        ` : `<div style="color: var(--text-muted);">暂无规则数据</div>`;
+      } catch (e) {
+        document.getElementById("rule-list").innerHTML = `<div style="color: var(--text-muted);">加载失败: ${e.message}</div>`;
+      }
+    }
+
+    function showRuleDetail(index) {
+      const r = ruleCache[index];
+      if (!r) return;
+      document.getElementById("rule-list-view").style.display = "none";
+      const view = document.getElementById("rule-detail-view");
+      view.style.display = "block";
+      view.classList.add("animate-fade-in");
+
+      const statusLabel = {
+        active: "全局生效",
+        draft: "草稿",
+        pending: "待审核",
+        retired: "已停用"
+      }[r.status] || r.status || "-";
+
+      const stageLabel = {
+        requirement: "需求分析",
+        coding: "代码编写",
+        review: "代码审查"
+      }[r.rule_domain || r.rule_type] || r.rule_domain || r.rule_type || "-";
+
+      const sourceLabel = {
+        session: "会话提取",
+        mining: "周期挖掘",
+        manual: "管理员直接录入"
+      }[r.origin_scope] || r.origin_scope || "-";
+
+      view.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <button class="btn btn-ghost" onclick="backToRuleList()">← 返回列表</button>
+          <span class="badge badge-rule">规则（rule）</span>
+        </div>
+        <div style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">${escapeHtml(r.title || "未命名规则")}</div>
+        <div style="font-size: 12px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 4px;">${r.id}</div>
+        <div style="font-size: 12px; color: var(--accent-cyan); font-family: 'JetBrains Mono', monospace; margin-bottom: 20px;">${escapeHtml(r.rule_key || "-")}</div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="section-header">基础与控制属性</div>
+          <div class="detail-field"><div class="label">规则标识</div><div class="value">${escapeHtml(r.title || "-")} · <span style="font-family: 'JetBrains Mono', monospace; color: var(--accent-cyan);">${escapeHtml(r.rule_key || "-")}</span></div></div>
+          <div class="detail-field"><div class="label">当前状态</div><div class="value"><strong style="color: var(--accent-amber);">【${escapeHtml(statusLabel)}】</strong></div></div>
+          <div class="detail-field"><div class="label">拦截阶段</div><div class="value">${escapeHtml(stageLabel)}</div></div>
+          <div class="detail-field"><div class="label">规则来源</div><div class="value">${escapeHtml(sourceLabel)}</div></div>
+          <div class="detail-field"><div class="label">执行级别</div><div class="value">${escapeHtml(r.enforcement_level || "-")}</div></div>
+          <div class="detail-field"><div class="label">优先级</div><div class="value">${r.priority ?? "-"}</div></div>
+          <div class="detail-field"><div class="label">风险等级</div><div class="value">${escapeHtml(r.risk_level || "-")}</div></div>
+          <div class="detail-field"><div class="label">版本</div><div class="value">v${r.version ?? 1}</div></div>
+        </div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="section-header">双轨解释 · 人类可读解释（hard_constraint）</div>
+          <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.7; white-space: pre-wrap;">${escapeHtml(r.statement || "-")}</div>
+        </div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="section-header">双轨解释 · 机器执行 AST（mandatory_action）</div>
+          <pre class="code-block">${syntaxHighlight(JSON.stringify(r.trigger_conditions || {}, null, 2))}</pre>
+        </div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="section-header">适用对象（applies_to）</div>
+          <pre class="code-block">${syntaxHighlight(JSON.stringify(r.applies_to || [], null, 2))}</pre>
+        </div>
+
+        <div class="card">
+          <div class="section-header">底层溯源 · 一跳关联</div>
+          <div class="detail-field"><div class="label">来源引用</div><div class="value">${renderRuleSources(r)}</div></div>
+          <div class="detail-field"><div class="label">证据引用</div><div class="value">${renderRuleEvidence(r)}</div></div>
+          <div class="detail-field"><div class="label">覆写规则</div><div class="value">${r.supersedes_rule_id ? escapeHtml(r.supersedes_rule_id) : "无（首次创建）"}</div></div>
+          <div class="detail-field"><div class="label">创建时间</div><div class="value">${formatTime(r.created_at)}</div></div>
+        </div>
+      `;
+    }
+
+    function renderRuleSources(r) {
+      const refs = Array.isArray(r.source_refs) ? r.source_refs : [];
+      if (!refs.length) return `<span style="color: var(--text-muted);">无</span>`;
+      return refs.map(ref => {
+        const item = typeof ref === "string" ? { uri: ref } : ref;
+        return `<div class="source-ref" style="margin-bottom: 6px;">
+          <div style="font-family: 'JetBrains Mono', monospace; color: var(--accent-cyan); word-break: break-all;">${escapeHtml(item.uri || item.source_ref || JSON.stringify(ref))}</div>
+          ${item.excerpt ? `<div style="margin-top: 6px; color: var(--text-secondary); white-space: pre-wrap;">${escapeHtml(item.excerpt)}</div>` : ""}
+        </div>`;
+      }).join("");
+    }
+
+    function renderRuleEvidence(r) {
+      const refs = Array.isArray(r.evidence_refs) ? r.evidence_refs : [];
+      if (!refs.length) return `<span style="color: var(--text-muted);">无</span>`;
+      return refs.map(ref => {
+        const item = typeof ref === "string" ? { id: ref } : ref;
+        return `<div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent-blue); margin-bottom: 4px;">${escapeHtml(item.id || item.evidence_id || JSON.stringify(ref))}</div>`;
+      }).join("");
+    }
+
+    function backToRuleList() {
+      document.getElementById("rule-detail-view").style.display = "none";
+      document.getElementById("rule-list-view").style.display = "block";
+    }
+
+    // ============ 技能 ============
+    async function loadSkills() {
+      try {
+        const data = await apiGet("/internal/skills?limit=100");
+        skillCache = data.items || [];
+        const items = skillCache;
+        document.getElementById("skill-list").innerHTML = items.length ? `
+          <table class="table">
+            <thead><tr><th>ID</th><th>技能键</th><th>标题</th><th>成功率</th><th>状态</th><th>创建时间</th></tr></thead>
+            <tbody>${items.map((s, i) => `
+              <tr onclick="showSkillDetail(${i})">
+                <td>${s.id?.slice(0, 12) || "-"}...</td>
+                <td>${escapeHtml(s.skill_key || "-")}</td>
+                <td>${escapeHtml(s.title || "-")}</td>
+                <td>${s.success_rate != null ? s.success_rate + "%" : "-"}</td>
+                <td><span class="badge badge-skill">${s.status || "active"}</span></td>
+                <td>${formatTime(s.created_at)}</td>
+              </tr>
+            `).join("")}</tbody>
+          </table>
+        ` : `<div style="color: var(--text-muted);">暂无技能数据</div>`;
+      } catch (e) {
+        document.getElementById("skill-list").innerHTML = `<div style="color: var(--text-muted);">加载失败: ${e.message}</div>`;
+      }
+    }
+
+    function showSkillDetail(index) {
+      const s = skillCache[index];
+      if (!s) return;
+      document.getElementById("skill-list-view").style.display = "none";
+      const view = document.getElementById("skill-detail-view");
+      view.style.display = "block";
+      view.classList.add("animate-fade-in");
+
+      const procedure = s.procedure_payload || {};
+      const steps = Array.isArray(procedure.steps) ? procedure.steps
+        : Array.isArray(procedure.sop) ? procedure.sop
+        : Array.isArray(procedure) ? procedure
+        : [];
+
+      view.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <button class="btn btn-ghost" onclick="backToSkillList()">← 返回列表</button>
+          <span class="badge badge-skill">技能（skill）</span>
+        </div>
+        <div style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">${escapeHtml(s.title || s.skill_key || "未命名技能")}</div>
+        <div style="font-size: 12px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 4px;">${s.id}</div>
+        <div style="font-size: 12px; color: var(--accent-emerald); font-family: 'JetBrains Mono', monospace; margin-bottom: 20px;">${escapeHtml(s.skill_key || "-")}</div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="section-header">基础属性</div>
+          <div class="detail-field"><div class="label">技能标识</div><div class="value">${escapeHtml(s.skill_key || "-")}</div></div>
+          <div class="detail-field"><div class="label">技能描述</div><div class="value">${escapeHtml(s.description || "-")}</div></div>
+          <div class="detail-field"><div class="label">技能类型</div><div class="value">${escapeHtml(s.skill_type || "-")}</div></div>
+          <div class="detail-field"><div class="label">风险等级</div><div class="value">${escapeHtml(s.risk_level || "-")}</div></div>
+          <div class="detail-field"><div class="label">版本</div><div class="value">v${s.version ?? 1}</div></div>
+          <div class="detail-field"><div class="label">状态</div><div class="value"><span class="badge badge-skill">${s.status || "active"}</span></div></div>
+        </div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="section-header">核心执行链 · 标准作业程序 (SOP)</div>
+          ${steps.length ? steps.map((step, i) => {
+            const text = typeof step === "string" ? step : (step.action || step.description || step.step || JSON.stringify(step));
+            return `<div class="sop-step">
+              <div class="sop-num">${i + 1}</div>
+              <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">${escapeHtml(text)}</div>
+            </div>`;
+          }).join("") : `<div style="color: var(--text-muted);">无 SOP 步骤</div>`}
+        </div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="section-header">运行时关联 · 触发网格</div>
+          <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.7;">
+            ${renderSkillTriggerGrid(s)}
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="section-header">基础看板</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div><div class="stat-label">调用频次</div><div class="stat-value" style="color: var(--accent-cyan); font-size: 24px;">${s.metadata?.call_count ?? s.call_count ?? 0}</div></div>
+            <div><div class="stat-label">执行成功率</div><div class="stat-value" style="color: var(--accent-emerald); font-size: 24px;">${s.success_rate != null ? s.success_rate + "%" : "-"}</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">触发条件（trigger_conditions）</div>
+          <pre class="code-block">${syntaxHighlight(JSON.stringify(s.trigger_conditions || {}, null, 2))}</pre>
+        </div>
+      `;
+    }
+
+    function renderSkillTriggerGrid(s) {
+      const conds = s.trigger_conditions || {};
+      if (!conds || Object.keys(conds).length === 0) {
+        return `<span style="color: var(--text-muted);">无触发条件配置（需通过 Rule 的 trigger_conditions 关联）</span>`;
+      }
+      let html = "";
+      if (Array.isArray(conds.rules) && conds.rules.length) {
+        html += `<div style="margin-bottom: 8px;"><strong style="color: var(--accent-purple);">关联规则：</strong></div>`;
+        conds.rules.forEach(rk => {
+          html += `<div style="display: inline-block; margin-right: 8px; margin-bottom: 4px;"><span class="badge badge-rule">${escapeHtml(rk)}</span></div>`;
+        });
+      }
+      if (Array.isArray(conds.stages) && conds.stages.length) {
+        html += `<div style="margin-top: 12px; margin-bottom: 8px;"><strong style="color: var(--accent-amber);">拦截阶段：</strong></div>`;
+        conds.stages.forEach(st => {
+          const label = { requirement: "需求分析", coding: "代码编写", review: "代码审查" }[st] || st;
+          html += `<div style="display: inline-block; margin-right: 8px; margin-bottom: 4px;"><span class="badge badge-pending">${escapeHtml(label)}</span></div>`;
+        });
+      }
+      if (!html) {
+        html = `<pre class="code-block">${syntaxHighlight(JSON.stringify(conds, null, 2))}</pre>`;
+      }
+      return html;
+    }
+
+    function backToSkillList() {
+      document.getElementById("skill-detail-view").style.display = "none";
+      document.getElementById("skill-list-view").style.display = "block";
+    }
+
+    // ============ 审批 ============
+    function renderProposalCard(p, selected, clickFn) {
+      const payload = p.proposed_payload || {};
+      const title = payload.title || payload.skill_name || payload.rule_key || p.reason || p.id;
+      const type = p.target_object_type || "knowledge";
+      return `
+        <div class="proposal-card ${selected?.id === p.id ? 'selected' : ''}" onclick="${clickFn}('${p.id}')" style="margin-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span class="badge badge-${type}">${getTypeLabel(type)}</span>
+            <span class="badge badge-${p.status === 'resolved' ? (p.human_decision === 'approved' ? 'approved' : 'rejected') : 'pending'}">${p.status === 'recorded' ? '待审批' : (p.human_decision === 'approved' ? '已通过' : '已驳回')}</span>
+          </div>
+          <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; line-height: 1.4;">${escapeHtml(title)}</div>
+          <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 8px;">${getActionLabel(p.proposed_action)} · 风险 ${getRiskLabel(p.risk_level)}</div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--text-dim);">
+            <span>${p.id.slice(0, 16)}...</span>
+            <span>${formatTime(p.created_at).split(' ')[1]}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadProposals() {
+      try {
+        const data = await apiGet("/internal/governance/change-proposals?status=recorded&limit=100");
+        proposals = data.items || [];
+        document.getElementById("proposal-list").innerHTML = proposals.length
+          ? proposals.map(p => renderProposalCard(p, selectedProposal, "selectProposal")).join("")
+          : `<div style="color: var(--text-muted); text-align: center; padding: 40px 0;">暂无待审批提议</div>`;
+        updateHeaderCounts(proposals, history);
+      } catch (e) {
+        showToast("加载失败: " + e.message, "error");
+      }
+    }
+
+    async function loadHistory() {
+      try {
+        const approved = await apiGet("/internal/governance/change-proposals?status=resolved&human_decision=approved&limit=50");
+        const rejected = await apiGet("/internal/governance/change-proposals?status=resolved&human_decision=rejected&limit=50");
+        history = [...(approved.items || []), ...(rejected.items || [])].sort((a, b) => new Date(b.decided_at || b.updated_at) - new Date(a.decided_at || a.updated_at));
+        document.getElementById("history-list").innerHTML = history.length
+          ? history.map(p => renderProposalCard(p, selectedHistory, "selectHistory")).join("")
+          : `<div style="color: var(--text-muted); text-align: center; padding: 40px 0;">暂无审批历史</div>`;
+        updateHeaderCounts(proposals, history);
+      } catch (e) {
+        showToast("加载历史失败: " + e.message, "error");
+      }
+    }
+
+    function updateHeaderCounts(propItems, histItems) {
+      const pending = (propItems || proposals).filter(p => p.status === "recorded").length;
+      const approved = (histItems || history).filter(p => p.human_decision === "approved").length;
+      const rejected = (histItems || history).filter(p => p.human_decision === "rejected").length;
+      document.getElementById("header-pending").textContent = pending;
+      document.getElementById("nav-pending").textContent = pending;
+      document.getElementById("header-approved").textContent = approved;
+      document.getElementById("header-rejected").textContent = rejected;
+    }
+
+    function selectProposal(id) {
+      selectedProposal = proposals.find(p => p.id === id);
+      loadProposals();
+      renderProposalDetail();
+    }
+
+    function selectHistory(id) {
+      selectedHistory = history.find(p => p.id === id);
+      loadHistory();
+      renderHistoryDetail();
+    }
+
+    function renderProposalDetail() {
+      const detail = document.getElementById("proposal-detail");
+      if (!selectedProposal) {
+        detail.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);"><div>选择左侧提议查看详情</div></div>`;
+        return;
+      }
+      const p = selectedProposal;
+      const payload = p.proposed_payload || {};
+      const title = payload.title || payload.skill_name || payload.rule_key || p.reason || p.id;
+      const type = p.target_object_type || "knowledge";
+      detail.innerHTML = `
+        <div class="animate-fade-in">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="badge badge-${type}">${getTypeLabel(type)}</span>
+              <span style="font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">${p.id}</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-success" onclick="approveProposal('${p.id}')">通过</button>
+              <button class="btn btn-danger" onclick="rejectProposal('${p.id}')">驳回</button>
+            </div>
+          </div>
+          <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">${escapeHtml(title)}</div>
+          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6;">${escapeHtml(p.reason || "")}</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+            <div class="card" style="padding: 12px;">
+              <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">提议动作</div>
+              <div style="font-size: 13px; font-weight: 600;">${getActionLabel(p.proposed_action)}</div>
+            </div>
+            <div class="card" style="padding: 12px;">
+              <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">风险等级</div>
+              <div style="font-size: 13px; font-weight: 600;">${getRiskLabel(p.risk_level)}</div>
+            </div>
+            <div class="card" style="padding: 12px;">
+              <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">提交时间</div>
+              <div style="font-size: 13px; font-weight: 600;">${formatTime(p.created_at)}</div>
+            </div>
+            <div class="card" style="padding: 12px;">
+              <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">目标对象</div>
+              <div style="font-size: 13px; font-weight: 600; word-break: break-all;">${p.target_object_id || "-"}</div>
+            </div>
+          </div>
+          <div class="section-header">真实原始上下文</div>
+          <div style="margin-bottom: 20px;">${renderSourceEvidence(p)}</div>
+          <div class="section-header">JSON 提议详情</div>
+          <pre class="code-block">${syntaxHighlight(JSON.stringify(payload, null, 2))}</pre>
+        </div>
+      `;
+    }
+
+    function renderHistoryDetail() {
+      const detail = document.getElementById("history-detail");
+      if (!selectedHistory) return;
+      const p = selectedHistory;
+      const payload = p.proposed_payload || {};
+      const title = payload.title || payload.skill_name || payload.rule_key || p.reason || p.id;
+      const type = p.target_object_type || "knowledge";
+      detail.innerHTML = `
+        <div class="animate-fade-in">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+            <span class="badge badge-${type}">${getTypeLabel(type)}</span>
+            <span class="badge badge-${p.human_decision === 'approved' ? 'approved' : 'rejected'}">${p.human_decision === 'approved' ? '已通过' : '已驳回'}</span>
+            <span style="font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">${p.id}</span>
+          </div>
+          <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">${escapeHtml(title)}</div>
+          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6;">${escapeHtml(p.reason || "")}</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+            <div class="card" style="padding: 12px;">
+              <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">决定</div>
+              <div style="font-size: 13px; font-weight: 600;">${p.human_decision === 'approved' ? '通过' : '驳回'}</div>
+            </div>
+            <div class="card" style="padding: 12px;">
+              <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">决定时间</div>
+              <div style="font-size: 13px; font-weight: 600;">${formatTime(p.decided_at)}</div>
+            </div>
+          </div>
+          <div class="section-header">真实原始上下文</div>
+          <div style="margin-bottom: 20px;">${renderSourceEvidence(p)}</div>
+          <div class="section-header">JSON 提议详情</div>
+          <pre class="code-block">${syntaxHighlight(JSON.stringify(payload, null, 2))}</pre>
+        </div>
+      `;
+    }
+
+    async function approveProposal(id) {
+      try {
+        await apiPost(`/internal/governance/change-proposals/${id}/actions`, { action: "approve" });
+        showToast("已通过", "success");
+        await loadProposals();
+        await loadHistory();
+        selectedProposal = null;
+        renderProposalDetail();
+      } catch (e) {
+        showToast("通过失败: " + e.message, "error");
+      }
+    }
+
+    async function rejectProposal(id) {
+      try {
+        await apiPost(`/internal/governance/change-proposals/${id}/actions`, { action: "reject" });
+        showToast("已驳回", "error");
+        await loadProposals();
+        await loadHistory();
+        selectedProposal = null;
+        renderProposalDetail();
+      } catch (e) {
+        showToast("驳回失败: " + e.message, "error");
+      }
+    }
+
+    // ============ 仪表盘 ============
+    async function loadDashboard() {
+      try {
+        const [overview, runs] = await Promise.all([
+          apiGet("/internal/knowledge/ops/overview").catch(() => ({
+            document_count: 0, section_count: 0, evidence_count: 0, entity_count: 0,
+            fact_count: 0, relation_count: 0, active_review_count: 0, governance_job_count: 0,
+            corpus_governance: {}
+          })),
+          apiGet("/internal/knowledge/governance/runs?limit=10").catch(() => ({ items: [] }))
+        ]);
+
+        document.getElementById("doc-count").textContent = overview.document_count ?? 0;
+        document.getElementById("section-count").textContent = overview.section_count ?? 0;
+        document.getElementById("entity-count").textContent = overview.entity_count ?? 0;
+        document.getElementById("relation-count").textContent = overview.relation_count ?? 0;
+        document.getElementById("dash-fact-count").textContent = overview.fact_count ?? 0;
+        document.getElementById("dash-evidence-count").textContent = overview.evidence_count ?? 0;
+        document.getElementById("dash-review-count").textContent = overview.active_review_count ?? 0;
+        document.getElementById("dash-job-count").textContent = overview.governance_job_count ?? 0;
+
+        const cg = overview.corpus_governance || {};
+        const maxVal = Math.max(
+          cg.active_document_count || 0, cg.retired_document_count || 0,
+          cg.active_full_markdown_document_count || 0, cg.active_generated_document_count || 0,
+          cg.active_derived_knowledge_count || 0, 1
+        );
+        document.getElementById("dashboard-corpus-stats").innerHTML = `
+          ${renderBar("活跃文档", cg.active_document_count || 0, maxVal, "var(--accent-cyan)")}
+          ${renderBar("退役文档", cg.retired_document_count || 0, maxVal, "var(--text-muted)")}
+          ${renderBar("完整 Markdown 文档", cg.active_full_markdown_document_count || 0, maxVal, "var(--accent-blue)")}
+          ${renderBar("生成文档", cg.active_generated_document_count || 0, maxVal, "var(--accent-purple)")}
+          ${renderBar("派生知识", cg.active_derived_knowledge_count || 0, maxVal, "var(--accent-emerald)")}
+        `;
+
+        const items = runs.items || [];
+        document.getElementById("dashboard-governance-runs").innerHTML = items.length ? `
+          <table class="table">
+            <thead><tr><th>ID</th><th>状态</th><th>阶段</th><th>创建时间</th><th>更新时间</th></tr></thead>
+            <tbody>${items.map(r => `
+              <tr>
+                <td>${r.id?.slice(0, 16) || "-"}...</td>
+                <td><span style="color: ${r.status === 'completed' ? 'var(--accent-emerald)' : r.status === 'failed' ? 'var(--accent-rose)' : 'var(--accent-amber)'};">${r.status || "-"}</span></td>
+                <td>${escapeHtml(r.stage || "-")}</td>
+                <td>${formatTime(r.created_at)}</td>
+                <td>${formatTime(r.updated_at)}</td>
+              </tr>
+            `).join("")}</tbody>
+          </table>
+        ` : `<div style="color: var(--text-muted);">暂无治理运行记录</div>`;
+      } catch (e) {
+        console.error("loadDashboard failed", e);
+      }
+    }
+
+    // ============ 切换 ============
+    function switchSection(section) {
+      document.querySelectorAll('.nav-item[data-section]').forEach(el => el.classList.remove('active'));
+      document.querySelector(`.nav-item[data-section="${section}"]`).classList.add('active');
+      document.querySelectorAll('.section-content').forEach(el => { el.style.display = 'none'; el.classList.remove('animate-fade-in'); });
+      const target = document.getElementById(`section-${section}`);
+      target.style.display = section === 'approvals' || section === 'history' ? 'flex' : 'block';
+      target.classList.add('animate-fade-in');
+      if (section === 'memory') loadMemory();
+      if (section === 'knowledge') loadKnowledge();
+      if (section === 'rule') loadRules();
+      if (section === 'skill') loadSkills();
+      if (section === 'overview') loadOverview();
+      if (section === 'approvals') loadProposals();
+      if (section === 'history') loadHistory();
+      if (section === 'dashboard') loadDashboard();
+    }
+
+    document.getElementById('memory-kind').addEventListener('change', loadMemory);
+    document.getElementById('approval-search').addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase();
+      document.querySelectorAll('#proposal-list .proposal-card').forEach(card => {
+        card.style.display = card.textContent.toLowerCase().includes(term) ? 'block' : 'none';
+      });
+    });
+
+    loadOverview();
+    loadProposals();
+    loadHistory();
+  </script>
+</body>
+</html>

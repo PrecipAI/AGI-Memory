@@ -12,6 +12,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@fastify/static": "^9.1.3",
     "@super-agent/contracts": "file:../../libs/contracts",
     "@super-agent/db": "file:../../libs/db",
     "@zilliz/milvus2-sdk-node": "^2.6.14",

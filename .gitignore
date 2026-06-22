@@ -21,3 +21,15 @@ tmp/
 temp/
 *.tmp
 *.bak
+
+# 临时治理运行脚本
+qoderwork-governance-run*.mjs
+trae-session-export*.jsonl
+
+# 数据库导出
+db-export/
+
+# 临时工具脚本
+kill-port.ps1
+start-console.ps1
+start-memory-service.ps1

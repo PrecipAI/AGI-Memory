@@ -105,6 +105,14 @@ export class MemoryRouter {
       };
     }
 
+    if (candidate.verification_status === "verified" && isMatchedOrNa) {
+      return {
+        routingDecision: "generic-verified",
+        persistTarget: "memory",
+        candidateStatus: "persisted"
+      };
+    }
+
     return {
       routingDecision: "drop-no-match",
       persistTarget: "drop",

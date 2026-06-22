@@ -3,6 +3,8 @@ import {
   createKnowledgeContextBundle,
   createKnowledgeEvidence,
   createKnowledgeGovernanceJob,
+  markKnowledgeGovernanceJobRunning,
+  finalizeKnowledgeGovernanceJob,
   createSynthesizedKnowledge,
   createMemoryCandidate,
   createOrReplaceFactualMemory,
@@ -249,7 +251,15 @@ export async function runCodexHostGovernance(input: {
         host: preview.host,
         thread_id: preview.thread_id,
         applies_to_phase: candidate.applies_to_phase ?? ["governance", "integration", "execution"],
-        violation_behavior: candidate.violation_behavior ?? "warn"
+        violation_behavior: candidate.violation_behavior ?? "warn",
+        source_excerpt: candidate.source_excerpt,
+        source_refs: candidate.source_refs ?? [
+          {
+            source_kind: candidate.source_kind,
+            source_timestamp: candidate.source_timestamp,
+            source_excerpt: candidate.source_excerpt
+          }
+        ],
       },
       traceId: input.traceId
     });
@@ -335,7 +345,15 @@ export async function runCodexHostGovernance(input: {
         origin_scope: candidate.origin_scope,
         governance_level: candidate.governance_level,
         availability_scope: candidate.availability_scope,
-        promotion_status: candidate.promotion_status
+        promotion_status: candidate.promotion_status,
+        source_excerpt: candidate.source_excerpt,
+        source_refs: candidate.source_refs ?? [
+          {
+            source_kind: candidate.source_kind,
+            source_timestamp: candidate.source_timestamp,
+            source_excerpt: candidate.source_excerpt
+          }
+        ],
       },
       importance: candidate.confidence === "high" ? 90 : candidate.confidence === "medium" ? 78 : 62,
       confidenceScore: candidate.confidence === "high" ? 0.92 : candidate.confidence === "medium" ? 0.82 : 0.68,
@@ -483,6 +501,8 @@ export async function runCodexHostGovernance(input: {
       traceId: input.traceId
     });
 
+    await markKnowledgeGovernanceJobRunning({ jobId: governanceJobId });
+
     for (const candidate of knowledgeCandidates) {
       const canonicalContent = candidate.content ?? candidate.source_excerpt;
       const evidenceId = await createKnowledgeEvidence({
@@ -535,7 +555,15 @@ export async function runCodexHostGovernance(input: {
           origin_scope: candidate.origin_scope,
           governance_level: candidate.governance_level,
           availability_scope: candidate.availability_scope,
-          promotion_status: candidate.promotion_status
+          promotion_status: candidate.promotion_status,
+          source_excerpt: candidate.source_excerpt,
+          source_refs: candidate.source_refs ?? [
+            {
+              source_kind: candidate.source_kind,
+              source_timestamp: candidate.source_timestamp,
+              source_excerpt: candidate.source_excerpt
+            }
+          ],
         },
         traceId: input.traceId
       });
@@ -572,6 +600,38 @@ export async function runCodexHostGovernance(input: {
     },
     traceId: input.traceId
   });
+
+  // Finalize governance job in DB with acceptance report
+  const acceptanceReport1 = {
+    inputs_read: {
+      user_message_count: batch.raw_inputs.user_messages.length,
+      commentary_signal_count: batch.raw_inputs.commentary_messages.length,
+      command_count: batch.raw_inputs.commands.length,
+      tool_call_count: batch.raw_inputs.tool_calls.length,
+      mcp_call_count: batch.raw_inputs.mcp_calls.length
+    },
+    governance_candidates: {
+      rule_count: incremental.extraction_preview.rule_candidates.length,
+      memory_count: incremental.extraction_preview.memory_candidates.length,
+      skill_proposal_count: incremental.extraction_preview.skill_proposal_candidates.length,
+      knowledge_count: incremental.extraction_preview.knowledge_candidates.length,
+      governance_evidence_count: incremental.extraction_preview.governance_evidence_candidates.length
+    },
+    promoted_outputs: {
+      rule_count: ruleIds.length,
+      long_term_memory_count: memoryIds.length,
+      skill_proposal_count: skillProposalIds.length,
+      synthesized_knowledge_count: synthesizedKnowledgeIds.length
+    }
+  };
+
+  if (governanceJobId) {
+    await finalizeKnowledgeGovernanceJob({
+      jobId: governanceJobId,
+      runStatus: "completed",
+      resultPayload: acceptanceReport1
+    });
+  }
 
   return {
     host: preview.host,
@@ -643,6 +703,615 @@ export async function runCodexHostGovernance(input: {
     },
     warnings,
     preview: batch
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Host-agnostic governance run from a pre-built extraction_preview
+// ---------------------------------------------------------------------------
+
+export type GovernanceFromExtractionInput = {
+  tenantId: string;
+  scope: string;
+  traceId: string;
+  extraction_preview: ExtractionPreview;
+  host?: string;
+  task_request_id?: string | null;
+  fingerprint?: string | null;
+  governance_mode?: "rules_fallback" | "host_model" | null;
+};
+
+export type GovernanceFromExtractionResponse = {
+  host: string;
+  task_request_id: string;
+  governance_job_id: string | null;
+  persisted: HostGovernanceRunResponse["persisted"];
+  acceptance_report: HostGovernanceRunResponse["acceptance_report"];
+  warnings: string[];
+};
+
+export async function runGovernanceFromExtraction(input: GovernanceFromExtractionInput): Promise<GovernanceFromExtractionResponse> {
+  const hostName = input.host ?? "generic";
+  const taskRequestId = input.task_request_id?.trim() || randomUUID();
+  const warnings: string[] = [];
+
+  // Use the extraction_preview directly — skip previewHostCapture,
+  // buildGovernanceBatchPreview, applyHostModelGovernanceResult,
+  // and filterNewGovernanceCandidates (no Codex session to dedup against).
+  const extractionPreview: ExtractionPreview = {
+    rule_candidates: input.extraction_preview.rule_candidates ?? [],
+    memory_candidates: input.extraction_preview.memory_candidates ?? [],
+    skill_proposal_candidates: input.extraction_preview.skill_proposal_candidates ?? [],
+    knowledge_candidates: input.extraction_preview.knowledge_candidates ?? [],
+    governance_evidence_candidates: input.extraction_preview.governance_evidence_candidates ?? []
+  };
+
+  // Build a virtual preview object for persistence references that
+  // normally come from the Codex session file.
+  const virtualPreview = {
+    host: hostName as HostCaptureName,
+    thread_id: `generic-${taskRequestId}`,
+    thread_name: null as string | null,
+    session_file: `generic-extraction://${taskRequestId}`
+  };
+
+  // Still apply filterExisting* checks to avoid duplicate memories / rules / skill proposals
+  const existingMemoryFilter = await filterExistingFactualMemoryCandidates({
+    tenantId: input.tenantId,
+    scope: input.scope,
+    extractionPreview
+  });
+  extractionPreview.memory_candidates = existingMemoryFilter.memoryCandidates;
+
+  const existingRuleFilter = await filterExistingRuleCandidates({
+    tenantId: input.tenantId,
+    scope: input.scope,
+    extractionPreview
+  });
+  extractionPreview.rule_candidates = existingRuleFilter.ruleCandidates;
+
+  const existingSkillProposalFilter = await filterExistingSkillProposalCandidates({
+    tenantId: input.tenantId,
+    scope: input.scope,
+    extractionPreview
+  });
+  extractionPreview.skill_proposal_candidates = existingSkillProposalFilter.skillProposalCandidates;
+
+  // ---- Persistence (same logic as runCodexHostGovernance) ----
+
+  const ruleIds: string[] = [];
+  const ruleItems: HostGovernanceRunResponse["persisted"]["rule_items"] = [];
+  const memoryIds: string[] = [];
+  const memoryItems: HostGovernanceRunResponse["persisted"]["memory_items"] = [];
+  const memoryCandidateIds: string[] = [];
+  const skillProposalIds: string[] = [];
+  const skillProposalItems: HostGovernanceRunResponse["persisted"]["skill_proposal_items"] = [];
+  const synthesizedKnowledgeIds: string[] = [];
+  const knowledgeItems: HostGovernanceRunResponse["persisted"]["knowledge_items"] = [];
+  const evidenceIds: string[] = [];
+  const governanceDecisionIds: string[] = [];
+  let governanceEvidenceBundleId: string | null = null;
+
+  for (const candidate of extractionPreview.rule_candidates) {
+    const canonicalContent = candidate.content ?? candidate.source_excerpt;
+    const enforcementLevel = inferRuleEnforcement(canonicalContent);
+    const ruleId = await createOrReplaceRule({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      ruleKey: buildStableKey("host-rule", candidate.availability_scope, candidate.rule_domain ?? "execution", candidate.title, canonicalContent),
+      ruleType: `${candidate.rule_domain ?? "execution"}_rule`,
+      title: candidate.title,
+      statement: canonicalContent,
+      normalizedStatement: normalizeText(canonicalContent),
+      appliesTo: candidate.applies_to_phase ?? ["governance", "integration", "execution"],
+      triggerConditions: {
+        host: hostName,
+        source: "host_capture",
+        thread_id: virtualPreview.thread_id,
+        source_session_file: virtualPreview.session_file,
+        origin_scope: candidate.origin_scope,
+        governance_level: candidate.governance_level,
+        availability_scope: candidate.availability_scope,
+        promotion_status: candidate.promotion_status,
+        rule_domain: candidate.rule_domain ?? "execution",
+        rule_scope: candidate.rule_scope ?? candidate.origin_scope,
+        violation_behavior: candidate.violation_behavior ?? "warn"
+      },
+      enforcementLevel,
+      priority: enforcementLevel === "must_not" ? 95 : 90,
+      riskLevel: "medium",
+      verificationStatus: "verified",
+      sourceRefs: [buildSourceRef(virtualPreview.session_file, candidate.source_timestamp, candidate.source_kind)],
+      evidenceRefs: [],
+      originScope: candidate.origin_scope,
+      governanceLevel: candidate.governance_level,
+      availabilityScope: candidate.availability_scope,
+      promotionStatus: candidate.promotion_status,
+      ruleDomain: candidate.rule_domain ?? "execution",
+      ruleScope: candidate.rule_scope ?? candidate.origin_scope,
+      metadata: {
+        source_kind: candidate.source_kind,
+        host: hostName,
+        thread_id: virtualPreview.thread_id,
+        applies_to_phase: candidate.applies_to_phase ?? ["governance", "integration", "execution"],
+        violation_behavior: candidate.violation_behavior ?? "warn",
+        source_excerpt: candidate.source_excerpt,
+        source_refs: candidate.source_refs ?? [
+          {
+            source_kind: candidate.source_kind,
+            source_timestamp: candidate.source_timestamp,
+            source_excerpt: candidate.source_excerpt
+          }
+        ],
+      },
+      traceId: input.traceId
+    });
+    ruleIds.push(ruleId);
+    ruleItems.push({
+      id: ruleId,
+      title: candidate.title,
+      statement: canonicalContent,
+      enforcement_level: enforcementLevel,
+      rule_domain: candidate.rule_domain ?? "execution",
+      rule_scope: candidate.rule_scope ?? candidate.origin_scope,
+      governance_level: candidate.governance_level,
+      availability_scope: candidate.availability_scope,
+      promotion_status: candidate.promotion_status
+    });
+  }
+
+  for (const candidate of extractionPreview.memory_candidates) {
+    const taskStepId = randomUUID();
+    const sourceRef = buildSourceRef(virtualPreview.session_file, candidate.source_timestamp, candidate.source_kind);
+    const canonicalContent = candidate.content ?? candidate.source_excerpt;
+    const artifactTag = inferMemoryArtifactTag(candidate.title, canonicalContent);
+    const normalizedMemoryContent = normalizeMemoryContent(candidate.title, canonicalContent);
+    const candidatePayload = buildMemoryCandidatePayload({
+      preview: virtualPreview,
+      candidate,
+      title: candidate.title,
+      content: normalizedMemoryContent,
+      factType: artifactTag === "environment_fact" ? "environment_context" : "design_progress"
+    });
+
+    await ensureMemoryCandidateTaskEnvelope({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      taskRequestId,
+      taskStepId,
+      sourceRef,
+      artifactTag,
+      sideEffectClass: "read_only",
+      traceId: input.traceId
+    });
+    const created = await createMemoryCandidate({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      taskRequestId,
+      taskStepId,
+      sourceType: `${hostName}_host_capture`,
+      sourceRef,
+      artifactTag,
+      verificationStatus: "verified",
+      sideEffectClass: "read_only",
+      fingerprint: input.fingerprint ?? null,
+      fingerprintStatus: input.fingerprint ? "matched" : "matched_or_na",
+      routingDecision: "host-capture-memory",
+      rankScore: candidate.confidence === "high" ? 90 : candidate.confidence === "medium" ? 78 : 62,
+      candidatePayload,
+      llmRefinedPayload: null,
+      traceId: input.traceId
+    });
+    await updateMemoryCandidate({
+      candidateId: created.id,
+      status: "persisted",
+      routingDecision: "host-capture-memory",
+      rankScore: candidate.confidence === "high" ? 90 : candidate.confidence === "medium" ? 78 : 62
+    });
+    memoryCandidateIds.push(created.id);
+
+    const memoryId = await createOrReplaceFactualMemory({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      title: candidate.title,
+      content: normalizedMemoryContent,
+      normalizedContent: normalizeText(normalizedMemoryContent),
+      sourceRef,
+      verificationStatus: "verified",
+      fingerprintRequirement: null,
+      tags: ["host-capture", hostName, artifactTag],
+      metadata: {
+        candidate_id: created.id,
+        thread_id: virtualPreview.thread_id,
+        source_session_file: virtualPreview.session_file,
+        source_kind: candidate.source_kind,
+        origin_scope: candidate.origin_scope,
+        governance_level: candidate.governance_level,
+        availability_scope: candidate.availability_scope,
+        promotion_status: candidate.promotion_status,
+        source_excerpt: candidate.source_excerpt,
+        source_refs: candidate.source_refs ?? [
+          {
+            source_kind: candidate.source_kind,
+            source_timestamp: candidate.source_timestamp,
+            source_excerpt: candidate.source_excerpt
+          }
+        ],
+      },
+      importance: candidate.confidence === "high" ? 90 : candidate.confidence === "medium" ? 78 : 62,
+      confidenceScore: candidate.confidence === "high" ? 0.92 : candidate.confidence === "medium" ? 0.82 : 0.68,
+      originScope: candidate.origin_scope,
+      governanceLevel: candidate.governance_level,
+      availabilityScope: candidate.availability_scope,
+      promotionStatus: candidate.promotion_status,
+      traceId: input.traceId
+    });
+    memoryIds.push(memoryId);
+    memoryItems.push({
+      id: memoryId,
+      title: candidate.title,
+      content: normalizedMemoryContent,
+      artifact_tag: artifactTag,
+      origin_scope: candidate.origin_scope,
+      governance_level: candidate.governance_level,
+      availability_scope: candidate.availability_scope,
+      promotion_status: candidate.promotion_status
+    });
+  }
+
+  for (const candidate of extractionPreview.skill_proposal_candidates) {
+    const proposalId = await createSkillProposal({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      traceId: input.traceId,
+      title: candidate.title,
+      sourceRef: buildSourceRef(virtualPreview.session_file, candidate.source_timestamp, candidate.source_kind),
+      sourceExcerpt: candidate.source_excerpt,
+      targetSkill: candidate.target_skill ?? inferSkillKeyHints(candidate.title, candidate.content ?? candidate.source_excerpt)[0] ?? "unknown",
+      targetSkillPath: candidate.target_skill_path ?? null,
+      changeType: candidate.change_type ?? "update",
+      currentSection: candidate.current_section ?? null,
+      currentText: candidate.current_text ?? null,
+      currentGap: candidate.current_gap ?? null,
+      proposedText: candidate.proposed_text ?? candidate.content ?? candidate.source_excerpt,
+      proposedPatch: candidate.proposed_patch ?? null,
+      validationMethod: candidate.validation_method ?? null,
+      rationale: candidate.rationale ?? null,
+      proposalQuality: candidate.proposal_quality ?? "actionable",
+      originScope: candidate.origin_scope,
+      governanceLevel: candidate.governance_level,
+      availabilityScope: candidate.availability_scope,
+      promotionStatus: candidate.promotion_status,
+      mergedSourceCount: candidate.merged_source_count ?? 1,
+      sourceRefs: candidate.source_refs ?? [
+        {
+          source_kind: candidate.source_kind,
+          source_timestamp: candidate.source_timestamp,
+          source_excerpt: candidate.source_excerpt
+        }
+      ],
+      host: hostName as HostCaptureName,
+      threadId: virtualPreview.thread_id
+    });
+    skillProposalIds.push(proposalId);
+    skillProposalItems.push({
+      id: proposalId,
+      title: candidate.title,
+      target_skill: candidate.target_skill ?? inferSkillKeyHints(candidate.title, candidate.content ?? candidate.source_excerpt)[0] ?? "unknown",
+      target_skill_path: candidate.target_skill_path ?? null,
+      change_type: candidate.change_type ?? "update",
+      current_section: candidate.current_section ?? null,
+      current_text: candidate.current_text ?? null,
+      current_gap: candidate.current_gap ?? null,
+      proposed_text: candidate.proposed_text ?? candidate.content ?? candidate.source_excerpt,
+      proposed_patch: candidate.proposed_patch ?? null,
+      validation_method: candidate.validation_method ?? null,
+      rationale: candidate.rationale ?? null,
+      proposal_quality: candidate.proposal_quality ?? "actionable",
+      origin_scope: candidate.origin_scope,
+      governance_level: candidate.governance_level,
+      availability_scope: candidate.availability_scope,
+      promotion_status: candidate.promotion_status,
+      merged_source_count: candidate.merged_source_count ?? 1,
+      source_refs: candidate.source_refs ?? [
+        {
+          source_kind: candidate.source_kind,
+          source_timestamp: candidate.source_timestamp,
+          source_excerpt: candidate.source_excerpt
+        }
+      ],
+      source_excerpt: candidate.source_excerpt,
+      skill_key_hints: inferSkillKeyHints(
+        candidate.title,
+        `${candidate.target_skill ?? ""} ${candidate.proposed_text ?? candidate.content ?? candidate.source_excerpt}`
+      )
+    });
+  }
+
+  if (extractionPreview.governance_evidence_candidates.length > 0) {
+    governanceEvidenceBundleId = await createKnowledgeContextBundle({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      requestRef: taskRequestId,
+      bundleType: "governance_evidence_bundle",
+      summary: `${hostName} host governance collected ${extractionPreview.governance_evidence_candidates.length} governance evidence items for later synthesis and review.`,
+      warnings: [],
+      evidenceRefs: extractionPreview.governance_evidence_candidates.map((candidate) => ({
+        title: candidate.title,
+        evidence_category: candidate.evidence_category ?? null,
+        source_kind: candidate.source_kind,
+        source_timestamp: candidate.source_timestamp,
+        source_excerpt: candidate.source_excerpt,
+        reason: candidate.reason,
+        confidence: candidate.confidence
+      })),
+      assemblyTrace: {
+        host: hostName,
+        thread_id: virtualPreview.thread_id,
+        session_file: virtualPreview.session_file,
+        evidence_candidate_count: extractionPreview.governance_evidence_candidates.length,
+        evidence_titles: extractionPreview.governance_evidence_candidates.map((candidate) => candidate.title),
+        evidence_categories: extractionPreview.governance_evidence_candidates.map((candidate) => ({
+          title: candidate.title,
+          category: candidate.evidence_category ?? null
+        }))
+      },
+      traceId: input.traceId
+    });
+  } else {
+    warnings.push("No governance evidence candidates were collected from the extraction preview.");
+  }
+
+  let governanceJobId: string | null = null;
+  const knowledgeCandidates = extractionPreview.knowledge_candidates;
+  if (knowledgeCandidates.length > 0) {
+    governanceJobId = await createKnowledgeGovernanceJob({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      jobType: "host_capture_session_governance",
+      triggerType: "manual_run",
+      triggerRef: virtualPreview.thread_id,
+      targetObjectType: `${hostName}_thread`,
+      targetObjectIds: [],
+      priority: 70,
+      requestedBy: "api",
+      payload: {
+        host: hostName,
+        thread_id: virtualPreview.thread_id,
+        thread_name: virtualPreview.thread_name,
+        session_file: virtualPreview.session_file
+      },
+      traceId: input.traceId
+    });
+
+    await markKnowledgeGovernanceJobRunning({ jobId: governanceJobId });
+
+    for (const candidate of knowledgeCandidates) {
+      const canonicalContent = candidate.content ?? candidate.source_excerpt;
+      const evidenceId = await createKnowledgeEvidence({
+        tenantId: input.tenantId,
+        scope: input.scope,
+        memoryDomain: "knowledge",
+        evidenceType: "host_capture_excerpt",
+        sourceType: `${hostName}_session`,
+        sourceUri: buildSourceRef(virtualPreview.session_file, candidate.source_timestamp, candidate.source_kind),
+        rawRef: virtualPreview.thread_id,
+        contentExcerpt: candidate.source_excerpt,
+        contentHash: sha256(candidate.source_excerpt),
+        metadata: {
+          title: candidate.title,
+          reason: candidate.reason,
+          source_kind: candidate.source_kind,
+          thread_id: virtualPreview.thread_id,
+          source_session_file: virtualPreview.session_file,
+          origin_scope: candidate.origin_scope,
+          governance_level: candidate.governance_level,
+          availability_scope: candidate.availability_scope,
+          promotion_status: candidate.promotion_status
+        },
+        traceId: input.traceId
+      });
+      evidenceIds.push(evidenceId);
+      const synthesized = await createSynthesizedKnowledge({
+        tenantId: input.tenantId,
+        scope: input.scope,
+        memoryDomain: "knowledge",
+        knowledgeType: "execution_derived_knowledge",
+        title: candidate.title,
+        content: canonicalContent,
+        normalizedContent: normalizeText(canonicalContent),
+        lifecycleState: "curated",
+        reviewState: candidate.promotion_status === "needs_review" ? "pending_review" : "model_accepted",
+        recallState: candidate.promotion_status === "rejected" ? "inactive" : "active",
+        sourceObjectIds: [virtualPreview.thread_id],
+        evidenceIds: [evidenceId],
+        reasoningSummary:
+          "Derived from host task execution records. This is promoted only when execution outputs contain reusable external or cross-task knowledge.",
+        confidenceScore: candidate.confidence === "high" ? 0.9 : candidate.confidence === "medium" ? 0.78 : 0.62,
+        riskLevel: candidate.promotion_status === "needs_review" ? "medium" : "low",
+        governanceJobId,
+        metadata: {
+          source_kind: candidate.source_kind,
+          host: hostName,
+          thread_id: virtualPreview.thread_id,
+          source_session_file: virtualPreview.session_file,
+          origin_scope: candidate.origin_scope,
+          governance_level: candidate.governance_level,
+          availability_scope: candidate.availability_scope,
+          promotion_status: candidate.promotion_status,
+          source_excerpt: candidate.source_excerpt,
+          source_refs: candidate.source_refs ?? [
+            {
+              source_kind: candidate.source_kind,
+              source_timestamp: candidate.source_timestamp,
+              source_excerpt: candidate.source_excerpt
+            }
+          ],
+        },
+        traceId: input.traceId
+      });
+      if (synthesized.existed) {
+        continue;
+      }
+      synthesizedKnowledgeIds.push(synthesized.id);
+      knowledgeItems.push({
+        id: synthesized.id,
+        title: candidate.title,
+        content: canonicalContent
+      });
+    }
+  }
+
+  const contextBundleId = await createKnowledgeContextBundle({
+    tenantId: input.tenantId,
+    scope: input.scope,
+    requestRef: taskRequestId,
+    bundleType: "host_capture_governance_summary",
+    summary: `${hostName} host governance processed ${ruleIds.length} rules, ${memoryIds.length} memories, ${skillProposalIds.length} skill proposals, and ${synthesizedKnowledgeIds.length} synthesized knowledge objects.`,
+    warnings,
+    assemblyTrace: {
+      host: hostName,
+      thread_id: virtualPreview.thread_id,
+      session_file: virtualPreview.session_file,
+      governance_evidence_bundle_id: governanceEvidenceBundleId,
+      rule_ids: ruleIds,
+      memory_ids: memoryIds,
+      skill_proposal_ids: skillProposalIds,
+      synthesized_knowledge_ids: synthesizedKnowledgeIds,
+      evidence_ids: evidenceIds,
+      governance_decision_ids: governanceDecisionIds
+    },
+    traceId: input.traceId
+  });
+
+  // Build acceptance_report and finalize governance job in DB
+  const acceptanceReport = {
+    inputs_read: {
+      user_message_count: 0,
+      commentary_signal_count: 0,
+      command_count: 0,
+      tool_call_count: 0,
+      mcp_call_count: 0
+    },
+    governance_candidates: {
+      rule_count: extractionPreview.rule_candidates.length,
+      memory_count: extractionPreview.memory_candidates.length,
+      skill_proposal_count: extractionPreview.skill_proposal_candidates.length,
+      knowledge_count: extractionPreview.knowledge_candidates.length,
+      governance_evidence_count: extractionPreview.governance_evidence_candidates.length
+    },
+    promoted_outputs: {
+      rule_count: ruleIds.length,
+      long_term_memory_count: memoryIds.length,
+      skill_proposal_count: skillProposalIds.length,
+      synthesized_knowledge_count: synthesizedKnowledgeIds.length
+    },
+    governance_evidence_retained: extractionPreview.governance_evidence_candidates.map((candidate) => ({
+      title: candidate.title,
+      evidence_category: candidate.evidence_category ?? null,
+      source_kind: candidate.source_kind,
+      source_excerpt: candidate.source_excerpt
+    })),
+    discarded_or_not_promoted: {
+      knowledge_candidates_not_promoted: Math.max(0, extractionPreview.knowledge_candidates.length - synthesizedKnowledgeIds.length),
+      governance_candidates_left_as_evidence_only: extractionPreview.governance_evidence_candidates.length
+    },
+    incremental: {
+      new_candidate_count:
+        extractionPreview.rule_candidates.length +
+        extractionPreview.memory_candidates.length +
+        extractionPreview.skill_proposal_candidates.length +
+        extractionPreview.knowledge_candidates.length +
+        extractionPreview.governance_evidence_candidates.length,
+      skipped_previously_governed_count:
+        existingMemoryFilter.skippedExistingMemoryCount +
+        existingRuleFilter.skippedExistingRuleCount +
+        existingSkillProposalFilter.skippedExistingSkillProposalCount
+    }
+  };
+
+  if (governanceJobId) {
+    await finalizeKnowledgeGovernanceJob({
+      jobId: governanceJobId,
+      runStatus: "completed",
+      resultPayload: acceptanceReport
+    });
+  }
+
+  return {
+    host: hostName,
+    task_request_id: taskRequestId,
+    governance_job_id: governanceJobId,
+    persisted: {
+      rule_ids: ruleIds,
+      rule_items: ruleItems,
+      memory_ids: memoryIds,
+      memory_items: memoryItems,
+      memory_candidate_ids: memoryCandidateIds,
+      skill_proposal_ids: skillProposalIds,
+      skill_proposal_items: skillProposalItems,
+      synthesized_knowledge_ids: synthesizedKnowledgeIds,
+      knowledge_items: knowledgeItems,
+      evidence_ids: evidenceIds,
+      governance_evidence_bundle_id: governanceEvidenceBundleId,
+      governance_decision_ids: governanceDecisionIds,
+      context_bundle_id: contextBundleId
+    },
+    acceptance_report: {
+      inputs_read: {
+        user_message_count: 0,
+        commentary_signal_count: 0,
+        command_count: 0,
+        tool_call_count: 0,
+        mcp_call_count: 0
+      },
+      governance_candidates: {
+        rule_count: extractionPreview.rule_candidates.length,
+        memory_count: extractionPreview.memory_candidates.length,
+        skill_proposal_count: extractionPreview.skill_proposal_candidates.length,
+        knowledge_count: extractionPreview.knowledge_candidates.length,
+        governance_evidence_count: extractionPreview.governance_evidence_candidates.length
+      },
+      governance_evidence_retained: extractionPreview.governance_evidence_candidates.map((candidate) => ({
+        title: candidate.title,
+        evidence_category: candidate.evidence_category ?? null,
+        source_kind: candidate.source_kind,
+        source_excerpt: candidate.source_excerpt
+      })),
+      promoted_outputs: {
+        rule_count: ruleIds.length,
+        long_term_memory_count: memoryIds.length,
+        skill_proposal_count: skillProposalIds.length,
+        synthesized_knowledge_count: synthesizedKnowledgeIds.length
+      },
+      retained_non_answering_layers: {
+        governance_evidence_bundle_id: governanceEvidenceBundleId
+      },
+      discarded_or_not_promoted: {
+        knowledge_candidates_not_promoted: Math.max(0, extractionPreview.knowledge_candidates.length - synthesizedKnowledgeIds.length),
+        governance_candidates_left_as_evidence_only: extractionPreview.governance_evidence_candidates.length
+      },
+      incremental: {
+        new_candidate_count:
+          extractionPreview.rule_candidates.length +
+          extractionPreview.memory_candidates.length +
+          extractionPreview.skill_proposal_candidates.length +
+          extractionPreview.knowledge_candidates.length +
+          extractionPreview.governance_evidence_candidates.length,
+        skipped_previously_governed_count:
+          existingMemoryFilter.skippedExistingMemoryCount +
+          existingRuleFilter.skippedExistingRuleCount +
+          existingSkillProposalFilter.skippedExistingSkillProposalCount
+      },
+      governance_model: {
+        mode: input.governance_mode ?? "host_model",
+        model_ref: null,
+        generated_at: null,
+        accepted: true,
+        warning: null
+      }
+    },
+    warnings
   };
 }
 

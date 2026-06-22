@@ -1,4 +1,7 @@
+import { randomUUID } from "node:crypto";
+import path from "node:path";
 import Fastify from "fastify";
+import fastifyStatic from "@fastify/static";
 import type {
   FeedbackCommitRequest,
   FeedbackCommitResponse,
@@ -26,6 +29,8 @@ import {
   applyGovernanceChangeProposal,
   createMemoryAccessLog,
   getEnvironmentFingerprint,
+  listActiveRules,
+  listActiveSkills,
   listGovernanceChangeProposals,
 } from "@super-agent/db";
 import { CandidateRanker } from "./candidateRanker.js";
@@ -36,7 +41,7 @@ import { listHostSessions, normalizeHost, previewHostCapture } from "./hostCaptu
 import { buildGovernanceBatchPreview } from "./hostCaptureGovernanceBatch.js";
 import { summarizeSession } from "./sessionSummarizer.js";
 import { buildMissionBrief } from "./governancePromptBuilder.js";
-import { runCodexHostGovernance } from "./hostCaptureGovernanceRun.js";
+import { runCodexHostGovernance, runGovernanceFromExtraction } from "./hostCaptureGovernanceRun.js";
 import { ingestKnowledgeDocument } from "./knowledgeDocumentIngest.js";
 import { handleGovernanceRun } from "./governanceRun.js";
 import { IndexSyncAdapter } from "./indexSyncAdapter.js";
@@ -95,6 +100,18 @@ export function buildMemoryServiceApp() {
 
     reply.status(frozen.statusCode).send(frozen.body);
   });
+
+  const publicDir = path.resolve(process.cwd(), "public");
+
+  app.register(fastifyStatic, {
+    root: publicDir,
+    prefix: "/_static/",
+    wildcard: false
+  });
+
+  app.get("/", async (request, reply) => reply.sendFile("index.html", publicDir));
+  app.get("/governance-console", async (request, reply) => reply.sendFile("index.html", publicDir));
+  app.get("/dashboard", async (request, reply) => reply.sendFile("index.html", publicDir));
 
   app.get("/healthz", async () => ({
     service: "memory-service",
@@ -172,6 +189,37 @@ export function buildMemoryServiceApp() {
       body,
       retrievalGate
     });
+  });
+
+  app.get("/internal/rules", async (request) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "rules-list");
+    const query = (request.query ?? {}) as { limit?: number | string };
+    const limit = typeof query.limit === "string" ? Number(query.limit) : query.limit;
+    const items = await listActiveRules({
+      tenantId: context.tenantId,
+      scope: context.scope
+    });
+    return {
+      tenant_id: context.tenantId,
+      scope: context.scope,
+      items: Number.isFinite(limit) ? items.slice(0, limit) : items
+    };
+  });
+
+  app.get("/internal/skills", async (request) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "skills-list");
+    const query = (request.query ?? {}) as { limit?: number | string };
+    const limit = typeof query.limit === "string" ? Number(query.limit) : query.limit;
+    const items = await listActiveSkills({
+      tenantId: context.tenantId,
+      scope: context.scope,
+      fingerprint: null
+    });
+    return {
+      tenant_id: context.tenantId,
+      scope: context.scope,
+      items: Number.isFinite(limit) ? items.slice(0, limit) : items
+    };
   });
 
   app.post("/internal/rules/gate/check", async (request) => {
@@ -510,6 +558,98 @@ export function buildMemoryServiceApp() {
           host,
           host_home: body.host_home ?? body.codex_home ?? null,
           thread_id: body.thread_id ?? null
+        }
+      };
+    }
+  });
+
+  app.post("/internal/governance/run-from-extraction", async (request, reply) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "governance-run-from-extraction");
+    const body = (request.body ?? {}) as {
+      extraction_preview: any;
+      host?: string;
+      governance_mode?: "rules_fallback" | "host_model";
+      refresh_memory?: boolean;
+      rebuild_resident?: boolean;
+      sync_index?: boolean;
+      run_lifecycle?: boolean;
+      fingerprint?: string | null;
+    };
+
+    if (!body.extraction_preview) {
+      reply.status(400);
+      return {
+        error_code: "MISSING_EXTRACTION_PREVIEW",
+        message: "extraction_preview is required in the request body",
+        trace_id: context.traceId,
+        retryable: false,
+        details: {}
+      };
+    }
+
+    const taskRequestId = randomUUID();
+
+    try {
+      const governanceResult = await runGovernanceFromExtraction({
+        tenantId: context.tenantId,
+        scope: context.scope,
+        traceId: context.traceId,
+        extraction_preview: body.extraction_preview,
+        host: body.host ?? "generic",
+        task_request_id: taskRequestId,
+        fingerprint: body.fingerprint ?? null,
+        governance_mode: body.governance_mode ?? "host_model"
+      });
+
+      let rebuiltSnapshotId: string | null = null;
+      let indexSync: Awaited<ReturnType<IndexSyncAdapter["sync"]>> | null = null;
+      let lifecycleResult: Awaited<ReturnType<LifecycleWorker["run"]>> | null = null;
+
+      if (body.rebuild_resident !== false) {
+        rebuiltSnapshotId = await residentBuilder.rebuild({
+          tenantId: context.tenantId,
+          scope: context.scope,
+          fingerprint: body.fingerprint ?? null,
+          dirtyReason: "governance-run-from-extraction",
+          traceId: context.traceId
+        });
+      }
+
+      if (body.sync_index !== false) {
+        indexSync = await indexSyncAdapter.sync({
+          tenantId: context.tenantId,
+          scope: context.scope,
+          fingerprint: body.fingerprint ?? null
+        });
+      }
+
+      if (body.run_lifecycle !== false && indexSync) {
+        lifecycleResult = await lifecycleWorker.run({
+          tenantId: context.tenantId,
+          scope: context.scope,
+          fingerprint: body.fingerprint ?? null,
+          traceId: context.traceId,
+          staleIndexIds: indexSync.stale_index_ids
+        });
+      }
+
+      return {
+        ...governanceResult,
+        rebuilt_snapshot_id: rebuiltSnapshotId,
+        index_sync: indexSync,
+        lifecycle: lifecycleResult
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      reply.status(400);
+      return {
+        error_code: "GOVERNANCE_RUN_FROM_EXTRACTION_FAILED",
+        message,
+        trace_id: context.traceId,
+        retryable: false,
+        details: {
+          host: body.host ?? "generic",
+          task_request_id: taskRequestId
         }
       };
     }
