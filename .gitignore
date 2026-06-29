@@ -33,3 +33,8 @@ db-export/
 kill-port.ps1
 start-console.ps1
 start-memory-service.ps1
+
+# 根目录临时调试脚本
+/tmp-*.mjs
+/tmp-*/
+

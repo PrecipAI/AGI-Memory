@@ -1,0 +1,290 @@
+[
+  {
+    "domain": "react",
+    "layer": "rule",
+    "title": "React Hooks 必须在顶层调用",
+    "content": "React Hooks 必须在顶层调用，禁止在条件分支、循环或嵌套函数中调用 useState/useEffect/useMemo，否则会破坏 Hook 调用顺序导致状态错乱",
+    "origin_scope": "global",
+    "tags": ["react", "hooks", "rules-of-hooks", "useState", "useEffect"]
+  },
+  {
+    "domain": "react",
+    "layer": "rule",
+    "title": "useEffect 必须完整声明依赖数组",
+    "content": "useEffect 必须在依赖数组中声明所有外部引用的可变变量，禁止使用空依赖数组 [] 配合非空函数体，避免闭包陷阱",
+    "origin_scope": "global",
+    "tags": ["react", "useEffect", "dependency-array", "closure-trap"]
+  },
+  {
+    "domain": "react",
+    "layer": "rule",
+    "title": "禁止直接修改 state",
+    "content": "禁止直接修改 state，必须使用 setState 返回新对象，对数组使用展开运算符 [...] 而非 push/pop，否则 React 不会触发重渲染",
+    "origin_scope": "global",
+    "tags": ["react", "state", "immutability", "setState"]
+  },
+  {
+    "domain": "react",
+    "layer": "rule",
+    "title": "组件间状态共享必须走 props 或 Context",
+    "content": "组件间共享状态必须通过 props 自上而下传递或使用 Context，禁止通过全局变量、模块级变量、ref 跨组件直接读写状态",
+    "origin_scope": "global",
+    "tags": ["react", "state-sharing", "props", "context", "global-state"]
+  },
+  {
+    "domain": "react",
+    "layer": "rule",
+    "title": "useMemo/useCallback 必须按需使用",
+    "content": "性能优化场景下，对昂贵计算使用 useMemo，对引用相等的回调使用 useCallback，禁止对所有函数无脑包裹以避免反向优化",
+    "origin_scope": "global",
+    "tags": ["react", "performance", "useMemo", "useCallback", "optimization"]
+  },
+  {
+    "domain": "react",
+    "layer": "memory",
+    "title": "React 18 并发渲染与自动 batching",
+    "content": "React 18 默认开启并发渲染， batching 范围扩大到异步回调（Promise/setTimeout/事件处理器），无需再依赖 ReactDOM.unstable_batchedUpdates",
+    "origin_scope": "global",
+    "tags": ["react", "react-18", "concurrent-rendering", "batching"]
+  },
+  {
+    "domain": "react",
+    "layer": "memory",
+    "title": "React Server Components 的能力边界",
+    "content": "React Server Components 仅在服务端运行，不能使用 useState/useEffect/浏览器 API，适合做数据获取和静态内容渲染，client 端交互仍需 'use client' 指令",
+    "origin_scope": "global",
+    "tags": ["react", "rsc", "server-components", "use-client"]
+  },
+  {
+    "domain": "react",
+    "layer": "skill",
+    "title": "useMemo/useCallback 性能优化判断流程",
+    "content": "useMemo/useCallback 性能优化判断：仅当子组件是 PureComponent/memo 包裹、且 props 中包含该函数/值、且渲染成本超过比较成本时才使用；普通内联函数直接传递，不要为了优化而优化",
+    "origin_scope": "global",
+    "tags": ["react", "performance", "useMemo", "useCallback", "memo", "decision-flow"]
+  },
+  {
+    "domain": "typescript",
+    "layer": "rule",
+    "title": "tsconfig.json 必须开启 strict 模式",
+    "content": "tsconfig.json 必须开启 strict: true，包含 noImplicitAny、strictNullChecks、strictFunctionTypes、strictBindCallApply、strictPropertyInitialization",
+    "origin_scope": "global",
+    "tags": ["typescript", "tsconfig", "strict", "type-safety"]
+  },
+  {
+    "domain": "typescript",
+    "layer": "rule",
+    "title": "禁止使用 any 类型",
+    "content": "禁止使用 any 类型，必须用 unknown 替代并在使用前做类型收窄；例外：.d.ts 补丁文件和迁移过渡期可临时保留 any 并加 @ts-expect-error 注释",
+    "origin_scope": "global",
+    "tags": ["typescript", "any", "unknown", "type-narrowing", "ts-expect-error"]
+  },
+  {
+    "domain": "typescript",
+    "layer": "rule",
+    "title": "公共 API 必须显式标注类型",
+    "content": "类型声明必须显式导出，禁止依赖默认导出的类型推断；公共 API 的入参和返回值必须显式标注类型，不能用推断",
+    "origin_scope": "global",
+    "tags": ["typescript", "type-annotation", "public-api", "explicit-types"]
+  },
+  {
+    "domain": "typescript",
+    "layer": "rule",
+    "title": "禁止用 as 强制类型断言绕过检查",
+    "content": "禁止使用 as 强制类型断言绕过类型检查，必须通过类型守卫（typeof/instanceof/in）或用户自定义类型谓词（x is T）做收窄",
+    "origin_scope": "global",
+    "tags": ["typescript", "type-assertion", "type-guard", "type-predicate", "narrowing"]
+  },
+  {
+    "domain": "typescript",
+    "layer": "rule",
+    "title": "枚举必须使用 const enum 或字符串字面量联合",
+    "content": "枚举必须使用 const enum 或字符串字面量联合类型，禁止数字枚举（除特殊场景），避免反向映射带来的运行时开销和歧义",
+    "origin_scope": "global",
+    "tags": ["typescript", "enum", "const-enum", "union-type", "reverse-mapping"]
+  },
+  {
+    "domain": "typescript",
+    "layer": "rule",
+    "title": "工具类型禁止滥用宽泛兜底",
+    "content": "工具类型必须基于条件类型和映射类型组合，禁止滥用 any[] 或 Record<string, any> 等宽泛类型作为兜底",
+    "origin_scope": "global",
+    "tags": ["typescript", "utility-types", "conditional-types", "mapped-types", "record"]
+  },
+  {
+    "domain": "typescript",
+    "layer": "memory",
+    "title": "TypeScript 5.0 const 类型参数",
+    "content": "TypeScript 5.0 引入 const 类型参数，可在泛型函数中推断字面量类型，替代以往的 as const 后缀，使 API 更类型安全",
+    "origin_scope": "global",
+    "tags": ["typescript", "typescript-5", "const-type-parameter", "literal-type", "generics"]
+  },
+  {
+    "domain": "nodejs",
+    "layer": "rule",
+    "title": "async 函数必须捕获异常",
+    "content": "async 函数必须用 try/catch 包裹可能失败的异步调用，或在调用处用 .catch() 兜底，禁止让未捕获的 Promise rejection 冒泡到进程级 unhandledRejection",
+    "origin_scope": "global",
+    "tags": ["nodejs", "async-await", "promise", "error-handling", "unhandledRejection"]
+  },
+  {
+    "domain": "nodejs",
+    "layer": "rule",
+    "title": "请求路径禁止同步 API",
+    "content": "禁止在请求处理路径上使用 fs.readFileSync/child_process.execSync 等同步 API，必须使用 fs.promises 或异步等价物，避免阻塞事件循环",
+    "origin_scope": "global",
+    "tags": ["nodejs", "event-loop", "async", "fs-promises", "blocking"]
+  },
+  {
+    "domain": "nodejs",
+    "layer": "rule",
+    "title": "区分 OperationalError 与 ProgrammerError",
+    "content": "错误处理必须区分 OperationalError（可预期业务错误）和 ProgrammerError（编程 bug），前者可重试，后者必须让进程崩溃并重启",
+    "origin_scope": "global",
+    "tags": ["nodejs", "error-handling", "operational-error", "programmer-error", "resilience"]
+  },
+  {
+    "domain": "nodejs",
+    "layer": "rule",
+    "title": "生产日志必须结构化且脱敏",
+    "content": "日志必须使用结构化 JSON 格式（pino/winston），禁止 console.log 用于生产环境；敏感字段（password/token/secret）必须脱敏",
+    "origin_scope": "global",
+    "tags": ["nodejs", "logging", "pino", "winston", "structured-logging", "sensitive-data"]
+  },
+  {
+    "domain": "nodejs",
+    "layer": "rule",
+    "title": "HTTP 客户端必须设置超时与重试",
+    "content": "HTTP 客户端必须设置超时（默认 30s）和重试次数（默认 3 次，指数退避），禁止无超时的 fetch/axios 调用",
+    "origin_scope": "global",
+    "tags": ["nodejs", "http", "fetch", "axios", "timeout", "retry", "backoff"]
+  },
+  {
+    "domain": "nodejs",
+    "layer": "rule",
+    "title": "环境变量启动时集中校验",
+    "content": "环境变量必须在启动时集中校验（dotenv + zod/joi），缺失关键变量（DATABASE_URL/PORT/SECRET）必须 fail-fast 退出",
+    "origin_scope": "global",
+    "tags": ["nodejs", "env", "dotenv", "zod", "joi", "fail-fast", "validation"]
+  },
+  {
+    "domain": "nodejs",
+    "layer": "memory",
+    "title": "Node.js 20 全局 fetch 与 undici",
+    "content": "Node.js 20 默认启用 --experimental-fetch，全局 fetch 可用；推荐使用 undici 替代 axios 以获得更好的性能和 HTTP/2 支持",
+    "origin_scope": "global",
+    "tags": ["nodejs", "node-20", "fetch", "undici", "http2"]
+  },
+  {
+    "domain": "git",
+    "layer": "rule",
+    "title": "commit message 必须遵循 Conventional Commits",
+    "content": "commit message 必须使用 Conventional Commits 规范，格式为 type(scope): subject，type 限定为 feat/fix/docs/style/refactor/perf/test/chore/build/ci/revert",
+    "origin_scope": "global",
+    "tags": ["git", "commit", "conventional-commits", "type-scope-subject"]
+  },
+  {
+    "domain": "git",
+    "layer": "rule",
+    "title": "subject 行长度与语气规范",
+    "content": "subject 行必须小于 72 字符，使用祈使句（英文）或动宾短语（中文），禁止以句号结尾",
+    "origin_scope": "global",
+    "tags": ["git", "commit", "subject", "imperative", "line-length"]
+  },
+  {
+    "domain": "git",
+    "layer": "rule",
+    "title": "feat/fix 必须在 body 说明 what 与 why",
+    "content": "feat 和 fix 类型必须在 body 中说明 what 和 why，body 每行不超过 100 字符，使用空行分隔段落",
+    "origin_scope": "global",
+    "tags": ["git", "commit", "body", "feat", "fix", "what-why"]
+  },
+  {
+    "domain": "git",
+    "layer": "rule",
+    "title": "BREAKING CHANGE 必须显式声明",
+    "content": "BREAKING CHANGE 必须在 footer 显式声明，格式为 BREAKING CHANGE: 描述 或 type!: subject 中加 ! 标记",
+    "origin_scope": "global",
+    "tags": ["git", "commit", "breaking-change", "footer", "semver"]
+  },
+  {
+    "domain": "git",
+    "layer": "rule",
+    "title": "禁止直推 main/master 分支",
+    "content": "禁止直接 push 到 main/master 分支，必须通过 Pull Request 合并；PR 必须经过至少一人 code review 批准",
+    "origin_scope": "global",
+    "tags": ["git", "branch-protection", "pull-request", "code-review", "main-branch"]
+  },
+  {
+    "domain": "git",
+    "layer": "rule",
+    "title": "分支命名格式规范",
+    "content": "分支命名必须使用 type/issue-number-short-desc 格式，如 feat/123-add-login-form、fix/456-memory-leak",
+    "origin_scope": "global",
+    "tags": ["git", "branch", "naming-convention", "issue-number"]
+  },
+  {
+    "domain": "git",
+    "layer": "memory",
+    "title": "Conventional Commits type 与 semver 映射",
+    "content": "Conventional Commits 1.0.0 规范定义的 type 与语义化版本号的映射关系：feat 对应 MINOR，fix/perf 对应 PATCH，BREAKING CHANGE 对应 MAJOR",
+    "origin_scope": "global",
+    "tags": ["git", "conventional-commits", "semver", "versioning", "mapping"]
+  },
+  {
+    "domain": "code-review",
+    "layer": "rule",
+    "title": "code review 必须检查输入校验",
+    "content": "code review 必须检查输入校验：所有外部输入（HTTP 参数/文件内容/环境变量）必须经过 schema 校验和边界检查，禁止直接信任客户端数据",
+    "origin_scope": "global",
+    "tags": ["code-review", "input-validation", "schema", "boundary-check", "security"]
+  },
+  {
+    "domain": "code-review",
+    "layer": "rule",
+    "title": "code review 必须检查 SQL 注入",
+    "content": "code review 必须检查 SQL 注入：所有数据库查询必须使用参数化查询（$1/$2 占位符或 ORM 的 prepared statement），禁止字符串拼接 SQL",
+    "origin_scope": "global",
+    "tags": ["code-review", "sql-injection", "parameterized-query", "prepared-statement", "orm", "security"]
+  },
+  {
+    "domain": "code-review",
+    "layer": "rule",
+    "title": "code review 必须检查权限控制",
+    "content": "code review 必须检查权限控制：每个 API 端点必须显式声明所需权限并在中间件中校验，禁止依赖前端隐藏按钮作为权限边界",
+    "origin_scope": "global",
+    "tags": ["code-review", "authorization", "permission", "middleware", "api-security"]
+  },
+  {
+    "domain": "code-review",
+    "layer": "rule",
+    "title": "code review 必须检查资源释放",
+    "content": "code review 必须检查资源释放：文件句柄、数据库连接、网络 socket 必须在 finally 或 using 语法中关闭，禁止裸 open 不 close",
+    "origin_scope": "global",
+    "tags": ["code-review", "resource-management", "finally", "using", "file-handle", "connection", "socket"]
+  },
+  {
+    "domain": "code-review",
+    "layer": "rule",
+    "title": "code review 必须检查错误信息泄露",
+    "content": "code review 必须检查错误信息泄露：生产环境错误响应禁止返回堆栈信息、SQL 错误详情、内部路径，统一返回 error_code + message",
+    "origin_scope": "global",
+    "tags": ["code-review", "error-handling", "info-leak", "stack-trace", "error-code", "security"]
+  },
+  {
+    "domain": "code-review",
+    "layer": "memory",
+    "title": "code review 的四个核心维度",
+    "content": "code review 应聚焦于架构合理性、可维护性、性能瓶颈、安全风险四个维度，不要纠结于代码风格（风格由 linter 和 formatter 自动处理）",
+    "origin_scope": "global",
+    "tags": ["code-review", "architecture", "maintainability", "performance", "security", "linter"]
+  },
+  {
+    "domain": "code-review",
+    "layer": "memory",
+    "title": "code review 反馈语言规范",
+    "content": "code review 的反馈必须对事不对人，使用建议性语言（建议.../是否考虑...），禁止使用指责性语言（你写错了/这不对），并给出具体的改进方案或参考链接",
+    "origin_scope": "global",
+    "tags": ["code-review", "feedback", "communication", "constructive", "code-of-conduct"]
+  }
+]

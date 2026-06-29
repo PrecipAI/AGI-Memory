@@ -15,8 +15,23 @@ import {
 } from "@super-agent/db";
 import type { CodexCapturePreviewRequest, HostCaptureName } from "./codexHostCapture.js";
 import { previewHostCapture } from "./hostCapture.js";
-import { buildGovernanceBatchPreview, type GovernanceBatchPreviewResponse } from "./hostCaptureGovernanceBatch.js";
+import { buildGovernanceBatchPreview, VALID_KNOWLEDGE_TYPES, type GovernanceBatchPreviewResponse, type GovernanceKnowledgeType } from "./hostCaptureGovernanceBatch.js";
 import { applyHostModelGovernanceResult } from "./hostModelGovernanceAdapter.js";
+import { detectConflicts } from "./governance/L2ConflictDetector.js";
+import { scanEvolution } from "./governance/L3EvolutionScanner.js";
+import { runCognitiveEngine } from "./governance/L4CognitiveEngine.js";
+
+// Hard guard: never persist unnamed or empty-title/empty-content assets.
+// The adapter already validates this, but this is the persistence-layer backstop
+// that prevents UI "未命名记忆" rows from any code path.
+function requirePresentFields(layer: string, index: number, title: string, content: string) {
+  if (typeof title !== "string" || title.trim() === "") {
+    throw new Error(`[persistence guard] ${layer}[${index}] has empty title; refusing to create unnamed asset`);
+  }
+  if (typeof content !== "string" || content.trim() === "") {
+    throw new Error(`[persistence guard] ${layer}[${index}] has empty content; refusing to create empty asset`);
+  }
+}
 
 type HostGovernanceRunRequest = CodexCapturePreviewRequest & {
   host?: HostCaptureName | null;
@@ -89,9 +104,13 @@ export type HostGovernanceRunResponse = {
       }>;
       source_excerpt: string;
       skill_key_hints: string[];
+      description: string | null;
+      applicable_scenarios: string[] | null;
+      non_applicable_scenarios: string[] | null;
+      execution_steps: string[] | null;
     }>;
     synthesized_knowledge_ids: string[];
-    knowledge_items: Array<{ id: string; title: string; content: string }>;
+    knowledge_items: Array<{ id: string; title: string; content: string; knowledge_type: string }>;
     evidence_ids: string[];
     governance_evidence_bundle_id: string | null;
     governance_decision_ids: string[];
@@ -152,6 +171,112 @@ type SourceKind = "user_message" | "assistant_message" | "commentary" | "command
 type CandidatePreview = GovernanceBatchPreviewResponse["extraction_preview"]["rule_candidates"][number];
 type ExtractionPreview = GovernanceBatchPreviewResponse["extraction_preview"];
 
+function assertValidKnowledgeType(value: unknown, context: string): GovernanceKnowledgeType {
+  if (typeof value === "string" && VALID_KNOWLEDGE_TYPES.has(value as GovernanceKnowledgeType)) {
+    return value as GovernanceKnowledgeType;
+  }
+  throw new Error(
+    `[P0-b] Invalid knowledge_type "${String(value)}" ${context}. ` +
+      `Allowed types: ${[...VALID_KNOWLEDGE_TYPES].join(", ")}. ` +
+      `execution_derived_knowledge is not a valid synthesis type.`
+  );
+}
+
+function resolveKnowledgePromotionState(
+  governanceMode: "host_model" | "rules_fallback",
+  candidatePromotionStatus: unknown,
+  options?: { knowledgeTypeValid?: boolean }
+): { lifecycleState: string; reviewState: string; recallState: string } {
+  // P0-a: fallback path must never write active knowledge, regardless of candidate promotion_status.
+  // P0-b: schema-invalid knowledge_type must never be active either.
+  const knowledgeTypeValid = options?.knowledgeTypeValid ?? true;
+  if (governanceMode !== "host_model" || !knowledgeTypeValid) {
+    return {
+      lifecycleState: "pending_review",
+      reviewState: "pending_review",
+      recallState: "audit_only"
+    };
+  }
+  if (candidatePromotionStatus === "rejected") {
+    return { lifecycleState: "pending_review", reviewState: "rejected", recallState: "inactive" };
+  }
+  if (candidatePromotionStatus === "needs_review") {
+    return { lifecycleState: "pending_review", reviewState: "pending_review", recallState: "audit_only" };
+  }
+  // host_model + active/accepted
+  return { lifecycleState: "curated", reviewState: "model_accepted", recallState: "active" };
+}
+
+function normalizeKnowledgeType(value: unknown): { type: GovernanceKnowledgeType; valid: boolean } {
+  if (typeof value === "string" && VALID_KNOWLEDGE_TYPES.has(value as GovernanceKnowledgeType)) {
+    return { type: value as GovernanceKnowledgeType, valid: true };
+  }
+  // P0-b: map legacy/invalid types to the most conservative spec-39 type and quarantine via resolveKnowledgePromotionState.
+  // "synthesis" is a high-claim flagship type (§7.1) and must not be used as a catch-all for unknown garbage.
+  return { type: "external_fact", valid: false };
+}
+
+// P0-a: fallback path must never promote any candidate to active, regardless of type.
+// Force every candidate in the batch to a quarantine promotion status before persistence.
+function forceFallbackQuarantine(batch: { extraction_preview: ExtractionPreview }): void {
+  // Candidate-level promotion status only supports candidate | active | needs_review | rejected.
+  // "needs_review" is the closest candidate-level signal; persistence will map it to
+  // DB-level pending_review / audit_only quarantine states.
+  for (const candidate of batch.extraction_preview.rule_candidates) {
+    candidate.promotion_status = "needs_review";
+  }
+  for (const candidate of batch.extraction_preview.memory_candidates) {
+    candidate.promotion_status = "needs_review";
+  }
+  for (const candidate of batch.extraction_preview.skill_proposal_candidates) {
+    candidate.promotion_status = "needs_review";
+  }
+  for (const candidate of batch.extraction_preview.knowledge_candidates) {
+    candidate.promotion_status = "needs_review";
+  }
+}
+
+// P0-a: after persisting fallback candidates, hard-update the DB rows to quarantine states.
+// Persistence helpers may still create rows with status='active' for needs_review candidates;
+// this post-step is the backstop that guarantees nothing from fallback reaches active recall.
+async function quarantineFallbackOutputs(input: {
+  tenantId: string;
+  scope: string;
+  traceId: string;
+  ruleIds: string[];
+  memoryIds: string[];
+  skillProposalIds: string[];
+  synthesizedKnowledgeIds: string[];
+}): Promise<void> {
+  const pool = getPool();
+  if (input.ruleIds.length > 0) {
+    await pool.query(
+      `UPDATE rule SET status = 'parked' WHERE tenant_id = $1 AND scope = $2 AND id = ANY($3::uuid[])`,
+      [input.tenantId, input.scope, input.ruleIds]
+    );
+  }
+  if (input.memoryIds.length > 0) {
+    await pool.query(
+      `UPDATE memory SET status = 'parked' WHERE tenant_id = $1 AND scope = $2 AND id = ANY($3::uuid[])`,
+      [input.tenantId, input.scope, input.memoryIds]
+    );
+  }
+  if (input.skillProposalIds.length > 0) {
+    await pool.query(
+      `UPDATE governance_change_proposal SET status = 'parked' WHERE tenant_id = $1 AND scope = $2 AND id = ANY($3::uuid[])`,
+      [input.tenantId, input.scope, input.skillProposalIds]
+    );
+  }
+  if (input.synthesizedKnowledgeIds.length > 0) {
+    await pool.query(
+      `UPDATE kp_synthesized_knowledge
+       SET lifecycle_state = 'pending_review', review_state = 'pending_review', recall_state = 'audit_only'
+       WHERE tenant_id = $1 AND scope = $2 AND id = ANY($3::uuid[])`,
+      [input.tenantId, input.scope, input.synthesizedKnowledgeIds]
+    );
+  }
+}
+
 export async function runCodexHostGovernance(input: {
   tenantId: string;
   scope: string;
@@ -160,13 +285,25 @@ export async function runCodexHostGovernance(input: {
 }): Promise<HostGovernanceRunResponse> {
   const preview = await previewHostCapture(input.body);
   const fallbackBatch = buildGovernanceBatchPreview(preview);
+  // P0-c: do not silently default to rules_fallback. Force explicit opt-in.
+  const governanceMode = input.body.governance_mode ?? "host_model";
   const { batch, modelAdapter } = applyHostModelGovernanceResult({
     batch: fallbackBatch,
-    governanceMode: input.body.governance_mode ?? "rules_fallback",
+    governanceMode,
     hostModelResult: input.body.host_model_result ?? null
   });
+  // P0-a: if the pipeline resolved to rules_fallback, nothing may reach active recall.
+  if (modelAdapter.mode === "rules_fallback") {
+    forceFallbackQuarantine(batch);
+  }
   const taskRequestId = input.body.task_request_id?.trim() || randomUUID();
   const warnings = [...batch.ingestion_readiness.warnings];
+  if (modelAdapter.warning) {
+    warnings.push(modelAdapter.warning);
+  }
+  if (governanceMode === "rules_fallback") {
+    warnings.push(`[P0-c] Governance ran in rules_fallback mode for ${preview.session_file}. All knowledge candidates are quarantined for review.`);
+  }
   const incremental = await filterNewGovernanceCandidates({
     tenantId: input.tenantId,
     scope: input.scope,
@@ -211,6 +348,7 @@ export async function runCodexHostGovernance(input: {
 
   for (const candidate of incremental.extraction_preview.rule_candidates) {
     const canonicalContent = candidate.content ?? candidate.source_excerpt;
+    requirePresentFields("rule_candidate", ruleIds.length, candidate.title, canonicalContent);
     const enforcementLevel = inferRuleEnforcement(canonicalContent);
     const ruleId = await createOrReplaceRule({
       tenantId: input.tenantId,
@@ -283,6 +421,7 @@ export async function runCodexHostGovernance(input: {
     const canonicalContent = candidate.content ?? candidate.source_excerpt;
     const artifactTag = inferMemoryArtifactTag(candidate.title, canonicalContent);
     const normalizedMemoryContent = normalizeMemoryContent(candidate.title, canonicalContent);
+    requirePresentFields("memory_candidate", memoryIds.length, candidate.title, normalizedMemoryContent);
     const candidatePayload = buildMemoryCandidatePayload({
       preview,
       candidate,
@@ -377,6 +516,7 @@ export async function runCodexHostGovernance(input: {
   }
 
   for (const candidate of incremental.extraction_preview.skill_proposal_candidates) {
+    requirePresentFields("skill_proposal_candidate", skillProposalIds.length, candidate.title, candidate.proposed_text ?? candidate.source_excerpt);
     const proposalId = await createSkillProposal({
       tenantId: input.tenantId,
       scope: input.scope,
@@ -408,7 +548,11 @@ export async function runCodexHostGovernance(input: {
         }
       ],
       host: preview.host,
-      threadId: preview.thread_id
+      threadId: preview.thread_id,
+      description: candidate.description ?? null,
+      applicableScenarios: candidate.applicable_scenarios ?? null,
+      nonApplicableScenarios: candidate.non_applicable_scenarios ?? null,
+      executionSteps: candidate.execution_steps ?? null
     });
     skillProposalIds.push(proposalId);
     skillProposalItems.push({
@@ -441,7 +585,11 @@ export async function runCodexHostGovernance(input: {
       skill_key_hints: inferSkillKeyHints(
         candidate.title,
         `${candidate.target_skill ?? ""} ${candidate.proposed_text ?? candidate.content ?? candidate.source_excerpt}`
-      )
+      ),
+      description: candidate.description ?? null,
+      applicable_scenarios: candidate.applicable_scenarios ?? null,
+      non_applicable_scenarios: candidate.non_applicable_scenarios ?? null,
+      execution_steps: candidate.execution_steps ?? null
     });
   }
 
@@ -505,6 +653,17 @@ export async function runCodexHostGovernance(input: {
 
     for (const candidate of knowledgeCandidates) {
       const canonicalContent = candidate.content ?? candidate.source_excerpt;
+      requirePresentFields("knowledge_candidate", synthesizedKnowledgeIds.length, candidate.title, canonicalContent);
+      const knowledgeTypeResult = normalizeKnowledgeType(candidate.knowledge_type);
+      if (!knowledgeTypeResult.valid) {
+        warnings.push(
+          `[P0-b] Invalid knowledge_type "${String(candidate.knowledge_type)}" for "${candidate.title}". ` +
+            `Normalized to "${knowledgeTypeResult.type}" and quarantined for review.`
+        );
+      }
+      const promotionState = resolveKnowledgePromotionState(governanceMode, candidate.promotion_status, {
+        knowledgeTypeValid: knowledgeTypeResult.valid
+      });
       const evidenceId = await createKnowledgeEvidence({
         tenantId: input.tenantId,
         scope: input.scope,
@@ -533,13 +692,13 @@ export async function runCodexHostGovernance(input: {
         tenantId: input.tenantId,
         scope: input.scope,
         memoryDomain: "knowledge",
-        knowledgeType: "execution_derived_knowledge",
+        knowledgeType: knowledgeTypeResult.type,
         title: candidate.title,
         content: canonicalContent,
         normalizedContent: normalizeText(canonicalContent),
-        lifecycleState: "curated",
-        reviewState: candidate.promotion_status === "needs_review" ? "pending_review" : "model_accepted",
-        recallState: candidate.promotion_status === "rejected" ? "inactive" : "active",
+        lifecycleState: promotionState.lifecycleState,
+        reviewState: promotionState.reviewState,
+        recallState: promotionState.recallState,
         sourceObjectIds: [preview.thread_id],
         evidenceIds: [evidenceId],
         reasoningSummary:
@@ -556,6 +715,7 @@ export async function runCodexHostGovernance(input: {
           governance_level: candidate.governance_level,
           availability_scope: candidate.availability_scope,
           promotion_status: candidate.promotion_status,
+          governance_mode: governanceMode,
           source_excerpt: candidate.source_excerpt,
           source_refs: candidate.source_refs ?? [
             {
@@ -574,9 +734,24 @@ export async function runCodexHostGovernance(input: {
       knowledgeItems.push({
         id: synthesized.id,
         title: candidate.title,
-        content: canonicalContent
+        content: canonicalContent,
+        knowledge_type: knowledgeTypeResult.type
       });
     }
+  }
+
+  // P0-a backstop: if this run resolved to rules_fallback, hard-quarantine every
+  // persisted output so that nothing reaches active recall.
+  if (modelAdapter.mode === "rules_fallback") {
+    await quarantineFallbackOutputs({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      traceId: input.traceId,
+      ruleIds,
+      memoryIds,
+      skillProposalIds,
+      synthesizedKnowledgeIds
+    });
   }
 
   const contextBundleId = await createKnowledgeContextBundle({
@@ -725,6 +900,11 @@ export type GovernanceFromExtractionResponse = {
   host: string;
   task_request_id: string;
   governance_job_id: string | null;
+  pipeline: {
+    l2: { skipped_count: number; merged_count: number; conflict_proposal_count: number; skipped_titles: string[] };
+    l3: { signals_count: number; relations_count: number; proposal_ids: string[] };
+    l4: { hypotheses_count: number; synthesized_knowledge_ids: string[]; proposal_ids: string[]; meta_cognition: Record<string, unknown> };
+  } | null;
   persisted: HostGovernanceRunResponse["persisted"];
   acceptance_report: HostGovernanceRunResponse["acceptance_report"];
   warnings: string[];
@@ -734,17 +914,26 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
   const hostName = input.host ?? "generic";
   const taskRequestId = input.task_request_id?.trim() || randomUUID();
   const warnings: string[] = [];
+  // P0-c: do not silently default to rules_fallback in the generic extraction path either.
+  const governanceMode = input.governance_mode ?? "host_model";
+  if (governanceMode === "rules_fallback") {
+    warnings.push(`[P0-c] Governance ran in rules_fallback mode for generic-extraction://${taskRequestId}. All candidates are quarantined for review.`);
+  }
 
   // Use the extraction_preview directly — skip previewHostCapture,
-  // buildGovernanceBatchPreview, applyHostModelGovernanceResult,
-  // and filterNewGovernanceCandidates (no Codex session to dedup against).
-  const extractionPreview: ExtractionPreview = {
+  // buildGovernanceBatchPreview, and filterNewGovernanceCandidates
+  // (no Codex session to dedup against).
+  let extractionPreview: ExtractionPreview = {
     rule_candidates: input.extraction_preview.rule_candidates ?? [],
     memory_candidates: input.extraction_preview.memory_candidates ?? [],
     skill_proposal_candidates: input.extraction_preview.skill_proposal_candidates ?? [],
     knowledge_candidates: input.extraction_preview.knowledge_candidates ?? [],
     governance_evidence_candidates: input.extraction_preview.governance_evidence_candidates ?? []
   };
+
+  if (governanceMode === "rules_fallback") {
+    forceFallbackQuarantine({ extraction_preview: extractionPreview });
+  }
 
   // Build a virtual preview object for persistence references that
   // normally come from the Codex session file.
@@ -754,6 +943,32 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
     thread_name: null as string | null,
     session_file: `generic-extraction://${taskRequestId}`
   };
+
+  // P0.5: host_model mode must still run schema/cross-layer audit even when
+  // the caller supplied a pre-built extraction_preview.
+  if (governanceMode === "host_model") {
+    const virtualBatch: GovernanceBatchPreviewResponse = {
+      host: virtualPreview.host,
+      thread_id: virtualPreview.thread_id,
+      thread_name: virtualPreview.thread_name,
+      session_file: virtualPreview.session_file,
+      ingestion_readiness: { status: "ready", warnings: [] },
+      raw_inputs: {
+        user_messages: [],
+        commentary_messages: [],
+        commands: [],
+        tool_calls: [],
+        mcp_calls: []
+      },
+      extraction_preview: extractionPreview
+    };
+    const validated = applyHostModelGovernanceResult({
+      batch: virtualBatch,
+      governanceMode,
+      hostModelResult: { extraction_preview: extractionPreview }
+    });
+    extractionPreview = validated.batch.extraction_preview;
+  }
 
   // Still apply filterExisting* checks to avoid duplicate memories / rules / skill proposals
   const existingMemoryFilter = await filterExistingFactualMemoryCandidates({
@@ -776,6 +991,71 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
     extractionPreview
   });
   extractionPreview.skill_proposal_candidates = existingSkillProposalFilter.skillProposalCandidates;
+
+  // ── L2: 语义冲突检测（写入前） ──────────────────────
+  const l2SkippedTitles: string[] = [];
+  let l2MergedCount = 0;
+  let l2ConflictProposalCount = 0;
+
+  const survivingRuleCandidates: typeof extractionPreview.rule_candidates = [];
+  for (const candidate of extractionPreview.rule_candidates) {
+    const candidateContent = candidate.content ?? candidate.source_excerpt ?? "";
+    try {
+      const result = await detectConflicts({
+        tenantId: input.tenantId,
+        scope: input.scope,
+        traceId: input.traceId,
+        layer: "rule",
+        candidateId: candidate.title,
+        candidateTitle: candidate.title,
+        candidateContent,
+      });
+      l2ConflictProposalCount += result.conflicts.length;
+      if (result.blockingAction === "SKIP") {
+        l2SkippedTitles.push(candidate.title);
+        continue;
+      }
+      if (result.mergedContent) {
+        candidate.content = result.mergedContent;
+        l2MergedCount++;
+      }
+      survivingRuleCandidates.push(candidate);
+    } catch (err) {
+      console.error(`[L2] detectConflicts failed for rule "${candidate.title}":`, err instanceof Error ? err.message : String(err));
+      survivingRuleCandidates.push(candidate);
+    }
+  }
+  extractionPreview.rule_candidates = survivingRuleCandidates;
+
+  const survivingMemoryCandidates: typeof extractionPreview.memory_candidates = [];
+  for (const candidate of extractionPreview.memory_candidates) {
+    const candidateContent = candidate.content ?? candidate.source_excerpt ?? "";
+    try {
+      const result = await detectConflicts({
+        tenantId: input.tenantId,
+        scope: input.scope,
+        traceId: input.traceId,
+        layer: "memory",
+        candidateId: candidate.title,
+        candidateTitle: candidate.title,
+        candidateContent,
+      });
+      l2ConflictProposalCount += result.conflicts.length;
+      if (result.blockingAction === "SKIP") {
+        l2SkippedTitles.push(candidate.title);
+        continue;
+      }
+      if (result.mergedContent) {
+        candidate.content = result.mergedContent;
+        l2MergedCount++;
+      }
+      survivingMemoryCandidates.push(candidate);
+    } catch (err) {
+      console.error(`[L2] detectConflicts failed for memory "${candidate.title}":`, err instanceof Error ? err.message : String(err));
+      survivingMemoryCandidates.push(candidate);
+    }
+  }
+  extractionPreview.memory_candidates = survivingMemoryCandidates;
 
   // ---- Persistence (same logic as runCodexHostGovernance) ----
 
@@ -991,7 +1271,11 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
         }
       ],
       host: hostName as HostCaptureName,
-      threadId: virtualPreview.thread_id
+      threadId: virtualPreview.thread_id,
+      description: candidate.description ?? null,
+      applicableScenarios: candidate.applicable_scenarios ?? null,
+      nonApplicableScenarios: candidate.non_applicable_scenarios ?? null,
+      executionSteps: candidate.execution_steps ?? null
     });
     skillProposalIds.push(proposalId);
     skillProposalItems.push({
@@ -1024,7 +1308,11 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       skill_key_hints: inferSkillKeyHints(
         candidate.title,
         `${candidate.target_skill ?? ""} ${candidate.proposed_text ?? candidate.content ?? candidate.source_excerpt}`
-      )
+      ),
+      description: candidate.description ?? null,
+      applicable_scenarios: candidate.applicable_scenarios ?? null,
+      non_applicable_scenarios: candidate.non_applicable_scenarios ?? null,
+      execution_steps: candidate.execution_steps ?? null
     });
   }
 
@@ -1088,6 +1376,17 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
 
     for (const candidate of knowledgeCandidates) {
       const canonicalContent = candidate.content ?? candidate.source_excerpt;
+      requirePresentFields("knowledge_candidate", synthesizedKnowledgeIds.length, candidate.title, canonicalContent);
+      const knowledgeTypeResult = normalizeKnowledgeType(candidate.knowledge_type);
+      if (!knowledgeTypeResult.valid) {
+        warnings.push(
+          `[P0-b] Invalid knowledge_type "${String(candidate.knowledge_type)}" for "${candidate.title}". ` +
+            `Normalized to "${knowledgeTypeResult.type}" and quarantined for review.`
+        );
+      }
+      const promotionState = resolveKnowledgePromotionState(governanceMode, candidate.promotion_status, {
+        knowledgeTypeValid: knowledgeTypeResult.valid
+      });
       const evidenceId = await createKnowledgeEvidence({
         tenantId: input.tenantId,
         scope: input.scope,
@@ -1116,13 +1415,13 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
         tenantId: input.tenantId,
         scope: input.scope,
         memoryDomain: "knowledge",
-        knowledgeType: "execution_derived_knowledge",
+        knowledgeType: knowledgeTypeResult.type,
         title: candidate.title,
         content: canonicalContent,
         normalizedContent: normalizeText(canonicalContent),
-        lifecycleState: "curated",
-        reviewState: candidate.promotion_status === "needs_review" ? "pending_review" : "model_accepted",
-        recallState: candidate.promotion_status === "rejected" ? "inactive" : "active",
+        lifecycleState: promotionState.lifecycleState,
+        reviewState: promotionState.reviewState,
+        recallState: promotionState.recallState,
         sourceObjectIds: [virtualPreview.thread_id],
         evidenceIds: [evidenceId],
         reasoningSummary:
@@ -1139,6 +1438,7 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
           governance_level: candidate.governance_level,
           availability_scope: candidate.availability_scope,
           promotion_status: candidate.promotion_status,
+          governance_mode: governanceMode,
           source_excerpt: candidate.source_excerpt,
           source_refs: candidate.source_refs ?? [
             {
@@ -1157,9 +1457,23 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       knowledgeItems.push({
         id: synthesized.id,
         title: candidate.title,
-        content: canonicalContent
+        content: canonicalContent,
+        knowledge_type: knowledgeTypeResult.type
       });
     }
+  }
+
+  // P0-a backstop: rules_fallback must not leave any output active.
+  if (governanceMode === "rules_fallback") {
+    await quarantineFallbackOutputs({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      traceId: input.traceId,
+      ruleIds,
+      memoryIds,
+      skillProposalIds,
+      synthesizedKnowledgeIds
+    });
   }
 
   const contextBundleId = await createKnowledgeContextBundle({
@@ -1238,10 +1552,70 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
     });
   }
 
+  // ── L3 + L4: 演进扫描 + 认知引擎（写入后） ──────────
+  let pipelineResult: {
+    l2: { skipped_count: number; merged_count: number; conflict_proposal_count: number; skipped_titles: string[] };
+    l3: { signals_count: number; relations_count: number; proposal_ids: string[] };
+    l4: { hypotheses_count: number; synthesized_knowledge_ids: string[]; proposal_ids: string[]; meta_cognition: Record<string, unknown> };
+  } | null = null;
+
+  try {
+    const l3Result = await scanEvolution({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      traceId: input.traceId,
+      newRuleIds: ruleIds,
+      newMemoryIds: memoryIds,
+      newSkillIds: skillProposalIds,
+      newKnowledgeIds: synthesizedKnowledgeIds,
+    });
+
+    const l4Result = await runCognitiveEngine({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      traceId: input.traceId,
+      newRuleIds: ruleIds,
+      newMemoryIds: memoryIds,
+      newSkillIds: skillProposalIds,
+      newKnowledgeIds: synthesizedKnowledgeIds,
+      l3Signals: l3Result.signals.map((s) => ({
+        entryId: s.entryId,
+        layer: s.layer,
+        signalKind: s.signalKind,
+        signalData: s.signalData,
+        title: s.title,
+        content: s.content,
+      })),
+    });
+
+    pipelineResult = {
+      l2: {
+        skipped_count: l2SkippedTitles.length,
+        merged_count: l2MergedCount,
+        conflict_proposal_count: l2ConflictProposalCount,
+        skipped_titles: l2SkippedTitles,
+      },
+      l3: {
+        signals_count: l3Result.signals.length,
+        relations_count: l3Result.relations.length,
+        proposal_ids: l3Result.proposalIds,
+      },
+      l4: {
+        hypotheses_count: l4Result.hypotheses.length,
+        synthesized_knowledge_ids: l4Result.synthesizedKnowledgeIds,
+        proposal_ids: l4Result.proposalIds,
+        meta_cognition: l4Result.metaCognition,
+      },
+    };
+  } catch (error) {
+    warnings.push(`[pipeline] L3/L4 failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+
   return {
     host: hostName,
     task_request_id: taskRequestId,
     governance_job_id: governanceJobId,
+    pipeline: pipelineResult,
     persisted: {
       rule_ids: ruleIds,
       rule_items: ruleItems,
@@ -1304,11 +1678,11 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
           existingSkillProposalFilter.skippedExistingSkillProposalCount
       },
       governance_model: {
-        mode: input.governance_mode ?? "host_model",
+        mode: governanceMode,
         model_ref: null,
         generated_at: null,
         accepted: true,
-        warning: null
+        warning: governanceMode === "rules_fallback" ? "rules_fallback: outputs quarantined for review" : null
       }
     },
     warnings
@@ -1545,10 +1919,7 @@ function buildCandidateEventHash(preview: { host: string; thread_id: string; ses
 }
 
 function inferRuleEnforcement(text: string): "must" | "must_not" {
-  const normalized = normalizeText(text);
-  if (normalized.includes("不要") || normalized.includes("不允许") || normalized.includes("must_not") || normalized.includes("must not") || normalized.includes("涓嶈")) {
-    return "must_not";
-  }
+  // 硬拦截：所有治理抽取的规则统一为 must，禁止 must_not
   return "must";
 }
 
@@ -1589,7 +1960,7 @@ function buildMemoryCandidatePayload(input: {
 }
 
 function normalizeMemoryContent(title: string, excerpt: string): string {
-  if (title === "Project path context" || title === "Workspace path context" || title === "Workspace context") {
+  if (title === "项目路径上下文" || title === "工作空间路径上下文" || title === "工作空间上下文") {
     const match = excerpt.match(/[A-Za-z]:\\[A-Za-z0-9_. ()\-\[\]]+(?:\\[A-Za-z0-9_. ()\-\[\]]+)*/);
     if (match?.[0]) {
       return match[0].trim();
@@ -1628,6 +1999,10 @@ async function createSkillProposal(input: {
   }>;
   host: HostCaptureName;
   threadId: string;
+  description: string | null;
+  applicableScenarios: string[] | null;
+  nonApplicableScenarios: string[] | null;
+  executionSteps: string[] | null;
 }): Promise<string> {
   const pool = getPool();
   const result = await pool.query<{ id: string }>(
@@ -1639,7 +2014,7 @@ async function createSkillProposal(input: {
     )
     VALUES (
       $1, $2, 'recorded', 1, 'skill', NULL,
-      'skill_update_proposal', $3::jsonb, 'host_capture_skill_refinement_requires_human_approval', 'medium', $4,
+      'skill_update_proposal', $3::jsonb, '技能变更需要人工审批', 'medium', $4,
       $5, $6, $7, $8, $9
     )
     RETURNING id
@@ -1648,7 +2023,7 @@ async function createSkillProposal(input: {
       input.tenantId,
       input.scope,
       JSON.stringify({
-        proposal_title: input.title,
+        title: input.title,
         target_skill: input.targetSkill,
         target_skill_path: input.targetSkillPath,
         change_type: input.changeType,
@@ -1666,6 +2041,10 @@ async function createSkillProposal(input: {
         promotion_status: input.promotionStatus,
         merged_source_count: input.mergedSourceCount,
         source_refs: input.sourceRefs,
+        description: input.description,
+        applicable_scenarios: input.applicableScenarios,
+        non_applicable_scenarios: input.nonApplicableScenarios,
+        execution_steps: input.executionSteps,
         model_adapter: {
           mode: "rules_fallback",
           status: "available_for_external_llm",

@@ -1,14 +1,80 @@
 import type { CodexCapturePreviewResponse, HostCaptureName } from "./codexHostCapture.js";
 
 type GovernanceSourceKind = "user_message" | "assistant_message" | "commentary" | "command" | "tool" | "mcp";
-type GovernanceOriginScope = "session" | "project" | "workspace" | "user" | "team" | "global";
-type GovernanceAvailabilityScope =
-  | "session_only"
-  | "project_reusable"
-  | "workspace_reusable"
-  | "user_reusable"
-  | "team_reusable"
-  | "global_reusable";
+
+// P0-d: layer-aware single source of truth for origin_scope, availability_scope and governance_level.
+// Derived directly from spec 39 §5.4 (rule), §6.4 (skill), §7.5 (knowledge),
+// §8.5 (memory) and §9 (evidence). No layer may use values outside its spec set.
+export const GOVERNANCE_SCOPE_BY_LAYER = {
+  rule_candidate: {
+    origin_scope: new Set(["session", "project", "workspace", "user", "team", "global"] as const),
+    availability_scope: new Set(["session_only", "project_reusable", "workspace_reusable", "user_reusable", "team_reusable", "global_reusable"] as const),
+    governance_level: new Set(["session", "shared"] as const)
+  },
+  memory_candidate: {
+    origin_scope: new Set(["session", "project", "workspace", "user", "team", "global"] as const),
+    availability_scope: new Set(["session_only", "project_reusable", "workspace_reusable", "user_reusable", "team_reusable", "global_reusable"] as const),
+    governance_level: new Set(["session", "shared"] as const)
+  },
+  skill_proposal_candidate: {
+    origin_scope: new Set(["session", "project", "workspace", "user", "team", "global"] as const),
+    availability_scope: new Set(["session_only", "project_reusable", "workspace_reusable", "user_reusable", "team_reusable", "global_reusable"] as const),
+    governance_level: new Set(["session", "shared"] as const)
+  },
+  knowledge_candidate: {
+    origin_scope: new Set(["project", "team", "global"] as const),
+    availability_scope: new Set(["project_reusable", "team_reusable", "global_reusable"] as const),
+    governance_level: new Set(["shared"] as const)
+  },
+  governance_evidence_candidate: {
+    origin_scope: new Set(["session", "project"] as const),
+    availability_scope: new Set(["session_only", "project_reusable"] as const),
+    governance_level: new Set(["session"] as const)
+  }
+} as const;
+
+// P0-b: spec 39 §7.5 knowledge_type enumeration. Single source of truth for
+// synthesis types used by host_model validation, fallback normalization and DB writes.
+export const VALID_KNOWLEDGE_TYPES = new Set([
+  "external_fact",
+  "method",
+  "pattern",
+  "principle",
+  "comparison",
+  "limitation",
+  "trend",
+  "synthesis",
+  "counterexample"
+] as const);
+
+export type GovernanceKnowledgeType = typeof VALID_KNOWLEDGE_TYPES extends Set<infer T> ? T : never;
+
+type RuleOriginScope = typeof GOVERNANCE_SCOPE_BY_LAYER.rule_candidate.origin_scope extends Set<infer T> ? T : never;
+type MemoryOriginScope = typeof GOVERNANCE_SCOPE_BY_LAYER.memory_candidate.origin_scope extends Set<infer T> ? T : never;
+type SkillProposalOriginScope = typeof GOVERNANCE_SCOPE_BY_LAYER.skill_proposal_candidate.origin_scope extends Set<infer T> ? T : never;
+type KnowledgeOriginScope = typeof GOVERNANCE_SCOPE_BY_LAYER.knowledge_candidate.origin_scope extends Set<infer T> ? T : never;
+type GovernanceEvidenceOriginScope = typeof GOVERNANCE_SCOPE_BY_LAYER.governance_evidence_candidate.origin_scope extends Set<infer T> ? T : never;
+
+export type GovernanceOriginScope =
+  | RuleOriginScope
+  | MemoryOriginScope
+  | SkillProposalOriginScope
+  | KnowledgeOriginScope
+  | GovernanceEvidenceOriginScope;
+
+type RuleAvailabilityScope = typeof GOVERNANCE_SCOPE_BY_LAYER.rule_candidate.availability_scope extends Set<infer T> ? T : never;
+type MemoryAvailabilityScope = typeof GOVERNANCE_SCOPE_BY_LAYER.memory_candidate.availability_scope extends Set<infer T> ? T : never;
+type SkillProposalAvailabilityScope = typeof GOVERNANCE_SCOPE_BY_LAYER.skill_proposal_candidate.availability_scope extends Set<infer T> ? T : never;
+type KnowledgeAvailabilityScope = typeof GOVERNANCE_SCOPE_BY_LAYER.knowledge_candidate.availability_scope extends Set<infer T> ? T : never;
+type GovernanceEvidenceAvailabilityScope = typeof GOVERNANCE_SCOPE_BY_LAYER.governance_evidence_candidate.availability_scope extends Set<infer T> ? T : never;
+
+export type GovernanceAvailabilityScope =
+  | RuleAvailabilityScope
+  | MemoryAvailabilityScope
+  | SkillProposalAvailabilityScope
+  | KnowledgeAvailabilityScope
+  | GovernanceEvidenceAvailabilityScope;
+
 type GovernancePromotionStatus = "candidate" | "active" | "needs_review" | "rejected";
 type GovernanceLevel = "session" | "shared";
 type GovernancePhase = "planning" | "design" | "coding" | "testing" | "review" | "governance" | "reporting" | "integration";
@@ -40,16 +106,7 @@ export type GovernanceCandidatePreview = {
   stability?: "temporary" | "stable" | "long_lived";
   ttl?: string | null;
   revalidate_after?: string | null;
-  knowledge_type?:
-    | "external_fact"
-    | "method"
-    | "pattern"
-    | "principle"
-    | "comparison"
-    | "limitation"
-    | "trend"
-    | "synthesis"
-    | "counterexample";
+  knowledge_type?: GovernanceKnowledgeType;
   governance_action?:
     | "create"
     | "merge_evidence"
@@ -90,6 +147,10 @@ export type GovernanceCandidatePreview = {
   validation_method?: string;
   rationale?: string;
   proposal_quality?: "actionable" | "needs_review" | "rejected";
+  description?: string;
+  applicable_scenarios?: string[];
+  non_applicable_scenarios?: string[];
+  execution_steps?: string[];
   source_refs?: Array<{
     source_kind: GovernanceSourceKind;
     source_timestamp: string;
@@ -321,6 +382,10 @@ export function buildGovernanceBatchPreview(preview: CodexCapturePreviewResponse
         proposed_patch: skillChangeProposal.proposed_patch,
         validation_method: skillChangeProposal.validation_method,
         rationale: skillChangeProposal.rationale,
+        description: skillChangeProposal.description,
+        applicable_scenarios: skillChangeProposal.applicable_scenarios,
+        non_applicable_scenarios: skillChangeProposal.non_applicable_scenarios,
+        execution_steps: skillChangeProposal.execution_steps,
         proposal_quality: "actionable",
         source_refs: [{ source_kind: "user_message", source_timestamp: message.timestamp, source_excerpt: excerpt }],
         merged_source_count: 1,
@@ -577,7 +642,7 @@ function dedupeMemoryCandidates(items: GovernanceCandidatePreview[]): Governance
       continue;
     }
     seen.add(key);
-    result.push(pathKey ? { ...item, title: "Workspace path context", content: normalizedPath || item.content } : item);
+    result.push(pathKey ? { ...item, title: "工作空间路径上下文", content: normalizedPath || item.content } : item);
   }
 
   return result;
@@ -621,7 +686,7 @@ function extractWindowsPath(text: string): string | null {
 }
 
 function isWorkspacePathTitle(title: string): boolean {
-  return title.includes("workspace path") || title.includes("project path") || title.includes("workspace context");
+  return title.includes("工作空间路径") || title.includes("项目路径") || title.includes("工作空间上下文");
 }
 
 function normalizeWhitespace(text: string): string {
@@ -696,6 +761,16 @@ function inferGovernanceScope(
       availability_scope: "user_reusable",
       governance_level: "shared",
       promotion_status: candidateType === "skill_proposal_candidate" ? "needs_review" : "active"
+    };
+  }
+
+  // P0-d: layer-aware default origin_scope; knowledge cannot default to session.
+  if (candidateType === "knowledge_candidate") {
+    return {
+      origin_scope: "project",
+      availability_scope: "project_reusable",
+      governance_level: "shared",
+      promotion_status: "candidate"
     };
   }
 
@@ -896,12 +971,16 @@ function buildSkillChangeProposal(text: string): {
   proposed_patch: string;
   validation_method: string;
   rationale: string;
+  description: string;
+  applicable_scenarios: string[];
+  non_applicable_scenarios: string[];
+  execution_steps: string[];
 } | null {
   if (text.includes("抽取出来的结果") || text.includes("不能只给用户数量") || text.includes("只看数量")) {
     const proposedText =
       "新增或更新“治理结果汇报”规则：每次治理完成后，必须按 rule、memory、skill proposal、knowledge、governance evidence 分层展示具体抽取结果、来源依据和判断理由；不能只汇报数量或只说已完成。";
     return {
-      title: "Governance result reporting skill update",
+      title: "治理结果分层汇报技能更新",
       target_skill: "memory-governance-guidelines",
       target_skill_path: "C:\\Users\\Administrator\\.codex\\skills\\memory-governance-guidelines\\SKILL.md",
       change_type: "update",
@@ -911,14 +990,18 @@ function buildSkillChangeProposal(text: string): {
       proposed_text: proposedText,
       proposed_patch: buildSkillAppendPatch("治理结果汇报", proposedText),
       validation_method: "运行治理后，结果报告必须展示 rule、memory、skill proposal、knowledge、governance evidence 的具体内容和证据，而不是只有计数。",
-      rationale: "用户需要直接看到治理产物内容，才能判断治理是否有效、是否污染长期层。"
+      rationale: "用户需要直接看到治理产物内容，才能判断治理是否有效、是否污染长期层。",
+      description: "在治理运行完成后，按四层架构分层展示具体抽取产物。在治理运行结束或用户要求查看治理结果时调用。",
+      applicable_scenarios: ["治理运行完成后自动展示分层结果", "用户询问治理抽取了什么时回溯展示"],
+      non_applicable_scenarios: ["治理尚未运行时不应调用", "仅查询历史治理记录时不调用此技能"],
+      execution_steps: ["收集本次治理产出的 rule/memory/skill/knowledge/evidence 列表", "按层级分组并提取每条产物的来源依据", "格式化为分层展示报告并返回给用户"]
     };
   }
   if (text.includes("根据整个线程") || text.includes("执行记录")) {
     const proposedText =
       "新增或更新“治理输入范围”规则：治理输入默认包含完整会话记录、任务执行全记录、工具/MCP 调用结果、命令成功失败证据、治理证据层和已有长期层；不能只读取 memory candidate、resident snapshot 或已落库对象。";
     return {
-      title: "Governance input scope skill update",
+      title: "治理输入范围技能更新",
       target_skill: "memory-governance-guidelines",
       target_skill_path: "C:\\Users\\Administrator\\.codex\\skills\\memory-governance-guidelines\\SKILL.md",
       change_type: "update",
@@ -928,14 +1011,18 @@ function buildSkillChangeProposal(text: string): {
       proposed_text: proposedText,
       proposed_patch: buildSkillAppendPatch("治理输入范围", proposedText),
       validation_method: "治理预览和治理运行报告必须包含完整线程、执行记录、工具/MCP 输出和已有长期层参与治理的证据。",
-      rationale: "治理层需要完整证据才能正确区分 rule、memory、knowledge、skill proposal 和治理证据。"
+      rationale: "治理层需要完整证据才能正确区分 rule、memory、knowledge、skill proposal 和治理证据。",
+      description: "在治理运行前，确保输入覆盖完整会话和执行记录。在触发治理或用户要求全量治理时调用。",
+      applicable_scenarios: ["触发治理前确认输入范围完整性", "用户反馈治理遗漏上下文时回溯检查"],
+      non_applicable_scenarios: ["仅查看单条记忆详情时不调用", "非治理相关的记忆查询不调用"],
+      execution_steps: ["收集完整会话线程记录", "收集任务执行全记录含命令和工具输出", "收集已有长期层 rule/memory/knowledge 数据", "合并为治理输入并传入治理引擎"]
     };
   }
   if (text.includes("直接去根据文件") || text.includes("不是每次写入网页中")) {
     const proposedText =
       "新增或更新“治理结果审查”规则：治理回显必须读取真实会话文件、任务执行记录、数据库治理结果和真实产物路径，不维护仅供展示的重复副本。";
     return {
-      title: "Governance console source-of-truth skill update",
+      title: "治理控制台数据源技能更新",
       target_skill: "memory-governance-guidelines",
       target_skill_path: "C:\\Users\\Administrator\\.codex\\skills\\memory-governance-guidelines\\SKILL.md",
       change_type: "update",
@@ -945,14 +1032,18 @@ function buildSkillChangeProposal(text: string): {
       proposed_text: proposedText,
       proposed_patch: buildSkillAppendPatch("治理结果审查", proposedText),
       validation_method: "打开治理回显页面时，详情必须能追溯到真实会话文件、任务执行记录、数据库治理结果和真实产物路径。",
-      rationale: "用户要求 Console 用于定位治理质量问题，而不是展示手写副本。"
+      rationale: "用户要求 Console 用于定位治理质量问题，而不是展示手写副本。",
+      description: "在治理控制台展示数据时，直接从数据库和真实文件读取。在打开治理控制台或查看治理详情时调用。",
+      applicable_scenarios: ["打开治理控制台页面时", "用户查看治理提议详情时"],
+      non_applicable_scenarios: ["离线分析不涉及控制台展示时不调用", "纯 API 调用不涉及页面展示时不调用"],
+      execution_steps: ["从 governance_change_proposal 表读取提议数据", "从对应长期层表读取 rule/memory/knowledge 详情", "从会话文件读取原始上下文", "渲染为控制台页面"]
     };
   }
   if (text.toLowerCase().includes("interview") || text.toLowerCase().includes("spec")) {
     const proposedText =
       "更新触发条件：当发现理解偏差、需求边界变化、阶段性确认缺失、SPEC 与用户新表达冲突，或用户指出需要先确认时，必须触发 interview 更新 SPEC 后再继续。";
     return {
-      title: "Interview skill trigger refinement",
+      title: "Interview 技能触发条件精化",
       target_skill: "interview",
       target_skill_path: "C:\\Users\\Administrator\\.codex\\skills\\interview\\SKILL.md",
       change_type: "update",
@@ -962,7 +1053,11 @@ function buildSkillChangeProposal(text: string): {
       proposed_text: proposedText,
       proposed_patch: buildSkillAppendPatch("触发条件补充", proposedText),
       validation_method: "当用户指出理解偏差或 SPEC 缺口时，后续执行前必须能看到 interview/SPEC 更新动作。",
-      rationale: "减少长项目中反复返工，确保 SPEC 持续反映用户真实意图。"
+      rationale: "减少长项目中反复返工，确保 SPEC 持续反映用户真实意图。",
+      description: "在任务执行中发现理解偏差或 SPEC 过时时，触发 interview 重新确认需求。在用户指出方向偏差或 SPEC 需要更新时调用。",
+      applicable_scenarios: ["用户指出 agent 理解与预期不符时", "SPEC 文档与用户新表达产生冲突时", "任务中途需求边界发生变化时"],
+      non_applicable_scenarios: ["用户明确表示继续执行不修改时", "仅做小范围代码修改不涉及需求理解时不调用"],
+      execution_steps: ["检测当前执行方向与用户预期是否一致", "如发现偏差，暂停执行并启动 interview 流程", "更新 SPEC 文档记录新确认的需求", "基于更新后的 SPEC 继续执行"]
     };
   }
   return null;
@@ -996,87 +1091,87 @@ function isSkillChangeAllowedFromRuleText(text: string): boolean {
 
 function inferRuleTitle(text: string): string {
   if (text.includes("抽取出来的结果") || text.includes("不能只给用户数量") || text.includes("只看数量")) {
-    return "Governance reporting constraint";
+    return "治理结果汇报约束";
   }
   if (text.includes("smoke") || text.includes("完整验证") || text.includes("真实调用验证")) {
-    return "Validation completeness constraint";
+    return "验证完整性约束";
   }
   if (text.includes("不要") || text.includes("不允许") || text.includes("must_not") || text.includes("must not") || text.includes("涓嶈")) {
-    return "User rejection preference";
+    return "用户否定偏好";
   }
   if (text.includes("interview")) {
-    return "Interview escalation constraint";
+    return "访谈升级约束";
   }
   if (text.includes("必须") || text.includes("只能") || text.includes("must") || text.includes("蹇呴¶")) {
-    return "Hard execution constraint";
+    return "硬执行约束";
   }
-  return "Rule candidate from user instruction";
+  return "来自用户指令的规则候选";
 }
 
 function inferMemoryTitle(text: string): string {
   if (text.includes("项目路径") || text.includes("椤圭洰璺緞")) {
-    return "Project path context";
+    return "项目路径上下文";
   }
-  if (text.includes("d:\\workspace")) {
-    return "Workspace path context";
+  if (text.toLowerCase().includes("d:\\workspace")) {
+    return "工作空间路径上下文";
   }
-  if (text.includes("workspace")) {
-    return "Workspace context";
+  if (text.includes("workspace") || text.includes("工作空间") || text.includes("工作区")) {
+    return "工作空间上下文";
   }
-  return "Long-term factual context candidate";
+  return "长期事实上下文候选";
 }
 
 function inferProjectDecisionMemoryTitle(text: string): string {
   if (text.includes("memory-v3") || (text.includes("memory") && text.includes("mcp"))) {
-    return "Memory MCP integration decision";
+    return "Memory MCP 接入决策";
   }
   if (text.includes("只做测试")) {
-    return "Host integration scope decision";
+    return "宿主接入范围决策";
   }
   if (text.includes("统一读取") || text.includes("不重复记录") || text.includes("不重复存")) {
-    return "Host raw-record governance decision";
+    return "宿主原始记录治理决策";
   }
   if (text.includes("skill proposal")) {
-    return "Skill proposal boundary decision";
+    return "技能提案边界决策";
   }
   if (text.includes("规则层") || text.includes("rule")) {
-    return "Rule boundary decision";
+    return "规则边界决策";
   }
   if (text.includes("知识层") || text.includes("knowledge")) {
-    return "Knowledge boundary decision";
+    return "知识边界决策";
   }
   if (text.includes("治理层") || text.includes("governance")) {
-    return "Governance design decision";
+    return "治理设计决策";
   }
   if (text.includes("记忆层") || text.includes("memory")) {
-    return "Memory layering decision";
+    return "记忆分层决策";
   }
-  return "Project governance decision";
+  return "项目治理决策";
 }
 
 function inferSkillTitle(text: string): string {
   if (text.includes("抽取出来的结果") || text.includes("不能只给用户数量") || text.includes("只看数量")) {
-    return "Governance result reporting proposal";
+    return "治理结果汇报技能优化提案";
   }
   if (text.includes("详情页面") || text.includes("跳转到对应的详情页面")) {
-    return "Governance UI detail-page proposal";
+    return "治理控制台详情页技能优化提案";
   }
   if (text.includes("interview")) {
-    return "Interview trigger refinement proposal";
+    return "访谈触发条件精化提案";
   }
   if (text.includes("更新 spec") || text.includes("update spec") || text.includes("鏇存柊 spec")) {
-    return "SPEC update workflow refinement proposal";
+    return "SPEC 更新工作流优化提案";
   }
   if (text.includes("根据整个线程") || text.includes("执行记录") || text.includes("鏍规嵁鏁翠釜绾跨▼") || text.includes("鎵ц璁板綍")) {
-    return "Governance input scope refinement proposal";
+    return "治理输入范围优化提案";
   }
   if (text.includes("由浅入深") || text.includes("由表及里") || text.includes("鐢辨祬鍏ユ繁") || text.includes("鐢辫〃鍙婇噷")) {
-    return "Reasoning-principle skill refinement proposal";
+    return "推理原则技能优化提案";
   }
   if (text.includes("触发") || text.includes("瑙﹀彂")) {
-    return "Trigger policy refinement proposal";
+    return "触发策略优化提案";
   }
-  return "Skill refinement proposal";
+  return "技能优化提案";
 }
 
 function hasAny(text: string, patterns: string[]): boolean {
@@ -1272,7 +1367,7 @@ function buildExecutionKnowledgeCandidate(input: {
     availability_scope: "project_reusable",
     governance_level: "shared",
     promotion_status: "needs_review",
-    knowledge_type: "external_fact",
+    knowledge_type: "synthesis",
     governance_action: "evidence_only",
     recall_state: "audit_only",
     source_kind: input.sourceKind,

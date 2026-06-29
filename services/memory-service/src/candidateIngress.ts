@@ -7,6 +7,7 @@ import {
   upsertEnvironmentFingerprint
 } from "@super-agent/db";
 import type { CandidateRanker } from "./candidateRanker.js";
+import { persistCandidateProvenance } from "./candidateProvenance.js";
 import type { MemoryExtractor } from "./memoryExtractor.js";
 import type { MemoryRouter } from "./memoryRouter.js";
 import type { RuleBuilder } from "./ruleBuilder.js";
@@ -113,6 +114,25 @@ export async function handleCandidateIngress(input: {
         scope: input.scope,
         candidate,
         traceId: input.traceId
+      });
+    }
+
+    // L1 写入后建立溯源链：
+    //   a) evidence → rule/skill/memory（source_of）：这条规则从哪轮对话的哪句话抽的
+    //   b) rule/skill/memory → entity（mentions）：这条规则提到了哪些技术实体
+    // 失败不阻塞主流程（candidate 已写入，provenance 是增强信息）
+    if (persistedObjectId && (routed.persistTarget === "memory" || routed.persistTarget === "rule" || routed.persistTarget === "skill")) {
+      await persistCandidateProvenance({
+        tenantId: input.tenantId,
+        scope: input.scope,
+        traceId: input.traceId,
+        targetType: routed.persistTarget,
+        targetId: persistedObjectId,
+        title: candidate.title,
+        content: candidate.content,
+        sourceRef: candidate.source_ref,
+        sourceType: candidate.source_type,
+        artifactTag: candidate.artifact_tag
       });
     }
   }

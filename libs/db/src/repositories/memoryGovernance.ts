@@ -419,6 +419,8 @@ export async function listGovernanceChangeProposals(input: {
   scope: string;
   status?: string | null;
   limit?: number;
+  proposedActionType?: string | null;
+  evolutionSignal?: string | null;
 }): Promise<Record<string, unknown>[]> {
   const pool = getPool();
   const result = await pool.query(
@@ -428,12 +430,86 @@ export async function listGovernanceChangeProposals(input: {
     WHERE tenant_id = $1
       AND scope = $2
       AND ($3::record_status IS NULL OR status = $3::record_status)
+      AND ($5::text IS NULL OR proposed_action_type = $5)
+      AND ($6::text IS NULL OR evolution_signal = $6)
     ORDER BY created_at DESC
     LIMIT $4
     `,
-    [input.tenantId, input.scope, input.status ?? "recorded", input.limit ?? 50]
+    [
+      input.tenantId,
+      input.scope,
+      input.status ?? "recorded",
+      input.limit ?? 50,
+      input.proposedActionType ?? null,
+      input.evolutionSignal ?? null
+    ]
   );
   return result.rows;
+}
+
+export async function createGovernanceChangeProposal(input: {
+  tenantId: string;
+  scope: string;
+  targetObjectType: string;
+  targetObjectId?: string | null;
+  proposedAction: string;
+  proposedPayload?: Record<string, unknown>;
+  reason: string;
+  riskLevel?: string;
+  sourceRef?: string | null;
+  traceId: string;
+  originScope?: string;
+  availabilityScope?: string;
+  promotionStatus?: string;
+  governanceLevel?: string;
+  conflictMetadata?: Record<string, unknown>;
+  evolutionSignal?: string | null;
+  originalArtifactId?: string | null;
+  proposedActionType?: string;
+}): Promise<string> {
+  const pool = getPool();
+  const result = await pool.query<{ id: string }>(
+    `
+    INSERT INTO governance_change_proposal (
+      tenant_id, scope, status, version,
+      target_object_type, target_object_id,
+      proposed_action, proposed_payload, reason, risk_level,
+      source_ref, trace_id,
+      origin_scope, availability_scope, promotion_status, governance_level,
+      conflict_metadata, evolution_signal, original_artifact_id, proposed_action_type
+    )
+    VALUES (
+      $1, $2, 'recorded', 1,
+      $3, $4,
+      $5, $6::jsonb, $7, $8,
+      $9, $10,
+      $11, $12, $13, $14,
+      $15::jsonb, $16, $17, $18
+    )
+    RETURNING id
+    `,
+    [
+      input.tenantId,
+      input.scope,
+      input.targetObjectType,
+      input.targetObjectId ?? null,
+      input.proposedAction,
+      JSON.stringify(input.proposedPayload ?? {}),
+      input.reason,
+      input.riskLevel ?? "medium",
+      input.sourceRef ?? null,
+      input.traceId,
+      input.originScope ?? "session",
+      input.availabilityScope ?? "session_only",
+      input.promotionStatus ?? "needs_review",
+      input.governanceLevel ?? "session",
+      JSON.stringify(input.conflictMetadata ?? {}),
+      input.evolutionSignal ?? null,
+      input.originalArtifactId ?? null,
+      input.proposedActionType ?? "add"
+    ]
+  );
+  return result.rows[0].id;
 }
 
 export async function applyGovernanceChangeProposal(input: {
@@ -530,7 +606,63 @@ export async function applyGovernanceChangeProposal(input: {
           JSON.stringify(payload.source_refs ?? []),
           JSON.stringify(payload.evidence_refs ?? []),
           targetRuleId,
-          JSON.stringify(payload.metadata ?? {}),
+          JSON.stringify({
+            ...(payload.metadata ?? {}),
+            host_action: {
+              skill: "gate-master",
+              status: "pending",
+              generated_at: null,
+              trace_id: input.traceId
+            }
+          }),
+          input.traceId
+        ]
+      );
+      appliedObjectId = inserted.rows[0].id;
+    } else if (proposal.proposed_action === "create_rule") {
+      const nextVersion = Number(payload.next_version ?? 1);
+      const inserted = await pool.query<{ id: string }>(
+        `
+        INSERT INTO rule (
+          tenant_id, scope, status, version, rule_key, rule_type, title, statement,
+          normalized_statement, applies_to, trigger_conditions, enforcement_level,
+          priority, risk_level, verification_status, source_refs, evidence_refs,
+          supersedes_rule_id, metadata, trace_id
+        )
+        VALUES (
+          $1, $2, 'active', $3, $4, $5, $6, $7,
+          $8, $9::jsonb, $10::jsonb, $11,
+          $12, $13::risk_level, $14, $15::jsonb, $16::jsonb,
+          NULL, $17::jsonb, $18
+        )
+        RETURNING id
+        `,
+        [
+          input.tenantId,
+          input.scope,
+          nextVersion,
+          String(payload.rule_key),
+          String(payload.rule_type),
+          String(payload.title),
+          String(payload.statement),
+          String(payload.normalized_statement ?? payload.statement).toLowerCase(),
+          JSON.stringify(payload.applies_to ?? []),
+          JSON.stringify(payload.trigger_conditions ?? {}),
+          String(payload.enforcement_level ?? "should_follow"),
+          Number(payload.priority ?? 75),
+          String(payload.risk_level ?? "medium"),
+          String(payload.verification_status ?? "verified"),
+          JSON.stringify(payload.source_refs ?? []),
+          JSON.stringify(payload.evidence_refs ?? []),
+          JSON.stringify({
+            ...(payload.metadata ?? {}),
+            host_action: {
+              skill: "gate-master",
+              status: "pending",
+              generated_at: null,
+              trace_id: input.traceId
+            }
+          }),
           input.traceId
         ]
       );
@@ -613,12 +745,14 @@ export async function applyGovernanceChangeProposal(input: {
         INSERT INTO skill (
           tenant_id, scope, status, version, skill_key, title, description, skill_type,
           trigger_conditions, procedure_payload, verification_status, fingerprint_requirement,
-          risk_level, success_rate, tags, trace_id
+          risk_level, success_rate, tags, trace_id,
+          origin_scope, availability_scope, governance_level, promotion_status
         )
         VALUES (
           $1, $2, 'active', $3, $4, $5, $6, $7,
           $8::jsonb, $9::jsonb, $10, $11,
-          $12::risk_level, $13, $14::text[], $15
+          $12::risk_level, $13, $14::text[], $15,
+          $16, $17, $18, $19
         )
         RETURNING id
         `,
@@ -637,10 +771,104 @@ export async function applyGovernanceChangeProposal(input: {
           String(payload.risk_level ?? "low"),
           payload.success_rate === null || payload.success_rate === undefined ? null : Number(payload.success_rate),
           Array.isArray(payload.tags) ? payload.tags.map(String) : [],
-          input.traceId
+          input.traceId,
+          String(payload.origin_scope ?? "session"),
+          String(payload.availability_scope ?? "session_only"),
+          String(payload.governance_level ?? "session"),
+          String(payload.promotion_status ?? "active")
         ]
       );
       appliedObjectId = inserted.rows[0].id;
+    } else if (proposal.proposed_action === "skill_update_proposal") {
+      const skillKey = String(payload.target_skill ?? payload.skill_key ?? "");
+      if (!skillKey) {
+        throw new Error("[governance] skill_update_proposal payload missing target_skill/skill_key");
+      }
+      const existingSkill = await pool.query<{ id: string; version: number }>(
+        `
+        SELECT id, version
+        FROM skill
+        WHERE tenant_id = $1
+          AND scope = $2
+          AND skill_key = $3
+          AND status = 'active'
+        ORDER BY version DESC
+        LIMIT 1
+        `,
+        [input.tenantId, input.scope, skillKey]
+      );
+      const targetSkillId = existingSkill.rows[0]?.id ?? null;
+      const nextVersion = existingSkill.rows[0] ? existingSkill.rows[0].version + 1 : 1;
+      if (targetSkillId) {
+        await pool.query("UPDATE skill SET status = 'superseded', updated_at = now(), trace_id = $2 WHERE id = $1", [targetSkillId, input.traceId]);
+      }
+      const inserted = await pool.query<{ id: string }>(
+        `
+        INSERT INTO skill (
+          tenant_id, scope, status, version, skill_key, title, description, skill_type,
+          trigger_conditions, procedure_payload, verification_status, fingerprint_requirement,
+          risk_level, success_rate, tags, trace_id,
+          origin_scope, availability_scope, governance_level, promotion_status
+        )
+        VALUES (
+          $1, $2, 'active', $3, $4, $5, $6, $7,
+          $8::jsonb, $9::jsonb, $10, $11,
+          $12::risk_level, $13, $14::text[], $15,
+          $16, $17, $18, $19
+        )
+        RETURNING id
+        `,
+        [
+          input.tenantId,
+          input.scope,
+          nextVersion,
+          skillKey,
+          String(payload.proposal_title ?? payload.title ?? skillKey),
+          String(payload.description ?? ""),
+          String(payload.skill_type ?? "procedure"),
+          JSON.stringify(payload.trigger_conditions ?? {}),
+          JSON.stringify({
+            change_type: payload.change_type ?? "add",
+            current_section: payload.current_section ?? null,
+            current_text: payload.current_text ?? null,
+            current_gap: payload.current_gap ?? null,
+            proposed_text: payload.proposed_text ?? null,
+            proposed_patch: payload.proposed_patch ?? null,
+            validation_method: payload.validation_method ?? null,
+            applicable_scenarios: payload.applicable_scenarios ?? [],
+            non_applicable_scenarios: payload.non_applicable_scenarios ?? [],
+            execution_steps: payload.execution_steps ?? [],
+            rationale: payload.rationale ?? null,
+            source_refs: payload.source_refs ?? []
+          }),
+          String(payload.verification_status ?? "verified"),
+          payload.fingerprint_requirement ? String(payload.fingerprint_requirement) : null,
+          String(payload.risk_level ?? "low"),
+          payload.success_rate === null || payload.success_rate === undefined ? null : Number(payload.success_rate),
+          Array.isArray(payload.tags) ? payload.tags.map(String) : [],
+          input.traceId,
+          String(payload.origin_scope ?? "project"),
+          String(payload.availability_scope ?? "project_reusable"),
+          String(payload.governance_level ?? "shared"),
+          String(payload.promotion_status ?? "active")
+        ]
+      );
+      appliedObjectId = inserted.rows[0].id;
+      // Update procedure_payload with host_action pending flag
+      await pool.query(
+        `UPDATE skill SET procedure_payload = procedure_payload || $1::jsonb WHERE id = $2`,
+        [
+          JSON.stringify({
+            host_action: {
+              skill: "skill-creator",
+              status: "pending",
+              generated_at: null,
+              trace_id: input.traceId
+            }
+          }),
+          appliedObjectId
+        ]
+      );
     } else if (proposal.proposed_action === "mark_skill_dirty_for_fingerprint_drift") {
       const updated = await pool.query<{ id: string }>(
         `

@@ -1,0 +1,573 @@
+[
+  {
+    "round": 1,
+    "user_message": "我想做一个待办事项应用，前端用 React，帮我选一下技术栈。",
+    "assistant_thought": "用户要开发待办事项应用，需求是前端 React。需要确认 React 版本、构建工具、状态管理方案。待办事项是中等复杂度应用，有列表渲染、过滤、状态共享需求。React 18 的并发渲染对列表性能有帮助；Vite 比 CRA 快且是官方推荐；状态管理待办这种中等复杂度用 Zustand 比 Redux 轻量，比 Context 不易触发全量重渲染。",
+    "assistant_response": "推荐技术栈：React 18 + TypeScript 5 + Vite 5 + Zustand。理由：\n1. React 18 的并发渲染（useTransition）对大列表过滤流畅度有帮助。\n2. TypeScript 5 在类型推断和性能上比 4.x 好，strict 模式能拦住大量隐式 any。\n3. Vite 用 esbuild 做依赖预构建，冷启动比 CRA 快一个数量级，HMR 是毫秒级。\n4. Zustand 比 Redux 少很多样板代码，比 Context 不会在状态变更时触发所有消费组件重渲染（Context 是全量广播）。\n\n初始化命令：\n```bash\nnpm create vite@latest todo-app -- --template react-ts\n```\n安装 Zustand：\n```bash\nnpm install zustand\n```",
+    "tool_use": {
+      "name": "run_command",
+      "args": { "command": "npm create vite@latest todo-app -- --template react-ts" },
+      "summary": "用 Vite react-ts 模板初始化项目"
+    },
+    "tool_result": "Scaffolding project, 安装依赖完成，生成 vite.config.ts / tsconfig.json / src/main.tsx 等文件",
+    "candidates": [
+      {
+        "artifact_tag": "environment_fact",
+        "title": "待办事项应用技术栈选型",
+        "content": "待办事项应用前端技术栈：React 18 + TypeScript 5 + Vite 5 + Zustand。React 18 启用并发渲染，TypeScript 5 开启 strict 模式，Vite 用 esbuild 预构建依赖，Zustand 做状态管理。项目用 npm create vite@latest todo-app -- --template react-ts 初始化。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "project_preference",
+        "title": "状态管理优先选 Zustand 而非 Redux/Context",
+        "content": "项目状态管理优先选 Zustand 而非 Redux 或 Context。理由：Zustand 样板代码少、API 简洁；基于订阅机制，状态变更只通知订阅该切片的组件，不会像 Context 那样全量广播触发所有消费组件重渲染。Redux 对待办这种中等复杂度应用过重。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 2,
+    "user_message": "npm create vite 报错了：'npm create vite' is not a command，怎么回事？",
+    "assistant_thought": "用户遇到 npm create vite 报错。常见原因：npm 版本过低（< 7 不支持 create 别名）、或者没装 npx。需要先查 npm/node 版本，再决定是用 npx 还是升级 npm。这是个典型的环境问题，修复流程值得沉淀成 skill。",
+    "assistant_response": "这是 npm 版本过低导致的，npm 7 之前不支持 `npm create` 别名。先查版本：\n```bash\nnpm -v\nnode -v\n```\n如果 npm < 7，两个解法：\n1. 用 npx 直接跑：`npx create-vite@latest todo-app --template react-ts`\n2. 升级 npm：`npm install -g npm@latest`\n\n推荐用 npx 方式，不污染全局环境。",
+    "tool_use": {
+      "name": "run_command",
+      "args": { "command": "npx create-vite@latest todo-app --template react-ts" },
+      "summary": "改用 npx create-vite 初始化项目"
+    },
+    "tool_result": "项目脚手架生成成功，src/main.tsx、tsconfig.json、vite.config.ts 等文件就绪",
+    "candidates": [
+      {
+        "artifact_tag": "environment_fact",
+        "title": "npm 版本约束与 create 别名兼容性",
+        "content": "npm 7 之前不支持 npm create 别名，会报 'npm create vite' is not a command。本项目环境 npm 版本需 >= 7，或统一用 npx create-vite@latest 替代 npm create vite。已验证 npx create-vite@latest todo-app --template react-ts 可正常初始化。",
+        "source_type": "tool_result",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "verified_fix",
+        "title": "npm create vite 报错的修复流程",
+        "content": "修复流程：1. npm -v 查版本；2. 若 npm < 7，改用 npx create-vite@latest <项目名> --template react-ts；3. 验证 src/main.tsx 已生成。根因是 npm 7 前不支持 create 别名，npx 方式不依赖 npm 版本且不污染全局。",
+        "source_type": "assistant_response",
+        "verification_status": "verified_fix",
+        "error_code": "FIX_RETRYABLE_TIMEOUT"
+      }
+    ]
+  },
+  {
+    "round": 3,
+    "user_message": "开始写组件吧，待办列表怎么拆？",
+    "assistant_thought": "用户要拆组件。待办事项的经典拆法：App 顶层，下面 TodoList（列表容器）、TodoItem（单条）、InputField（输入）、FilterBar（过滤）。设计决策：TodoItem 不直接操作 store，通过 props 接收数据和回调，保持纯展示组件可测试性。列表用 key=id 而非 index，避免重排时状态错乱。",
+    "assistant_response": "组件拆分：\n```\nApp\n├── InputField       // 新增待办输入\n├── FilterBar        // all/active/completed 过滤\n└── TodoList\n    └── TodoItem     // 单条待办，含完成切换、删除\n```\n\n设计原则：\n- TodoItem 是纯展示组件，数据靠 props 传入，不直接读 store，方便单元测试。\n- 列表渲染用 `key={todo.id}` 而非 `key={index}`，避免删除/重排时 React 复用错状态。\n- 切换完成状态走 store action，不直接改 props。\n\nTodoItem 示例：\n```tsx\ninterface TodoItemProps {\n  todo: Todo;\n  onToggle: (id: string) => void;\n  onRemove: (id: string) => void;\n}\nexport function TodoItem({ todo, onToggle, onRemove }: TodoItemProps) {\n  return (\n    <li className=\"todo-item\">\n      <input type=\"checkbox\" checked={todo.completed} onChange={() => onToggle(todo.id)} />\n      <span style={{ textDecoration: todo.completed ? \"line-through\" : \"none\" }}>{todo.text}</span>\n      <button onClick={() => onRemove(todo.id)}>删除</button>\n    </li>\n  );\n}\n```",
+    "tool_use": {
+      "name": "write_file",
+      "args": { "path": "src/components/TodoItem.tsx", "content": "纯展示组件" },
+      "summary": "创建 TodoItem 纯展示组件"
+    },
+    "tool_result": "src/components/TodoItem.tsx 写入成功",
+    "candidates": [
+      {
+        "artifact_tag": "implementation_note",
+        "title": "待办事项组件拆分结构",
+        "content": "待办应用组件结构：App 下含 InputField（新增输入）、FilterBar（all/active/completed 过滤）、TodoList（列表容器）、TodoItem（单条待办，含完成切换与删除按钮）。TodoItem 设计为纯展示组件，数据通过 props 传入，不直接读 store，便于单元测试。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "design_decision",
+        "title": "列表 key 用 id 而非 index",
+        "content": "列表渲染 key 用 todo.id 而非数组 index。理由：用 index 作 key 在删除/重排时 React 会按位置复用组件，导致待办状态（如 completed、编辑中的文本）错乱到相邻项；用稳定唯一 id 让 React 精确匹配，删除时只卸载对应项。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 4,
+    "user_message": "状态管理到底用 useState 还是 useReducer？还是直接 Zustand？",
+    "assistant_thought": "用户在纠结状态管理方案。待办事项的状态操作有 add/toggle/remove/filter，跨组件共享（InputField 要 add，TodoList 要读+toggle+remove，FilterBar 要改 filter）。useState 适合局部状态，跨组件得层层 props 或 Context；useReducer 适合复杂状态机但要配 Context 才能共享，且 Context 全量广播；Zustand 一个 store 全局共享，按切片订阅，最合适。",
+    "assistant_response": "结论：直接 Zustand。对比：\n- useState：适合局部状态，待办的 add/toggle/remove 跨 InputField、TodoList、FilterBar 共享，层层 props 太啰嗦。\n- useReducer + Context：状态机清晰，但 Context 值变更会触发所有消费组件重渲染，待办多了性能差。\n- Zustand：一个 store 全局共享，组件用 selector 只订阅需要的切片，未订阅的切片变更不会触发重渲染。\n\nZustand store 示例：\n```tsx\nimport { create } from \"zustand\";\n\ninterface TodoState {\n  todos: Todo[];\n  filter: FilterType;\n  addTodo: (text: string) => void;\n  toggleTodo: (id: string) => void;\n  removeTodo: (id: string) => void;\n}\n\nexport const useTodoStore = create<TodoState>((set) => ({\n  todos: [],\n  filter: \"all\",\n  addTodo: (text) => set((state) => ({\n    todos: [...state.todos, { id: crypto.randomUUID(), text, completed: false }]\n  })),\n  toggleTodo: (id) => set((state) => ({\n    todos: state.todos.map((t) => t.id === id ? { ...t, completed: !t.completed } : t)\n  })),\n  removeTodo: (id) => set((state) => ({\n    todos: state.todos.filter((t) => t.id !== id)\n  })),\n}));\n```\n注意：set 里都是用展开/ map/ filter 返回新数组，不能直接 push 或赋值。",
+    "tool_use": {
+      "name": "write_file",
+      "args": { "path": "src/store/todoStore.ts", "content": "Zustand store" },
+      "summary": "创建 Zustand store"
+    },
+    "tool_result": "src/store/todoStore.ts 写入成功，类型从 types.ts 导入",
+    "candidates": [
+      {
+        "artifact_tag": "design_decision",
+        "title": "状态管理选用 Zustand 而非 useReducer+Context",
+        "content": "待办应用状态管理选 Zustand，不选 useReducer+Context。理由：待办状态（todos + filter）需跨 InputField/TodoList/FilterBar 共享；Context 值变更会全量广播触发所有消费组件重渲染，待办量大会卡；Zustand 基于切片订阅，组件用 selector 只订阅所需切片，未订阅切片变更不触发重渲染。store 用 set 返回新数组，禁止直接 mutate。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "project_preference",
+        "title": "跨组件共享状态优先用 Zustand store",
+        "content": "项目跨组件共享状态优先用 Zustand 全局 store，而非 useState 层层传 props 或 useReducer+Context。组件通过 selector 只订阅需要的切片，避免全量重渲染。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 5,
+    "user_message": "类型怎么定义？Todo 接口和过滤类型。",
+    "assistant_thought": "用户要定义类型。Todo 接口：id/text/completed。id 用 string（crypto.randomUUID 返回 string）。过滤类型用联合类型 'all'|'active'|'completed'，比 enum 更轻且 tree-shaking 友好。要导出供 store 和组件共用。",
+    "assistant_response": "类型定义放 src/types.ts：\n```tsx\nexport interface Todo {\n  id: string;\n  text: string;\n  completed: boolean;\n}\n\nexport type FilterType = \"all\" | \"active\" | \"completed\";\n```\n\n说明：\n- id 用 string，因为 crypto.randomUUID() 返回 string，不要用 number 自增，并发添加会冲突。\n- FilterType 用联合类型而非 enum：enum 会生成额外运行时代码，联合类型是零运行时开销，且 type narrowing 体验一样好。\n- 所有组件/store 都从 types.ts 导入，单一来源。",
+    "tool_use": {
+      "name": "write_file",
+      "args": { "path": "src/types.ts", "content": "Todo 接口 + FilterType 联合类型" },
+      "summary": "创建类型定义文件"
+    },
+    "tool_result": "src/types.ts 写入成功",
+    "candidates": [
+      {
+        "artifact_tag": "implementation_note",
+        "title": "Todo 与 FilterType 类型定义",
+        "content": "类型定义集中在 src/types.ts：Todo 接口含 id:string、text:string、completed:boolean；FilterType 为联合类型 'all'|'active'|'completed'。id 用 string 配合 crypto.randomUUID()，不用 number 自增避免并发冲突。FilterType 用联合类型而非 enum，零运行时开销且 tree-shaking 友好。所有组件/store 从该文件统一导入。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "实体 id 统一用 string 类型",
+        "content": "实体 id 统一用 string 类型，配合 crypto.randomUUID() 生成，禁止用 number 自增 id。理由：number 自增在并发添加或分布式场景会冲突，uuid 保证全局唯一。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 6,
+    "user_message": "useEffect 我用得不太熟，依赖数组老搞错，讲讲。",
+    "assistant_thought": "用户对 useEffect 依赖数组有困惑。核心规则：依赖数组里必须列出 effect 内用到的所有响应式值（props/state/derived）。漏依赖会导致闭包捕获旧值，过期数据 bug。但有些场景可以省略：故意只跑一次的初始化要加 eslint-disable 注释说明。useState 必须在组件顶层调用，不能在条件/循环里。",
+    "assistant_response": "useEffect 依赖数组规则：\n1. **必须列出 effect 内用到的所有响应式值**（props、state、派生值）。漏了会闭包捕获旧值，读到过期数据。\n2. **空数组 `[]`** 表示只在 mount 跑一次，适合订阅/初始化。\n3. **不传数组**表示每次渲染都跑，几乎用不到。\n\n正确示例（监听 filter 变化重新过滤）：\n```tsx\nuseEffect(() => {\n  const filtered = todos.filter((t) => {\n    if (filter === \"active\") return !t.completed;\n    if (filter === \"completed\") return t.completed;\n    return true;\n  });\n  setFilteredTodos(filtered);\n}, [todos, filter]); // ✅ 用到的 todos 和 filter 都在数组里\n```\n\n错误示例（漏依赖，闭包旧值）：\n```tsx\nuseEffect(() => {\n  setFilteredTodos(todos.filter(...));\n}, []); // ❌ 漏了 todos，永远读到初始空数组\n```\n\n配套规则：\n- **useState 必须在组件顶层调用**，不能放在 if/for 里，否则 Hooks 顺序错乱。\n- 开启 eslint-plugin-react-hooks 的 exhaustive-deps 规则，自动检测漏依赖。",
+    "tool_use": {
+      "name": "edit_file",
+      "args": { "path": "src/components/TodoList.tsx", "old": "useEffect(() => {...}, [])", "new": "useEffect(() => {...}, [todos, filter])" },
+      "summary": "修正 useEffect 依赖数组"
+    },
+    "tool_result": "TodoList.tsx 的 useEffect 依赖数组修正为 [todos, filter]",
+    "candidates": [
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "useEffect 依赖数组必须完整",
+        "content": "useEffect 依赖数组必须列出 effect 内用到的所有响应式值（props/state/派生值）。漏依赖会导致闭包捕获旧值读到过期数据。空数组 [] 表示只在 mount 跑一次。useState 必须在组件顶层调用，不能放在 if/for 内，否则 Hooks 调用顺序错乱。开启 eslint-plugin-react-hooks 的 exhaustive-deps 规则自动检测漏依赖。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "quality_gate",
+        "title": "React Hooks 规则由 eslint 强制校验",
+        "content": "质量门槛：必须开启 eslint-plugin-react-hooks，启用 rules-of-hooks 和 exhaustive-deps 规则。CI 阶段 eslint 报错即拦截合并。Hooks 依赖数组不完整、Hooks 在条件分支内调用都视为质量不达标。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 7,
+    "user_message": "异步保存待办到后端，try/catch 怎么写？我之前 Promise 报错没catch页面白屏了。",
+    "assistant_thought": "用户遇到未捕获的 Promise rejection 导致白屏。这是典型错误处理缺失。要点：async/await 必须用 try/catch 包住；Promise 链必须有 .catch 或 await 在 try 里；UI 层要有错误降级（错误边界 + 用户可见的错误提示）。这个修复流程值得沉淀。",
+    "assistant_response": "异步保存的错误处理：\n\n错误写法（白屏根因）：\n```tsx\n// ❌ Promise 没 catch，reject 时异常冒泡到 React 顶层，白屏\nconst handleAdd = async (text: string) => {\n  const res = await fetch(\"/api/todos\", { method: \"POST\", body: JSON.stringify({ text }) });\n  addTodo(text);\n};\n```\n\n正确写法（try/catch + 用户提示）：\n```tsx\nconst handleAdd = async (text: string) => {\n  try {\n    const res = await fetch(\"/api/todos\", {\n      method: \"POST\",\n      headers: { \"Content-Type\": \"application/json\" },\n      body: JSON.stringify({ text }),\n    });\n    if (!res.ok) throw new Error(`保存失败: ${res.status}`);\n    addTodo(text);\n  } catch (e) {\n    setError(e instanceof Error ? e.message : \"保存待办失败\");\n    // 也可以本地乐观更新 + 失败回滚\n  }\n};\n```\n\n配套：\n- 顶层包 ErrorBoundary，兜底未捕获异常，避免整页白屏，显示降级 UI。\n- Promise 链写法必须 `.catch()`，async 函数必须 `try/catch`。\n- fetch 要检查 `res.ok`，4xx/5xx 不会自动 reject。",
+    "tool_use": {
+      "name": "edit_file",
+      "args": { "path": "src/components/InputField.tsx", "old": "await fetch(...); addTodo(text);", "new": "try { ... } catch (e) { setError(...) }" },
+      "summary": "为异步保存添加 try/catch 错误处理"
+    },
+    "tool_result": "InputField.tsx 添加 try/catch，白屏问题修复",
+    "candidates": [
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "异步操作必须 try/catch 或 .catch",
+        "content": "异步操作（async/await 或 Promise 链）必须有错误处理：async 函数用 try/catch 包住，Promise 链必须有 .catch。fetch 调用必须检查 res.ok（4xx/5xx 不会自动 reject）。未捕获的 Promise rejection 会冒泡到 React 顶层导致白屏。UI 顶层必须有 ErrorBoundary 兜底，显示降级 UI 而非白屏。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "verified_fix",
+        "title": "Promise 未 catch 导致白屏的修复流程",
+        "content": "修复流程：1. 定位未 catch 的 async 函数（如 handleAdd 里的 await fetch）；2. 用 try/catch 包住整个 async 体，catch 里 setError 给用户可见提示；3. 检查 res.ok，非 2xx 主动 throw；4. 顶层加 ErrorBoundary 兜底；5. 本地可乐观更新 + 失败回滚。根因是 Promise reject 未被捕获冒泡到 React 顶层导致白屏。",
+        "source_type": "assistant_response",
+        "verification_status": "verified_fix",
+        "error_code": "FIX_TRANSIENT_503"
+      }
+    ]
+  },
+  {
+    "round": 8,
+    "user_message": "怎么写测试？要装什么？",
+    "assistant_thought": "用户要写测试。React + Vite 项目测试选 vitest（Vite 原生，快）+ @testing-library/react（DOM 测试首选）。装 vitest、@testing-library/react、@testing-library/jest-dom、jsdom。测试用例覆盖：渲染、交互（点击 toggle/删除）、store 状态变更。",
+    "assistant_response": "测试栈：vitest + @testing-library/react + jsdom。安装：\n```bash\nnpm install -D vitest @testing-library/react @testing-library/jest-dom jsdom\n```\n\nvite.config.ts 加 test 配置：\n```ts\nexport default defineConfig({\n  test: { environment: \"jsdom\", globals: true, setupFiles: \"./src/test/setup.ts\" },\n  // ...\n});\n```\n\nTodoItem 测试示例：\n```tsx\nimport { render, screen, fireEvent } from \"@testing-library/react\";\nimport { TodoItem } from \"./TodoItem\";\n\nit(\"点击 checkbox 触发 onToggle\", () => {\n  const onToggle = vi.fn();\n  render(<TodoItem todo={{ id: \"1\", text: \"买菜\", completed: false }} onToggle={onToggle} onRemove={() => {}} />);\n  fireEvent.click(screen.getByRole(\"checkbox\"));\n  expect(onToggle).toHaveBeenCalledWith(\"1\");\n});\n\nit(\"点击删除触发 onRemove\", () => {\n  const onRemove = vi.fn();\n  render(<TodoItem todo={{ id: \"2\", text: \"跑步\", completed: true }} onToggle={() => {}} onRemove={onRemove} />);\n  fireEvent.click(screen.getByText(\"删除\"));\n  expect(onRemove).toHaveBeenCalledWith(\"2\");\n});\n```\n\n跑测试：`npx vitest run`。",
+    "tool_use": {
+      "name": "run_command",
+      "args": { "command": "npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom" },
+      "summary": "安装测试依赖"
+    },
+    "tool_result": "vitest + testing-library + jsdom 安装完成",
+    "candidates": [
+      {
+        "artifact_tag": "implementation_note",
+        "title": "测试技术栈与配置",
+        "content": "测试栈：vitest + @testing-library/react + @testing-library/jest-dom + jsdom。vite.config.ts 配 test: { environment: 'jsdom', globals: true, setupFiles: './src/test/setup.ts' }。用 render + fireEvent 测组件交互，vi.fn() 断言回调被调用。跑测试命令 npx vitest run。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "quality_gate",
+        "title": "核心组件必须有单元测试",
+        "content": "质量门槛：核心组件（TodoItem/TodoList/InputField）和 store action 必须有单元测试覆盖渲染与交互。PR 前必须跑 npx vitest run 全绿，测试不通过禁止合并。新增组件需同步补测试。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 9,
+    "user_message": "Git 提交怎么写信息？分支怎么命名？",
+    "assistant_thought": "用户问 Git 规范。用 Conventional Commits：feat/fix/docs/refactor/test/chore 前缀。分支命名：feature/xxx、fix/xxx。这些是团队约束，应沉淀为规则。",
+    "assistant_response": "采用 Conventional Commits 规范：\n\n提交格式：`<type>(<scope>): <subject>`\n- type：feat（新功能）、fix（修 bug）、docs（文档）、refactor（重构）、test（测试）、chore（杂项）\n- scope：影响范围，如 todo、store、test\n- subject：祈使句，首字母小写，不加句号\n\n示例：\n```\nfeat(todo): 新增待办过滤功能\nfix(store): 修复 toggle 后 completed 状态未更新\nrefactor(item): TodoItem 改为纯展示组件\ntest(todo): 补充 TodoItem 交互测试\n```\n\n分支命名：\n- `feature/<简述>`：如 feature/todo-filter\n- `fix/<简述>`：如 fix/promise-catch\n- `chore/<简述>`：如 chore/deps-upgrade\n\n禁止：直推 main、提交信息只写 \"update\"、一个提交塞多个不相关改动。",
+    "tool_use": {
+      "name": "run_command",
+      "args": { "command": "git commit -m \"feat(todo): 新增待办过滤功能\"" },
+      "summary": "按 Conventional Commits 规范提交"
+    },
+    "tool_result": "提交成功，git log 显示 feat(todo): 新增待办过滤功能",
+    "candidates": [
+      {
+        "artifact_tag": "policy_constraint",
+        "title": "Git 提交遵循 Conventional Commits",
+        "content": "策略约束：Git 提交信息必须遵循 Conventional Commits 规范，格式 <type>(<scope>): <subject>。type 限 feat/fix/docs/refactor/test/chore。subject 用祈使句首字母小写不加句号。禁止提交信息只写 update 或一个提交塞多个不相关改动。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "分支命名规范",
+        "content": "分支命名规范：feature/<简述> 用于新功能，fix/<简述> 用于修 bug，chore/<简述> 用于杂项。禁止直推 main 分支。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 10,
+    "user_message": "能不能直接 push 到 main？我急着上线。",
+    "assistant_thought": "用户想直推 main，这是红线。必须禁止直推 main，走 PR + code review 流程。急也不是理由，直推 main 绕过 review 会埋隐患。要明确拒绝并给出正确流程。",
+    "assistant_response": "不行，禁止直推 main。哪怕急也要走 PR + code review：\n\n正确流程：\n1. `git checkout -b feature/<简述>` 从 main 拉分支\n2. 开发 + 本地 `npx vitest run` 自测\n3. `git push origin feature/<简述>`\n4. 在平台开 PR，关联 issue，写清改动点和测试方式\n5. 至少一个 reviewer 审核通过\n6. CI 全绿（lint + typecheck + test）才能合并\n\n禁止直推 main 的理由：\n- 绕过 review，类型错误/未处理的边界条件会进生产\n- 急上线不是理由，PR review 半小时换生产稳定\n- main 是受保护分支，平台配置会直接拒推\n\n如果确实紧急 hotfix：从 main 拉 `fix/hotfix-xxx` 分支，PR 走 expedited review，合并后立即部署。",
+    "tool_use": {
+      "name": "run_command",
+      "args": { "command": "git checkout -b feature/todo-filter" },
+      "summary": "创建 feature 分支而非直推 main"
+    },
+    "tool_result": "已切到 feature/todo-filter 分支",
+    "candidates": [
+      {
+        "artifact_tag": "policy_constraint",
+        "title": "禁止直推 main 分支",
+        "content": "策略约束：禁止直接 push 到 main 分支，所有改动必须走 PR + code review 流程。流程：从 main 拉 feature/fix 分支开发，本地自测后 push，开 PR 关联 issue 写清改动点，至少一个 reviewer 审核通过且 CI 全绿才能合并。紧急 hotfix 也必须从 main 拉 fix/hotfix-xxx 分支走 expedited review。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "quality_gate",
+        "title": "PR 合并前 CI 必须全绿",
+        "content": "质量门槛：PR 合并前 CI 必须 lint + typecheck + test 全绿，至少一个 reviewer 审核通过。CI 红灯或无 review approve 禁止合并。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 11,
+    "user_message": "帮我做一次 code review，看看我的代码有什么问题。",
+    "assistant_thought": "用户要 code review。审查维度：类型安全（有无 any、可选链）、错误处理（异步有没有 catch）、性能（不必要的重渲染）、Hooks 规则（依赖数组）。我需要读他的代码文件来给具体意见。",
+    "assistant_response": "Code review 维度与本次发现：\n\n1. **类型安全**：检查有无 any、可选链是否到位、联合类型是否穷尽。\n2. **错误处理**：异步有无 try/catch、边界条件是否处理。\n3. **性能**：有无不必要的重渲染、useMemo/useCallback 是否误用。\n4. **Hooks 规则**：依赖数组是否完整、是否在条件里调 Hooks。\n\n本次发现的问题：\n- TodoList 里 `todos.filter(...)` 每次渲染都重算，量大时卡 → 用 useMemo 缓存。\n- InputField 的 onAdd 回调每次渲染都是新引用，导致 TodoItem 无谓重渲染 → 用 useCallback 稳定引用。\n- 有处用 `any` 接收后端返回 → 改 unknown + 类型守卫。\n\nReviewer 必须在 PR 上逐条 comment，approve 前确认问题已解决或记录为后续 issue。",
+    "tool_use": {
+      "name": "read_file",
+      "args": { "path": "src/components/TodoList.tsx" },
+      "summary": "读取 TodoList 做代码审查"
+    },
+    "tool_result": "TodoList.tsx 读取完成，发现 filter 未 memo、回调未 useCallback",
+    "candidates": [
+      {
+        "artifact_tag": "quality_gate",
+        "title": "Code review 必查维度",
+        "content": "质量门槛：Code review 必查四个维度——类型安全（any/可选链/联合类型穷尽）、错误处理（异步 try/catch、边界条件）、性能（不必要重渲染、useMemo/useCallback 误用）、Hooks 规则（依赖数组完整、不在条件里调 Hooks）。Reviewer 必须在 PR 逐条 comment，approve 前确认问题已解决或记录为 issue。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "PR 必须有至少一个 reviewer approve",
+        "content": "约束：每个 PR 必须至少一个 reviewer approve 才能合并。Reviewer 需逐条回应 comment，approve 前确认问题已解决或登记为后续 issue。禁止 self-approve 自己的 PR。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 12,
+    "user_message": "useMemo 和 useCallback 什么时候该用？我到处都加会不会更好？",
+    "assistant_thought": "用户误以为 useMemo/useCallback 到处加更好，这是常见误区。实际：这两者是优化手段，本身有成本（记忆化开销）。只在子组件用了 React.memo 且 props 是引用类型才需要稳定引用；否则到处加反而增加开销。待办列表 filter 结果适合 useMemo。",
+    "assistant_response": "别到处加，按需用。原则：**useMemo/useCallback 是优化手段，本身有记忆化成本，无脑加反而更慢**。\n\n该用的场景：\n1. 子组件被 `React.memo` 包裹，且传入的 props 是引用类型（对象/数组/函数），需要稳定引用避免重渲染 → useCallback 稳定回调。\n2. 计算成本高的派生值（如大列表 filter/sort）→ useMemo 缓存结果。\n\n不该用的场景：\n1. 子组件没 memo，父重渲染它本来就要重渲染，稳定 props 引用无意义。\n2. 计算很轻（如 `todos.length`），记忆化开销大于重算。\n3. 依赖数组频繁变化，缓存命中率低。\n\n待办应用正确用法：\n```tsx\n// ✅ filter 结果大时 memo\nconst filteredTodos = useMemo(() => {\n  return todos.filter(/* ... */);\n}, [todos, filter]);\n\n// ✅ 传给 memo 子组件的回调稳定化\nconst handleToggle = useCallback((id: string) => toggleTodo(id), [toggleTodo]);\n// TodoItem 用 React.memo 包裹才会因此受益\nexport const TodoItem = React.memo(function TodoItem({ ... }) { ... });\n```\n\n但禁止滥用：简单组件无 memo 就别加 useCallback，纯增加心智负担。",
+    "tool_use": {
+      "name": "edit_file",
+      "args": { "path": "src/components/TodoList.tsx", "old": "const filteredTodos = todos.filter(...)", "new": "const filteredTodos = useMemo(() => todos.filter(...), [todos, filter])" },
+      "summary": "给 filter 结果加 useMemo"
+    },
+    "tool_result": "TodoList 的 filter 结果用 useMemo 缓存，TodoItem 用 React.memo 包裹",
+    "candidates": [
+      {
+        "artifact_tag": "design_decision",
+        "title": "useMemo/useCallback 按需使用而非无脑加",
+        "content": "设计决策：useMemo/useCallback 按需使用，不无脑添加。该用场景：子组件被 React.memo 包裹且传引用类型 props 需稳定引用（useCallback）；计算成本高的派生值如大列表 filter/sort（useMemo）。不该用：子组件未 memo、计算很轻（如 todos.length）、依赖频繁变化缓存命中低。两者本身有记忆化成本，滥用反而更慢。TodoList 的 filter 结果用 useMemo([todos, filter])，传给 React.memo 包裹的 TodoItem 的回调用 useCallback 稳定化。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "禁止无脑滥用 useMemo/useCallback",
+        "content": "约束：禁止无脑到处加 useMemo/useCallback。仅在子组件 React.memo 包裹且 props 为引用类型、或计算成本高的派生值场景使用。简单组件未 memo 时加 useCallback 纯增心智负担，计算很轻（如 todos.length）加 useMemo 记忆化开销大于重算。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 13,
+    "user_message": "我直接 todos.push(newTodo) 改数组不行吗？为啥非要展开？",
+    "assistant_thought": "用户想直接 mutate state，这是 React 大忌。React 用引用判断状态变化，push/mutate 不改引用，React 检测不到变化，不重渲染。必须返回新数组/新对象。Zustand 的 set 也一样，要返回新 state。",
+    "assistant_response": "不行，必须用展开/ map/ filter 返回新引用。原因：\n\nReact（和 Zustand）用**引用比较**判断状态是否变化。`todos.push()` 改的是原数组内容，引用没变，React/Zustand 认为没变化，不触发重渲染。\n\n错误：\n```tsx\n// ❌ mutate 原数组，引用不变，不重渲染\naddTodo: (text) => {\n  todos.push({ id: crypto.randomUUID(), text, completed: false });\n}\n```\n\n正确：\n```tsx\n// ✅ 返回新数组，引用变化，触发重渲染\naddTodo: (text) => set((state) => ({\n  todos: [...state.todos, { id: crypto.randomUUID(), text, completed: false }]\n})),\n\ntoggleTodo: (id) => set((state) => ({\n  todos: state.todos.map((t) => t.id === id ? { ...t, completed: !t.completed } : t)\n})),\n\nremoveTodo: (id) => set((state) => ({\n  todos: state.todos.filter((t) => t.id !== id)\n})),\n```\n\n规则：\n- 数组增删改：用展开 `[...arr, item]`、`filter`、`map` 返回新数组。\n- 对象改字段：用展开 `{ ...obj, field: newValue }`。\n- 禁止 `push`/`splice`/`sort`/`reverse`/直接赋字段等 mutate 操作。\n- Zustand 的 set 必须返回新 state 对象，不能改原 state。",
+    "tool_use": {
+      "name": "edit_file",
+      "args": { "path": "src/store/todoStore.ts", "old": "todos.push(...)", "new": "todos: [...state.todos, ...]" },
+      "summary": "把 push 改为展开运算符返回新数组"
+    },
+    "tool_result": "todoStore.ts 的 addTodo/toggleTodo/removeTodo 全部改为返回新数组",
+    "candidates": [
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "禁止直接 mutate state",
+        "content": "约束：禁止直接 mutate state（数组用 push/splice/sort/reverse、对象直接赋字段）。React/Zustand 用引用比较判断状态变化，mutate 不改引用导致不触发重渲染。必须返回新引用：数组增删改用展开 [...arr,item]、filter、map；对象改字段用展开 {...obj, field: newValue}。Zustand 的 set 必须返回新 state 对象。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "policy_constraint",
+        "title": "状态更新必须返回新引用",
+        "content": "策略约束：所有状态更新（useState setState、Zustand set、useReducer dispatch）必须返回新引用，禁止 mutate 原对象/数组。数组操作限展开/filter/map，对象操作限展开。违反即视为代码不达标，review 必须打回。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 14,
+    "user_message": "状态共享我用 Context 行不行？我看很多教程都用 Context。",
+    "assistant_thought": "用户想用 Context。教程多用 Context 是因为简单，但 Context 有性能坑：值变更全量广播，所有消费组件重渲染。待办这种状态频繁变更（每次 add/toggle），Context 会导致所有待办项重渲染。Zustand 切片订阅更好。但要说明 Context 也有适用场景。",
+    "assistant_response": "待办应用不推荐 Context，用 Zustand。理由：\n\nContext 的性能坑：\n- Context Provider 的 value 变更，**所有** useContext 消费组件都会重渲染，无法按切片订阅。\n- 待办每次 add/toggle，整个 todos 数组引用变化，所有用了 todos 的组件全重渲染，哪怕只改了一条。\n- 待办多了（比如 100 条），一次 toggle 触发 100 个 TodoItem 重渲染，卡顿。\n\nZustand 的优势：\n- 基于 selector 订阅，组件只订阅需要的切片。\n- `useTodoStore((s) => s.todos)` 只在 todos 变化时重渲染。\n- 可以精细到 `useTodoStore((s) => s.todos.filter(...))` 用 shallow 比较避免无谓重渲染。\n\nContext 仍适用的场景（不否定它）：\n- 主题/语言等极少变化的全局配置。\n- 不需要细粒度订阅的场景。\n- 不想引入额外依赖的极简项目。\n\n结论：频繁变更的业务状态用 Zustand，极少变化的配置用 Context。",
+    "tool_use": {
+      "name": "edit_file",
+      "args": { "path": "src/store/todoStore.ts", "old": "Context.Provider value={...}", "new": "useTodoStore(selector)" },
+      "summary": "从 Context 改为 Zustand selector 订阅"
+    },
+    "tool_result": "状态共享改为 Zustand selector，细粒度订阅",
+    "candidates": [
+      {
+        "artifact_tag": "design_decision",
+        "title": "频繁变更业务状态用 Zustand 而非 Context",
+        "content": "设计决策：频繁变更的业务状态（如 todos 列表）用 Zustand 而非 Context。Context Provider value 变更会全量广播触发所有 useContext 消费组件重渲染，无法按切片订阅；待办每次 add/toggle 整个 todos 引用变化导致所有 TodoItem 重渲染，量大卡顿。Zustand 基于 selector 订阅，组件只订阅所需切片，未订阅切片变更不触发重渲染。Context 仍适用主题/语言等极少变化的全局配置。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "project_preference",
+        "title": "Context 仅用于极少变化的全局配置",
+        "content": "项目偏好：Context 仅用于主题、语言、用户信息等极少变化的全局配置。频繁变更的业务状态用 Zustand selector 订阅，避免全量广播重渲染。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 15,
+    "user_message": "tsconfig 的 strict 要开吗？noImplicitAny 和 strictNullChecks 具体有什么用？",
+    "assistant_thought": "用户问 strict 模式。必须开。noImplicitAny 拦住隐式 any（参数没标类型默认 any），strictNullChecks 让 null/undefined 不能赋给非可空类型，逼你处理空值。这两个是 TypeScript 类型安全的基石，不开等于白用 TS。",
+    "assistant_response": "必须开 strict，尤其 noImplicitAny 和 strictNullChecks。tsconfig.json：\n```json\n{\n  \"compilerOptions\": {\n    \"strict\": true,\n    \"noImplicitAny\": true,\n    \"strictNullChecks\": true,\n    \"noUncheckedIndexedAccess\": true\n  }\n}\n```\n\n各选项作用：\n\n1. **noImplicitAny**：参数/变量没标类型时禁止隐式推断为 any。\n```tsx\n// ❌ noImplicitAny 报错：参数隐式 any\nfunction addTodo(text) { ... }\n// ✅ 必须标类型\nfunction addTodo(text: string) { ... }\n```\n\n2. **strictNullChecks**：null/undefined 不能赋给非可空类型，逼你处理空值。\n```tsx\n// ❌ strictNullChecks 报错：可能 null\nconst el = document.querySelector(\"#root\");\nel.innerHTML = \"hi\"; // Object is possibly null\n// ✅ 必须处理\nconst el = document.querySelector(\"#root\");\nif (el) el.innerHTML = \"hi\";\n// 或 el?.innerHTML = \"hi\";\n```\n\n3. **noUncheckedIndexedAccess**（推荐加）：数组/对象索引访问返回 T | undefined。\n```tsx\nconst arr: string[] = [\"a\"];\narr[0].toUpperCase(); // ❌ arr[0] 是 string | undefined\n```\n\n理由：不开 strict 等于白用 TypeScript，类型检查形同虚设。",
+    "tool_use": {
+      "name": "edit_file",
+      "args": { "path": "tsconfig.json", "old": "\"strict\": false", "new": "\"strict\": true, \"noImplicitAny\": true, \"strictNullChecks\": true, \"noUncheckedIndexedAccess\": true" },
+      "summary": "开启 TypeScript strict 模式"
+    },
+    "tool_result": "tsconfig.json strict 相关选项已开启",
+    "candidates": [
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "TypeScript 必须开启 strict 模式",
+        "content": "约束：tsconfig.json 必须开启 strict: true，尤其 noImplicitAny 和 strictNullChecks。noImplicitAny 禁止参数/变量隐式推断为 any，必须显式标类型。strictNullChecks 让 null/undefined 不能赋给非可空类型，逼用可选链或空值守卫处理。推荐加 noUncheckedIndexedAccess 让数组索引访问返回 T|undefined。不开 strict 等于白用 TypeScript。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "quality_gate",
+        "title": "CI 必须跑 tsc 类型检查",
+        "content": "质量门槛：CI 必须跑 tsc --noEmit 类型检查，strict 模式下任何隐式 any、未处理 null/undefined 报错即拦截合并。类型错误禁止用 ts-ignore 掩盖，必须修类型或加 @ts-expect-error 注释说明原因。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 16,
+    "user_message": "后端返回的数据我用 any 接收行不行？省得写类型。",
+    "assistant_thought": "用户想用 any 接收后端数据，这是类型安全大忌。any 关闭类型检查，后续访问全无保护。必须用 unknown 接收 + 类型守卫/校验（zod）收窄。这是硬约束。",
+    "assistant_response": "禁止用 any，用 unknown + 类型收窄。理由：\n\nany 的危害：\n- 关闭类型检查，后续任何属性访问都不报错，运行时炸了才发现。\n- 污染调用链，一个 any 传出去，下游全 any。\n- 失去 TypeScript 的核心价值。\n\n正确做法：\n```tsx\n// ❌ any 接收，后续全无保护\nasync function fetchTodos(): Promise<any[]> {\n  const res = await fetch(\"/api/todos\");\n  return res.json();\n}\nconst todos = await fetchTodos();\ntodos[0].nonExistentField; // 不报错，运行时 undefined\n\n// ✅ unknown 接收 + 类型守卫\nasync function fetchTodos(): Promise<Todo[]> {\n  const res = await fetch(\"/api/todos\");\n  const data: unknown = await res.json();\n  if (!Array.isArray(data)) throw new Error(\"返回不是数组\");\n  return data.map((item): Todo => {\n    if (typeof item !== \"object\" || item === null) throw new Error(\"条目格式错误\");\n    const obj = item as Record<string, unknown>;\n    if (typeof obj.id !== \"string\" || typeof obj.text !== \"string\" || typeof obj.completed !== \"boolean\") {\n      throw new Error(\"条目字段类型错误\");\n    }\n    return { id: obj.id, text: obj.text, completed: obj.completed };\n  });\n}\n```\n\n更推荐用 zod 做运行时校验：\n```tsx\nimport { z } from \"zod\";\nconst TodoSchema = z.object({\n  id: z.string(),\n  text: z.string(),\n  completed: z.boolean(),\n});\nconst data = TodoSchema.array().parse(await res.json()); // 不符合抛 ZodError\n```\n\n例外：.d.ts 补丁文件、迁移过渡期可临时保留 any 并加 @ts-expect-error 注释。",
+    "tool_use": {
+      "name": "edit_file",
+      "args": { "path": "src/api/todoApi.ts", "old": "Promise<any[]>", "new": "Promise<Todo[]> with unknown + guard" },
+      "summary": "把 any 改为 unknown + 类型守卫"
+    },
+    "tool_result": "todoApi.ts 改为 unknown 接收 + 类型守卫，any 清除",
+    "candidates": [
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "禁止使用 any 类型",
+        "content": "约束：禁止使用 any 类型，必须用 unknown 替代并在使用前做类型收窄（类型守卫或 zod 运行时校验）。any 关闭类型检查且污染调用链，失去 TypeScript 核心价值。外部数据（如 fetch 返回）用 unknown 接收，再用 Array.isArray/typeof/对象字段校验收窄为目标类型。例外仅限 .d.ts 补丁文件和迁移过渡期，须加 @ts-expect-error 注释说明。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "policy_constraint",
+        "title": "外部数据必须运行时校验",
+        "content": "策略约束：外部数据（HTTP 响应、localStorage、postMessage）禁止用 any 接收，必须用 unknown 接收并经类型守卫或 zod schema 校验后再使用。校验失败抛明确错误，不允许静默放行错误格式数据。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 17,
+    "user_message": "错误怎么分类？OperationalError 和 ProgrammerError 是什么？",
+    "assistant_thought": "用户问错误分类。这是错误处理的核心设计：OperationalError 是运行时可预期的错误（网络失败、数据校验失败），可以被重试或给用户提示；ProgrammerError 是编程错误（类型错误、不变式违反），不该 catch，让它崩以便发现 bug。区分对待。",
+    "assistant_response": "错误分两类，处理策略不同：\n\n1. **OperationalError（运行时操作错误）**：可预期的运行时错误，能被妥善处理。\n   - 例：网络请求失败、数据校验不通过、文件不存在、权限不足。\n   - 处理：try/catch 捕获，重试（指数退避）或给用户友好提示，记日志，可降级。\n\n2. **ProgrammerError（编程错误）**：代码 bug，不该 catch，让它崩以暴露问题。\n   - 例：类型错误（TS 已防）、调用不存在的函数、违反不变式、传错参数。\n   - 处理：不 catch（或只在顶层 ErrorBoundary 记录后重新抛），开发期尽快暴露，生产期记录后崩溃上报。\n\n代码示例：\n```tsx\nclass OperationalError extends Error {\n  constructor(message: string, public retryable: boolean = false) {\n    super(message);\n    this.name = \"OperationalError\";\n  }\n}\n\nasync function saveTodo(todo: Todo) {\n  try {\n    const res = await fetch(\"/api/todos\", { method: \"POST\", body: JSON.stringify(todo) });\n    if (!res.ok) {\n      throw new OperationalError(`保存失败: ${res.status}`, res.status >= 500);\n    }\n  } catch (e) {\n    if (e instanceof OperationalError && e.retryable) {\n      // 5xx 可重试\n      return retryWithBackoff(() => saveTodo(todo));\n    }\n    throw e; // ProgrammerError 或不可重试，往上抛\n  }\n}\n```\n\n原则：OperationalError 捕获并恢复，ProgrammerError 不捕获让它崩。",
+    "tool_use": {
+      "name": "write_file",
+      "args": { "path": "src/errors.ts", "content": "OperationalError 类" },
+      "summary": "创建错误分类定义"
+    },
+    "tool_result": "src/errors.ts 写入 OperationalError 类",
+    "candidates": [
+      {
+        "artifact_tag": "design_decision",
+        "title": "错误分为 OperationalError 与 ProgrammerError",
+        "content": "设计决策：错误分两类。OperationalError 是运行时可预期操作错误（网络失败、数据校验失败、权限不足），可被 try/catch 捕获并恢复（重试或用户提示）。ProgrammerError 是编程错误（类型错误、不变式违反、参数错误），不该 catch，让其崩以暴露 bug，生产期记录后崩溃上报。原则：OperationalError 捕获并恢复，ProgrammerError 不捕获让它崩。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "可重试操作错误标 retryable 字段",
+        "content": "约束：OperationalError 必须标 retryable 字段（boolean）区分是否可重试。5xx 服务端错误标 retryable=true 可指数退避重试；4xx 客户端错误标 retryable=false 不重试直接给用户提示。ProgrammerError 不 catch 不重试。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 18,
+    "user_message": "日志怎么打？我到处 console.log 行不行？",
+    "assistant_thought": "用户想用 console.log 打日志，这是生产大忌。console.log 散落各处难统一、无级别、无结构化、生产忘删会泄露信息。必须用结构化日志（带级别、时间、上下文、JSON 可检索），生产禁 console.log。",
+    "assistant_response": "禁止用 console.log，用结构化日志。问题：\n\nconsole.log 的危害：\n- 无级别，info/warn/error 混一起，无法过滤。\n- 无结构化上下文，排查靠肉眼拼字符串。\n- 生产忘删，敏感信息（token、用户数据）可能泄露。\n- 无法被日志收集系统（ELK/Loki）检索。\n\n正确做法（结构化日志）：\n```tsx\n// src/logger.ts\n type LogLevel = \"info\" | \"warn\" | \"error\";\n interface LogEntry {\n   level: LogLevel;\n   message: string;\n   timestamp: string;\n   context: Record<string, unknown>;\n   traceId?: string;\n }\n\n const logger = {\n   info(message: string, context: Record<string, unknown> = {}) {\n     console.info(JSON.stringify({ level: \"info\", message, timestamp: new Date().toISOString(), context } satisfies LogEntry));\n   },\n   warn(message: string, context: Record<string, unknown> = {}) {\n     console.warn(JSON.stringify({ level: \"warn\", message, timestamp: new Date().toISOString(), context } satisfies LogEntry));\n   },\n   error(message: string, context: Record<string, unknown> = {}, error?: unknown) {\n     console.error(JSON.stringify({\n       level: \"error\", message, timestamp: new Date().toISOString(),\n       context, error: error instanceof Error ? { name: error.name, message: error.message, stack: error.stack } : String(error)\n     } satisfies LogEntry));\n   },\n };\n export { logger };\n```\n\n使用：\n```tsx\nimport { logger } from \"./logger\";\nlogger.info(\"todo saved\", { todoId: todo.id, text: todo.text });\nlogger.error(\"save todo failed\", { todoId: todo.id }, err);\n```\n\n规则：\n- 生产代码禁止 console.log，用 logger.info/warn/error。\n- 日志带级别、时间戳、结构化 context（对象非拼字符串）。\n- 错误日志带 error 对象的 name/message/stack。\n- 例外：构建脚本（scripts/）允许 console.log。",
+    "tool_use": {
+      "name": "write_file",
+      "args": { "path": "src/logger.ts", "content": "结构化 logger" },
+      "summary": "创建结构化日志模块"
+    },
+    "tool_result": "src/logger.ts 写入结构化 logger，替换散落的 console.log",
+    "candidates": [
+      {
+        "artifact_tag": "policy_constraint",
+        "title": "生产代码禁止 console.log",
+        "content": "策略约束：生产代码（src/ 下）禁止使用 console.log，必须用结构化 logger（info/warn/error 方法）。日志必须带级别、时间戳、结构化 context 对象（非拼字符串），错误日志带 error 对象的 name/message/stack。例外仅限 scripts/ 构建脚本目录允许 console.log。eslint 配 no-console 规则在 src/ 强制报错。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "日志必须结构化带级别",
+        "content": "约束：日志必须结构化，包含 level（info/warn/error）、message、timestamp、context（对象）字段，输出 JSON 供日志系统检索。禁止用字符串拼接（如 'todo ' + id + ' saved'），用 context 对象传上下文。错误日志带完整 error 对象。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 19,
+    "user_message": "fetch 请求超时了卡住怎么办？要不要加 retry？",
+    "assistant_thought": "用户遇到 fetch 无超时卡住。原生 fetch 没有内置超时，要用 AbortController + setTimeout 实现。retry 要区分可重试错误（网络/5xx）和不可重试（4xx），且指数退避避免雪崩。这个修复流程值得沉淀成 skill。",
+    "assistant_response": "fetch 默认无超时，必须用 AbortController 加超时 + 有条件 retry。实现：\n\n```tsx\nasync function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 8000): Promise<Response> {\n  const controller = new AbortController();\n  const timer = setTimeout(() => controller.abort(), timeoutMs);\n  try {\n    return await fetch(url, { ...options, signal: controller.signal });\n  } finally {\n    clearTimeout(timer);\n  }\n}\n\nasync function fetchWithRetry(url: string, options: RequestInit = {}, retries = 3): Promise<Response> {\n  let lastError: unknown;\n  for (let attempt = 1; attempt <= retries; attempt++) {\n    try {\n      const res = await fetchWithTimeout(url, options);\n      if (res.status >= 500 && attempt < retries) {\n        await sleep(Math.pow(2, attempt) * 1000); // 指数退避 2s/4s/8s\n        continue;\n      }\n      return res; // 2xx 或 4xx（4xx 不重试）或最后一次\n    } catch (e) {\n      lastError = e;\n      if (attempt < retries && (e instanceof DOMException || e instanceof TypeError)) {\n        // 网络错误/超时可重试\n        await sleep(Math.pow(2, attempt) * 1000);\n        continue;\n      }\n      throw e;\n    }\n  }\n  throw lastError;\n}\n\nfunction sleep(ms: number) { return new Promise((r) => setTimeout(r, ms)); }\n```\n\n规则：\n- 所有 fetch 必须经 fetchWithTimeout，默认 8s 超时。\n- 仅 5xx 和网络错误重试，4xx 不重试（客户端错误重试无用）。\n- 指数退避（2s/4s/8s），避免重试风暴。\n- 最多 3 次，超过抛 OperationalError。",
+    "tool_use": {
+      "name": "write_file",
+      "args": { "path": "src/api/httpClient.ts", "content": "fetchWithTimeout + fetchWithRetry" },
+      "summary": "创建带超时和重试的 HTTP 客户端"
+    },
+    "tool_result": "src/api/httpClient.ts 写入，fetch 超时+重试问题修复",
+    "candidates": [
+      {
+        "artifact_tag": "verified_fix",
+        "title": "fetch 无超时卡住的修复流程",
+        "content": "修复流程：1. 用 AbortController + setTimeout 给 fetch 加超时（默认 8s），超时调 controller.abort()；2. 包一层 fetchWithRetry 仅对 5xx 和网络错误重试，4xx 不重试；3. 指数退避（2s/4s/8s）避免重试风暴，最多 3 次；4. 超过重试次数抛 OperationalError(retryable=false)。根因是原生 fetch 无内置超时会无限等待。",
+        "source_type": "assistant_response",
+        "verification_status": "verified_fix",
+        "error_code": "FIX_TIMEOUT_503"
+      },
+      {
+        "artifact_tag": "implementation_note",
+        "title": "HTTP 客户端超时与重试配置",
+        "content": "HTTP 客户端实现：fetchWithTimeout 用 AbortController+setTimeout 默认 8s 超时。fetchWithRetry 仅对 5xx 和网络错误（DOMException/TypeError）重试，4xx 不重试，指数退避 2s/4s/8s，最多 3 次。所有 fetch 必须经此客户端，禁止裸用 fetch。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 20,
+    "user_message": "环境变量怎么校验？我直接 process.env.REACT_APP_API_URL 取行不行？",
+    "assistant_thought": "用户想直接读 process.env，这是 fail-fast 反模式。直接读若变量缺失运行时才崩（且可能是 undefined 导致后续逻辑错乱）。必须用 dotenv + zod 在启动时校验，缺失立即崩并明确报错。这是 fail-fast 原则。",
+    "assistant_response": "禁止直接裸读 process.env，用 dotenv + zod 启动时校验，fail-fast。问题：\n\n裸读的危害：\n- 变量缺失运行时才崩，且可能是 undefined 流到下游导致诡异 bug。\n- 无类型（永远是 string|undefined），TS 帮不上忙。\n- 错误信息不明确（'Cannot read property of undefined'）。\n\n正确做法（Vite 项目用 import.meta.env + zod）：\n```tsx\n// src/env.ts\nimport { z } from \"zod\";\n\nconst EnvSchema = z.object({\n  VITE_API_BASE_URL: z.string().url(),\n  VITE_APP_TITLE: z.string().min(1),\n  VITE_ENABLE_ANALYTICS: z.enum([\"true\", \"false\"]).default(\"false\"),\n});\n\n// 启动时解析校验，失败立即抛明确错误\nconst parsed = EnvSchema.safeParse(import.meta.env);\nif (!parsed.success) {\n  console.error(\"❌ 环境变量校验失败:\");\n  for (const issue of parsed.error.issues) {\n    console.error(`  ${issue.path.join(\".\")}: ${issue.message}`);\n  }\n  throw new Error(\"环境变量配置不完整，请检查 .env 文件\");\n}\n\nexport const env = parsed.data;\n```\n\n使用：\n```tsx\nimport { env } from \"./env\";\nfetch(`${env.VITE_API_BASE_URL}/todos`); // 类型安全，已校验非空\n```\n\n规则：\n- 所有环境变量经 zod schema 校验，启动时 fail-fast。\n- 缺失或格式错误立即崩并打印明确错误（哪个变量、什么问题）。\n- 禁止裸读 import.meta.env.XXX 或 process.env.XXX。\n- .env.example 列出所有必需变量供新人参考。",
+    "tool_use": {
+      "name": "write_file",
+      "args": { "path": "src/env.ts", "content": "zod 环境变量校验" },
+      "summary": "创建环境变量校验模块"
+    },
+    "tool_result": "src/env.ts 写入，启动时校验环境变量 fail-fast",
+    "candidates": [
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "环境变量必须启动时校验 fail-fast",
+        "content": "约束：环境变量禁止裸读 import.meta.env.XXX 或 process.env.XXX，必须用 zod schema 在应用启动时校验。safeParse 失败立即抛错崩溃并打印明确错误（哪个变量、什么问题），禁止让 undefined 流到下游导致诡异 bug。.env.example 列出所有必需变量供参考。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "quality_gate",
+        "title": "CI 校验环境变量完整性",
+        "content": "质量门槛：CI 必须校验环境变量完整性。.env.example 与代码中实际使用的环境变量必须一致，新增环境变量未同步到 .env.example 视为不达标。zod schema 覆盖所有必需变量，缺必填项启动即崩。",
+        "source_type": "assistant_response",
+        "verification_status": "verified"
+      },
+      {
+        "artifact_tag": "verified_fix",
+        "title": "环境变量缺失导致 undefined 流窜的修复流程",
+        "content": "修复流程：1. 建 src/env.ts 用 zod 定义 EnvSchema 覆盖所有必需变量；2. 启动时 safeParse(import.meta.env) 校验，失败打印每个 issue 的 path 和 message 后抛错；3. 全项目改为从 env 模块导入已校验的 env 对象，禁止裸读 import.meta.env；4. 更新 .env.example 列全所有变量。根因是裸读环境变量缺失时返回 undefined 流到下游导致诡异运行时 bug。",
+        "source_type": "assistant_response",
+        "verification_status": "verified_fix",
+        "error_code": "INJECTED_BREAKER"
+      }
+    ]
+  }
+]

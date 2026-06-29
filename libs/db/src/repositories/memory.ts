@@ -11,12 +11,44 @@ function extractMemorySearchTerms(input?: string | null): string[] {
   if (!normalized) {
     return [];
   }
-  const stopwords = new Set(["the", "and", "how", "should", "would", "could", "what", "why", "when", "where", "this", "that"]);
+  const stopwords = new Set(["the", "and", "how", "should", "would", "could", "what", "why", "when", "where", "this", "that", "什么", "怎么", "是否"]);
   const terms = new Set<string>();
   for (const token of normalized.split(/\s+/)) {
+    // 先分离 ASCII 和 CJK：把 "pr测试要求" 拆成 "pr" + "测试要求"
+    // 否则 replace(/[^\p{L}\p{N}_-]+/gu, "") 会把混合 token 当成一个词
+    // 而 CJK bigram 正则 [\u3400-\u9FFF]{2,} 匹配不到混合串里的 CJK 部分
+    const asciiParts = token.match(/[a-z0-9_-]+/gi) ?? [];
+    for (const ascii of asciiParts) {
+      if (ascii.length >= 2 && !stopwords.has(ascii.toLowerCase())) {
+        terms.add(ascii.toLowerCase());
+      }
+    }
+
     const trimmed = token.replace(/[^\p{L}\p{N}_-]+/gu, "").trim();
-    if (trimmed.length >= 2 && !stopwords.has(trimmed)) {
-      terms.add(trimmed);
+    // 只保留纯 CJK 的 trimmed：纯 ASCII 已由 asciiParts 处理，ASCII+CJK 混合 token（如 "pr测试要求"）
+    // 既不是有效 ASCII 词也不是有效 CJK 词，加入只会让 minMatchCount 门槛误伤命中。
+    // CJK bigram 正则已能从原 token 抽出 "测试要求" 这类纯 CJK 子串，这里只兜底无 ASCII 的纯 CJK token。
+    if (trimmed.length >= 2 && !stopwords.has(trimmed) && !terms.has(trimmed)) {
+      const hasAscii = /[a-z0-9_-]/i.test(trimmed);
+      const hasCjk = /[\u3400-\u9FFF]/.test(trimmed);
+      if (hasCjk && !hasAscii) {
+        terms.add(trimmed);
+      }
+    }
+    // CJK bigram：中文没空格，整句被当成单 token，ILIKE 子串匹配命中率极低
+    // 用 bigram 滑动窗口拆分长中文串，与 extractLooseSearchTerms 保持一致
+    for (const cjk of token.match(/[\u3400-\u9FFF]{2,}/g) ?? []) {
+      if (cjk.length <= 4 && !stopwords.has(cjk)) {
+        terms.add(cjk);
+      }
+      if (cjk.length > 4) {
+        for (let i = 0; i < cjk.length - 1; i++) {
+          const bigram = cjk.slice(i, i + 2);
+          if (!stopwords.has(bigram)) {
+            terms.add(bigram);
+          }
+        }
+      }
     }
   }
   return [...terms].slice(0, 10);
@@ -57,12 +89,22 @@ async function queryMemoryRows(input: {
           WHERE title ILIKE '%' || term || '%'
              OR content ILIKE '%' || term || '%'
              OR array_to_string(array_remove(tags, 'memory-v3'), ' ') ILIKE '%' || term || '%'
-        ) > 0
+        ) >= $6::int
       )
     ORDER BY memory_match_count DESC, importance DESC, confidence_score DESC, created_at DESC
     LIMIT $5
     `,
-    [input.tenantId, input.scope, input.type, terms.length > 0 ? terms : null, input.limit ?? 10]
+    [
+      input.tenantId,
+      input.scope,
+      input.type,
+      terms.length > 0 ? terms : null,
+      input.limit ?? 10,
+      // 精度优化：CJK bigram 会引入大量噪音 term（"试要"/"求是"/"是什么"），
+      // 不能让这些噪音抬高 minMatchCount 门槛误伤真实命中。
+      // terms >= 8（CJK 长句）→ 3；terms 4-7 → 2；terms 1-3 → 1
+      terms.length >= 8 ? 3 : terms.length >= 4 ? 2 : 1,
+    ]
   );
   return result.rows;
 }
@@ -146,24 +188,50 @@ export async function queryProceduralMemory(input: {
   tenantId: string;
   scope: string;
   fingerprint?: string | null;
+  projectRef?: string | null;
   limit?: number;
 }): Promise<Record<string, unknown>[]> {
   const pool = getPool();
+  const projectId = input.projectRef ?? input.scope;
   const result = await pool.query(
     `
     SELECT *
     FROM skill
     WHERE tenant_id = $1
-      AND scope = $2
       AND status = 'active'
       AND (
         fingerprint_requirement IS NULL
         OR fingerprint_requirement = $3
       )
-    ORDER BY success_rate DESC NULLS LAST, created_at DESC
-    LIMIT $4
+      AND (
+        -- global/team/user/workspace level skills are visible across all scopes
+        availability_scope IN ('global_reusable', 'team_reusable', 'user_reusable', 'workspace_reusable')
+        OR (
+          -- project level skills only visible when project_ref matches
+          availability_scope = 'project_reusable'
+          AND origin_scope = 'project'
+          AND ($4::text IS NOT NULL AND scope = $4)
+        )
+        OR (
+          -- session level skills only visible within the same session scope
+          availability_scope = 'session_only'
+          AND scope = $2
+        )
+      )
+    ORDER BY
+      CASE availability_scope
+        WHEN 'project_reusable' THEN 1
+        WHEN 'workspace_reusable' THEN 2
+        WHEN 'user_reusable' THEN 3
+        WHEN 'team_reusable' THEN 4
+        WHEN 'global_reusable' THEN 5
+        ELSE 6
+      END,
+      success_rate DESC NULLS LAST,
+      created_at DESC
+    LIMIT $5
     `,
-    [input.tenantId, input.scope, input.fingerprint ?? null, input.limit ?? 10]
+    [input.tenantId, input.scope, input.fingerprint ?? null, projectId, input.limit ?? 10]
   );
   return result.rows;
 }
@@ -174,9 +242,11 @@ export async function queryActiveRules(input: {
   query?: string | null;
   taskType?: string | null;
   taskPhase?: string | null;
+  projectRef?: string | null;
   limit?: number;
 }): Promise<Record<string, unknown>[]> {
   const pool = getPool();
+  const projectId = input.projectRef ?? input.scope;
   const terms = extractMemorySearchTerms(input.query);
   const taskTypeAliases: Record<string, string[]> = {
     design: ["design", "planner"],
@@ -223,7 +293,6 @@ export async function queryActiveRules(input: {
       END AS rule_match_count
     FROM rule
     WHERE tenant_id = $1
-      AND scope = $2
       AND status = 'active'
       AND enforcement_level IN ('must', 'must_not')
       AND (
@@ -233,10 +302,48 @@ export async function queryActiveRules(input: {
         OR trigger_conditions -> 'task_types' ?| $5::text[]
         OR trigger_conditions -> 'applies_to_phase' ?| $5::text[]
       )
+      AND (
+        -- global/team/user/workspace level rules are visible across all scopes
+        availability_scope IN ('global_reusable', 'team_reusable', 'user_reusable', 'workspace_reusable')
+        OR (
+          -- project level rules only visible when project_ref matches
+          availability_scope = 'project_reusable'
+          AND origin_scope = 'project'
+          AND ($6::text IS NOT NULL AND scope = $6)
+        )
+        OR (
+          -- session level rules only visible within the same session scope
+          availability_scope = 'session_only'
+          AND scope = $2
+        )
+      )
+      AND (
+        -- 精度优化：有关键词时要求最小匹配数（与 queryMemoryRows 一致）
+        $3::text[] IS NULL
+        OR (
+          SELECT COUNT(*)
+          FROM unnest($3::text[]) AS term
+          WHERE title ILIKE '%' || term || '%'
+             OR statement ILIKE '%' || term || '%'
+             OR normalized_statement ILIKE '%' || term || '%'
+             OR rule_type ILIKE '%' || term || '%'
+        ) >= $7::int
+      )
     ORDER BY rule_match_count DESC, priority DESC, created_at DESC
     LIMIT $4
     `,
-    [input.tenantId, input.scope, terms.length > 0 ? terms : null, input.limit ?? 10, routeKeys.length > 0 ? routeKeys : null]
+    [
+      input.tenantId,
+      input.scope,
+      terms.length > 0 ? terms : null,
+      input.limit ?? 10,
+      routeKeys.length > 0 ? routeKeys : null,
+      projectId,
+      // 精度优化：CJK bigram 会引入大量噪音 term（"试要"/"求是"/"是什么"），
+      // 不能让这些噪音抬高 minMatchCount 门槛误伤真实命中。
+      // terms >= 8（CJK 长句）→ 3；terms 4-7 → 2；terms 1-3 → 1
+      terms.length >= 8 ? 3 : terms.length >= 4 ? 2 : 1,
+    ]
   );
   return result.rows;
 }
@@ -790,8 +897,8 @@ export async function createOrReplaceFactualMemory(input: {
     const proposedAction = existingRow.normalized_content === normalizedContent ? "drop_duplicate_memory" : "replace_memory";
     const reason =
       proposedAction === "drop_duplicate_memory"
-        ? "duplicate_factual_memory_requires_human_review"
-        : "same_memory_title_update_requires_human_approval";
+        ? "重复的事实记忆需要人工复核"
+        : "同名记忆更新需要人工审批";
     const proposal = await pool.query<{ id: string }>(
       `
       INSERT INTO governance_change_proposal (
@@ -921,6 +1028,33 @@ export async function createOrReplaceRule(input: {
     rule_domain: input.ruleDomain ?? input.ruleType.replace(/_rule$/, "") ?? "execution",
     rule_scope: input.ruleScope ?? input.originScope ?? "session"
   };
+
+  // 新增规则若要求人工审批，不能直接落表为 active，必须先创建 change proposal
+  if (input.promotionStatus === "needs_review") {
+    const proposal = await pool.query<{ id: string }>(
+      `
+      INSERT INTO governance_change_proposal (
+        tenant_id, scope, status, version, target_object_type, target_object_id,
+        proposed_action, proposed_payload, reason, risk_level, source_ref, trace_id
+      )
+      VALUES (
+        $1, $2, 'recorded', 1, 'rule', NULL,
+        'create_rule', $3::jsonb, '新增规则需要人工审批', $4::risk_level, $5, $6
+      )
+      RETURNING id
+      `,
+      [
+        input.tenantId,
+        input.scope,
+        JSON.stringify({ ...proposedPayload, next_version: 1 }),
+        input.riskLevel ?? "medium",
+        input.sourceRefs?.[0] ? String(input.sourceRefs[0]) : null,
+        input.traceId
+      ]
+    );
+    return proposal.rows[0].id;
+  }
+
   if (typeof input.metadata?.conflicts_with_rule_key === "string") {
     const proposal = await pool.query<{ id: string }>(
       `
@@ -969,7 +1103,7 @@ export async function createOrReplaceRule(input: {
       )
       VALUES (
         $1, $2, 'recorded', 1, 'rule', $3,
-        'replace_rule', $4::jsonb, 'same_rule_key_update_requires_human_approval', $5::risk_level, $6, $7
+        'replace_rule', $4::jsonb, '相同规则键更新需要人工审批', $5::risk_level, $6, $7
       )
       RETURNING id
       `,
@@ -1053,6 +1187,7 @@ export async function createOrReplaceSkill(input: {
   successRate?: number | null;
   tags?: string[];
   traceId: string;
+  sourceKind?: "host_builtin" | "l1_extracted" | "user_uploaded" | "system_seed";
 }): Promise<string> {
   const pool = getPool();
   const existing = await pool.query<{ id: string; version: number }>(
@@ -1078,7 +1213,7 @@ export async function createOrReplaceSkill(input: {
       )
       VALUES (
         $1, $2, 'recorded', 1, 'skill', $3,
-        'replace_skill', $4::jsonb, 'same_skill_key_update_requires_human_approval', $5::risk_level, NULL, $6
+        'replace_skill', $4::jsonb, '相同技能键更新需要人工审批', $5::risk_level, NULL, $6
       )
       RETURNING id
       `,
@@ -1113,12 +1248,12 @@ export async function createOrReplaceSkill(input: {
     INSERT INTO skill (
       tenant_id, scope, status, version, skill_key, title, description, skill_type,
       trigger_conditions, procedure_payload, verification_status, fingerprint_requirement,
-      risk_level, success_rate, tags, trace_id
+      risk_level, success_rate, tags, trace_id, source_kind
     )
     VALUES (
       $1, $2, 'active', $3, $4, $5, $6, 'procedure',
       $7::jsonb, $8::jsonb, $9, $10,
-      $11::risk_level, $12, $13::text[], $14
+      $11::risk_level, $12, $13::text[], $14, $15
     )
     RETURNING id
     `,
@@ -1136,7 +1271,8 @@ export async function createOrReplaceSkill(input: {
       input.riskLevel ?? "low",
       input.successRate ?? null,
       input.tags ?? [],
-      input.traceId
+      input.traceId,
+      input.sourceKind ?? "l1_extracted"
     ]
   );
   return result.rows[0].id;
@@ -1318,19 +1454,45 @@ export async function listActiveSkills(input: {
   tenantId: string;
   scope: string;
   fingerprint?: string | null;
+  projectId?: string | null;
 }): Promise<Record<string, unknown>[]> {
   const pool = getPool();
+  const projectId = input.projectId ?? input.scope;
   const result = await pool.query(
     `
     SELECT *
     FROM skill
     WHERE tenant_id = $1
-      AND scope = $2
       AND status = 'active'
       AND ($3::text IS NULL OR fingerprint_requirement IS NULL OR fingerprint_requirement = $3)
-    ORDER BY success_rate DESC NULLS LAST, created_at DESC
+      AND (
+        -- global/team/user/workspace level skills are visible across all scopes
+        availability_scope IN ('global_reusable', 'team_reusable', 'user_reusable', 'workspace_reusable')
+        OR (
+          -- project level skills only visible when project_id matches
+          availability_scope = 'project_reusable'
+          AND origin_scope = 'project'
+          AND ($4::text IS NOT NULL AND scope = $4)
+        )
+        OR (
+          -- session level skills only visible within the same session scope
+          availability_scope = 'session_only'
+          AND scope = $2
+        )
+      )
+    ORDER BY
+      CASE availability_scope
+        WHEN 'project_reusable' THEN 1
+        WHEN 'workspace_reusable' THEN 2
+        WHEN 'user_reusable' THEN 3
+        WHEN 'team_reusable' THEN 4
+        WHEN 'global_reusable' THEN 5
+        ELSE 6
+      END,
+      success_rate DESC NULLS LAST,
+      created_at DESC
     `,
-    [input.tenantId, input.scope, input.fingerprint ?? null]
+    [input.tenantId, input.scope, input.fingerprint ?? null, projectId]
   );
   return result.rows;
 }
@@ -1350,6 +1512,132 @@ export async function listActiveRules(input: { tenantId: string; scope: string }
     [input.tenantId, input.scope]
   );
   return result.rows;
+}
+
+// ─── Inline edit functions for approved artifacts ─────────────────────
+
+export async function updateRuleRecord(input: {
+  tenantId: string;
+  scope: string;
+  ruleId: string;
+  patch: Record<string, unknown>;
+  traceId: string;
+}): Promise<Record<string, unknown> | null> {
+  const pool = getPool();
+  const allowed = [
+    "title", "statement", "normalized_statement", "applies_to",
+    "trigger_conditions", "enforcement_level", "priority", "risk_level",
+    "verification_status", "source_refs", "evidence_refs", "metadata"
+  ];
+  const sets: string[] = [];
+  const vals: unknown[] = [input.ruleId, input.tenantId, input.scope];
+  let idx = 4;
+  for (const key of allowed) {
+    if (key in input.patch) {
+      const val = input.patch[key];
+      if (key === "applies_to" || key === "trigger_conditions" || key === "source_refs" || key === "evidence_refs" || key === "metadata") {
+        sets.push(`${key} = $${idx}::jsonb`);
+        vals.push(JSON.stringify(val ?? {}));
+      } else {
+        sets.push(`${key} = $${idx}`);
+        vals.push(val);
+      }
+      idx++;
+    }
+  }
+  if (sets.length === 0) return null;
+  sets.push(`updated_at = now()`);
+  sets.push(`trace_id = $${idx}`);
+  vals.push(input.traceId);
+  const result = await pool.query(
+    `UPDATE rule SET ${sets.join(", ")} WHERE id = $1 AND tenant_id = $2 AND scope = $3 AND status = 'active' RETURNING *`,
+    vals
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function updateSkillRecord(input: {
+  tenantId: string;
+  scope: string;
+  skillId: string;
+  patch: Record<string, unknown>;
+  traceId: string;
+}): Promise<Record<string, unknown> | null> {
+  const pool = getPool();
+  const allowed = [
+    "title", "description", "skill_type", "trigger_conditions",
+    "procedure_payload", "verification_status", "fingerprint_requirement",
+    "risk_level", "success_rate", "tags"
+  ];
+  const sets: string[] = [];
+  const vals: unknown[] = [input.skillId, input.tenantId, input.scope];
+  let idx = 4;
+  for (const key of allowed) {
+    if (key in input.patch) {
+      const val = input.patch[key];
+      if (key === "trigger_conditions" || key === "procedure_payload") {
+        sets.push(`${key} = $${idx}::jsonb`);
+        vals.push(JSON.stringify(val ?? {}));
+      } else if (key === "tags") {
+        sets.push(`${key} = $${idx}::text[]`);
+        vals.push(Array.isArray(val) ? val.map(String) : []);
+      } else {
+        sets.push(`${key} = $${idx}`);
+        vals.push(val);
+      }
+      idx++;
+    }
+  }
+  if (sets.length === 0) return null;
+  sets.push(`updated_at = now()`);
+  sets.push(`trace_id = $${idx}`);
+  vals.push(input.traceId);
+  const result = await pool.query(
+    `UPDATE skill SET ${sets.join(", ")} WHERE id = $1 AND tenant_id = $2 AND scope = $3 AND status = 'active' RETURNING *`,
+    vals
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function updateMemoryRecord(input: {
+  tenantId: string;
+  scope: string;
+  memoryId: string;
+  patch: Record<string, unknown>;
+  traceId: string;
+}): Promise<Record<string, unknown> | null> {
+  const pool = getPool();
+  const allowed = [
+    "title", "content", "normalized_content", "memory_type",
+    "importance", "confidence_score", "verification_status",
+    "origin_scope", "availability_scope", "governance_level",
+    "promotion_status", "tags", "metadata", "ttl", "revalidate_after"
+  ];
+  const sets: string[] = [];
+  const vals: unknown[] = [input.memoryId, input.tenantId, input.scope];
+  let idx = 4;
+  for (const key of allowed) {
+    if (key in input.patch) {
+      const val = input.patch[key];
+      if (key === "tags" || key === "metadata") {
+        sets.push(`${key} = $${idx}::jsonb`);
+        vals.push(JSON.stringify(val ?? {}));
+      } else {
+        sets.push(`${key} = $${idx}`);
+        vals.push(val);
+      }
+      idx++;
+    }
+  }
+  if (sets.length === 0) return null;
+  sets.push(`updated_at = now()`);
+  sets.push(`trace_id = $${idx}`);
+  vals.push(input.traceId);
+  const result = await pool.query(
+    `UPDATE memory SET ${sets.join(", ")} WHERE id = $1 AND tenant_id = $2 AND scope = $3 AND status = 'active' RETURNING *`,
+    vals
+  );
+  return result.rows[0] ?? null;
 }
 
 export async function downgradeSkillsOnFingerprintDrift(input: {
@@ -1408,7 +1696,7 @@ export async function downgradeSkillsOnFingerprintDrift(input: {
       VALUES (
         $1, $2, 'recorded', 1, 'skill', $3,
         'mark_skill_dirty_for_fingerprint_drift', $4::jsonb,
-        'skill_fingerprint_drift_requires_human_approval', 'medium', NULL, $5
+        '技能指纹漂移需要人工审批', 'medium', NULL, $5
       )
       RETURNING id
       `,
@@ -1448,3 +1736,141 @@ export type MemoryPersistResult = {
   persistTarget: PersistTarget;
   objectId: string | null;
 };
+
+// ─── Host action lifecycle ─────────────────────────────────────────
+
+export async function listPendingHostActions(input: {
+  tenantId: string;
+  scope?: string | null;
+  projectId?: string | null;
+  objectType?: "rule" | "skill" | "all";
+  limit?: number;
+}): Promise<Record<string, unknown>[]> {
+  const pool = getPool();
+  const projectFilter = input.projectId ?? input.scope ?? null;
+  const limit = input.limit ?? 100;
+
+  const queries: Promise<Record<string, unknown>[]>[] = [];
+
+  if (input.objectType === "rule" || input.objectType === "all" || !input.objectType) {
+    queries.push(
+      pool.query(
+        `
+        SELECT 'rule' AS object_type,
+               id,
+               rule_key AS key,
+               title,
+               statement,
+               enforcement_level,
+               trigger_conditions,
+               applies_to,
+               risk_level,
+               priority,
+               origin_scope,
+               availability_scope,
+               scope,
+               metadata -> 'host_action' AS host_action
+        FROM rule
+        WHERE tenant_id = $1
+          AND status = 'active'
+          AND metadata -> 'host_action' ->> 'status' = 'pending'
+          AND ($2::text IS NULL OR scope = $2)
+        ORDER BY priority DESC NULLS LAST, created_at DESC
+        LIMIT $3
+        `,
+        [input.tenantId, projectFilter, limit]
+      ).then((r) => r.rows)
+    );
+  }
+
+  if (input.objectType === "skill" || input.objectType === "all" || !input.objectType) {
+    queries.push(
+      pool.query(
+        `
+        SELECT 'skill' AS object_type,
+               id,
+               skill_key,
+               skill_key AS key,
+               title,
+               description,
+               skill_type,
+               trigger_conditions,
+               procedure_payload,
+               verification_status,
+               fingerprint_requirement,
+               risk_level,
+               success_rate,
+               tags,
+               origin_scope,
+               availability_scope,
+               governance_level,
+               promotion_status,
+               scope,
+               procedure_payload -> 'host_action' AS host_action
+        FROM skill
+        WHERE tenant_id = $1
+          AND status = 'active'
+          AND procedure_payload -> 'host_action' ->> 'status' = 'pending'
+          AND ($2::text IS NULL OR scope = $2)
+        ORDER BY created_at DESC
+        LIMIT $3
+        `,
+        [input.tenantId, projectFilter, limit]
+      ).then((r) => r.rows)
+    );
+  }
+
+  const results = await Promise.all(queries);
+  return results.flat();
+}
+
+export async function updateHostActionStatus(input: {
+  tenantId: string;
+  objectType: "rule" | "skill";
+  objectId: string;
+  status: string;
+  error?: string | null;
+  summary?: string | null;
+  traceId: string;
+}): Promise<boolean> {
+  const pool = getPool();
+  const table = input.objectType === "rule" ? "rule" : "skill";
+  const column = input.objectType === "rule" ? "metadata" : "procedure_payload";
+
+  const existing = await pool.query(
+    `SELECT ${column} -> 'host_action' AS host_action FROM ${table} WHERE id = $1 AND tenant_id = $2`,
+    [input.objectId, input.tenantId]
+  );
+
+  if (existing.rows.length === 0) {
+    return false;
+  }
+
+  const previous = (existing.rows[0].host_action as Record<string, unknown> | null) ?? {};
+  const merged: Record<string, unknown> = {
+    ...previous,
+    status: input.status,
+    generated_at: new Date().toISOString(),
+    error: input.error ?? null
+  };
+  if (input.summary) {
+    merged.summary = input.summary;
+  }
+
+  const result = await pool.query(
+    `
+    UPDATE ${table}
+    SET ${column} = jsonb_set(
+          COALESCE(${column}, '{}'::jsonb),
+          '{host_action}',
+          $1::jsonb
+        ),
+        updated_at = now(),
+        trace_id = $2
+    WHERE id = $3 AND tenant_id = $4
+    `,
+    [JSON.stringify(merged), input.traceId, input.objectId, input.tenantId]
+  );
+
+  return result.rowCount !== null && result.rowCount > 0;
+}

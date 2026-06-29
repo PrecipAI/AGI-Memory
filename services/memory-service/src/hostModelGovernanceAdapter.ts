@@ -1,4 +1,9 @@
-import type { GovernanceBatchPreviewResponse, GovernanceCandidatePreview } from "./hostCaptureGovernanceBatch.js";
+import {
+  GOVERNANCE_SCOPE_BY_LAYER,
+  VALID_KNOWLEDGE_TYPES,
+  type GovernanceBatchPreviewResponse,
+  type GovernanceCandidatePreview
+} from "./hostCaptureGovernanceBatch.js";
 
 type HostModelGovernanceResult = {
   model_ref?: string | null;
@@ -25,16 +30,6 @@ const VALID_CANDIDATE_TYPES = new Set([
   "governance_evidence_candidate"
 ]);
 
-const VALID_ORIGIN_SCOPES = new Set(["session", "project", "workspace", "user", "team", "global"]);
-const VALID_AVAILABILITY_SCOPES = new Set([
-  "session_only",
-  "project_reusable",
-  "workspace_reusable",
-  "user_reusable",
-  "team_reusable",
-  "global_reusable"
-]);
-const VALID_GOVERNANCE_LEVELS = new Set(["session", "shared"]);
 const VALID_PROMOTION_STATUSES = new Set(["candidate", "active", "needs_review", "rejected"]);
 const VALID_RULE_DOMAINS = new Set(["design", "execution", "governance", "memory", "skill", "tooling", "reporting", "safety", "integration"]);
 const VALID_PHASES = new Set(["planning", "design", "coding", "testing", "review", "governance", "reporting", "integration"]);
@@ -49,17 +44,6 @@ const VALID_MEMORY_TYPES = new Set([
   "integration_context"
 ]);
 const VALID_STABILITY = new Set(["temporary", "stable", "long_lived"]);
-const VALID_KNOWLEDGE_TYPES = new Set([
-  "external_fact",
-  "method",
-  "pattern",
-  "principle",
-  "comparison",
-  "limitation",
-  "trend",
-  "synthesis",
-  "counterexample"
-]);
 const VALID_GOVERNANCE_ACTIONS = new Set([
   "create",
   "merge_evidence",
@@ -103,13 +87,22 @@ export function applyHostModelGovernanceResult(input: {
     };
   }
 
+  // P0-c: host_model is the default, but if the host did not provide a model result,
+  // do not hard-fail the ingestion. Loudly fall back to rules_fallback and quarantine
+  // all candidates so that nothing reaches active recall.
   if (!input.hostModelResult?.extraction_preview) {
-    throw new Error(formatValidationError(
-      "host_model_result.extraction_preview",
-      "is required when governance_mode=host_model",
-      "Call memory_preview_host_governance first to get the mission brief, then perform extraction and pass the result back in host_model_result.extraction_preview",
-      `"host_model_result": { "extraction_preview": { "rule_candidates": [...], "memory_candidates": [...], ... } }`
-    ));
+    return {
+      batch: input.batch,
+      modelAdapter: {
+        mode: "rules_fallback",
+        model_ref: null,
+        generated_at: null,
+        accepted: false,
+        warning:
+          "[P0-c] governance_mode=host_model but host_model_result.extraction_preview is missing. " +
+          "Falling back to rules_fallback; all candidates are quarantined for review."
+      }
+    };
   }
 
   const extraction = input.hostModelResult.extraction_preview;
@@ -179,6 +172,86 @@ function auditCrossLayerBoundaries(batch: GovernanceBatchPreviewResponse): void 
           `"promotion_status": "needs_review"`
         ));
       }
+
+      // P0.5: §9 knowledge must not contain project-internal state, local paths, or user preferences.
+      if (layer === "knowledge_candidate") {
+        const text = `${item.title}\n${item.content ?? item.source_excerpt}`.toLowerCase();
+        const projectInternalSignals = [
+          // machine-specific paths (Windows / Unix / macOS)
+          "d:\\workspace",
+          "c:\\users\\administrator",
+          "c:\\users\\yangy",
+          "c:\\",
+          "/users/",
+          "/home/",
+          "/workspace/",
+          "superagentsystem",
+          // project-internal framing (Chinese)
+          "本项目",
+          "本仓库",
+          "本系统",
+          "本代码库",
+          "本机",
+          "这台机器",
+          "我的电脑",
+          "我的机器",
+          "项目内部",
+          "项目路径",
+          "项目根目录",
+          "仓库根目录",
+          "项目配置",
+          "项目环境",
+          "代码库",
+          "workspace 目录",
+          "workspace目录",
+          "工作目录",
+          "本地环境",
+          "本地路径",
+          "本机路径",
+          "绝对路径",
+          // user-preference framing (Chinese)
+          "用户偏好",
+          "用户希望",
+          "用户喜欢",
+          "用户讨厌",
+          "用户习惯",
+          "用户设置",
+          "个人偏好",
+          "偏好设置",
+          "回答风格",
+          "简洁回答",
+          "详细回答",
+          "不喜欢详细",
+          // local network / dev-only endpoints
+          "127.0.0.1",
+          "0.0.0.0",
+          "localhost",
+          "://localhost",
+          "://127.0.0.1",
+          // database connection strings
+          "postgresql://",
+          "mysql://",
+          "mongodb://",
+          "mongodb+srv://",
+          "redis://",
+          "sqlite:",
+          // common project-internal artifacts
+          "process.cwd()",
+          "node_modules",
+          "npm run build",
+          "package.json",
+          "tsconfig.json",
+          ".env"
+        ];
+        if (projectInternalSignals.some((signal) => text.includes(signal))) {
+          throw new Error(formatValidationError(
+            `knowledge_candidate[${index}]`,
+            "contains project-internal, machine-specific, or user-preference content (spec 39 §9 violation)",
+            "Knowledge must be universally reusable. Move project-internal facts to memory_candidate, user preferences to memory_candidate, machine paths to governance_evidence_candidate, or discard.",
+            `knowledge_candidate content: "Zod catchall schemas silently strip undeclared fields during JSON-RPC serialization" (no paths, no machine names, no user preferences)`
+          ));
+        }
+      }
     }
   }
 }
@@ -198,7 +271,19 @@ function validateCandidates(
       `"${expectedType.replace("_candidate", "_candidates")}": [{ "candidate_type": "${expectedType}", ... }]`
     ));
   }
-  return candidates.map((candidate, index) => validateCandidate(expectedType, candidate, index));
+  const validated = candidates.map((candidate, index) => validateCandidate(expectedType, candidate, index));
+  if (expectedType === "rule_candidate") {
+    return validated.filter((item) => !isHardcodedHostActionRule(item));
+  }
+  return validated;
+}
+
+function isHardcodedHostActionRule(item: GovernanceCandidatePreview): boolean {
+  const text = `${item.title ?? ""}\n${item.content ?? ""}\n${item.source_excerpt ?? ""}`.toLowerCase();
+  const mentionsHostAction = text.includes("host_action") || text.includes("宿主动作");
+  const mentionsDoneSummary = text.includes("done") && text.includes("summary");
+  const mentionsCodeGeneration = text.includes("gate-master") || text.includes("skill-creator") || text.includes("代码生成");
+  return mentionsHostAction && mentionsDoneSummary && mentionsCodeGeneration;
 }
 
 function validateCandidate(
@@ -225,14 +310,32 @@ function validateCandidate(
     ));
   }
   const title = readString(item, "title");
-  const originScope = readEnum(item, "origin_scope", VALID_ORIGIN_SCOPES);
-  const availabilityScope = readEnum(item, "availability_scope", VALID_AVAILABILITY_SCOPES);
-  const governanceLevel = readEnum(item, "governance_level", VALID_GOVERNANCE_LEVELS);
+  if (!containsChinese(title)) {
+    throw new Error(formatValidationError(
+      `${expectedType}[${index}].title`,
+      "must be in Chinese",
+      "标题必须包含中文。技术术语可保留英文，但整体必须是中文语句。",
+      `"title": "Zod catchall 模式静默数据丢失陷阱"`
+    ));
+  }
+  // P0-d: layer-aware scope validation from the shared single source of truth.
+  const layerScopes = GOVERNANCE_SCOPE_BY_LAYER[expectedType];
+  const originScope = readEnum(item, "origin_scope", layerScopes.origin_scope);
+  const availabilityScope = readEnum(item, "availability_scope", layerScopes.availability_scope);
+  const governanceLevel = readEnum(item, "governance_level", layerScopes.governance_level);
   const promotionStatus = readOptionalEnum(item, "promotion_status", VALID_PROMOTION_STATUSES) ?? "active";
   const sourceKind = readString(item, "source_kind") as GovernanceCandidatePreview["source_kind"];
   const sourceTimestamp = readString(item, "source_timestamp");
   const sourceExcerpt = readString(item, "source_excerpt");
   const reason = readString(item, "reason");
+  if (!containsChinese(reason)) {
+    throw new Error(formatValidationError(
+      `${expectedType}[${index}].reason`,
+      "must be in Chinese",
+      "理由必须包含中文描述",
+      `"reason": "该规则防止未来在类似场景下重复犯错"`
+    ));
+  }
   const confidence = readOptionalEnum(item, "confidence", new Set(["high", "medium", "low"])) ?? "medium";
 
   if (expectedType === "skill_proposal_candidate") {
@@ -250,28 +353,135 @@ function validateCandidate(
         `"proposal_quality": "actionable"`
       ));
     }
-    // NEW: validate execution_steps as String array (if provided)
-    const execSteps = item.execution_steps;
-    if (execSteps !== undefined && execSteps !== null) {
-      if (!Array.isArray(execSteps)) {
+
+    // 技能描述必填且必须为中文
+    const description = readString(item, "description");
+    if (!containsChinese(description)) {
+      throw new Error(formatValidationError(
+        `${expectedType}[${index}].description`,
+        "must be in Chinese",
+        "技能描述必须包含中文。格式：'做 X。在 Y 发生时或用户要求 Z 时调用。'",
+        `"description": "在用户写小说新章节时自动检查设定一致性。在生成新章节或修改核心设定时调用。"`
+      ));
+    }
+
+    // 适用场景必填，String 数组，每个元素必须含中文
+    const applicableScenarios = item.applicable_scenarios;
+    if (!Array.isArray(applicableScenarios) || applicableScenarios.length === 0) {
+      throw new Error(formatValidationError(
+        `${expectedType}[${index}].applicable_scenarios`,
+        "is required and must be a non-empty String array",
+        "提供至少一个适用场景，每个场景用中文描述",
+        `"applicable_scenarios": ["生成新章节前预检设定一致性", "用户修改核心设定后检查矛盾"]`
+      ));
+    }
+    for (let si = 0; si < applicableScenarios.length; si++) {
+      if (typeof applicableScenarios[si] !== "string" || applicableScenarios[si].trim() === "") {
         throw new Error(formatValidationError(
-          `${expectedType}[${index}].execution_steps`,
-          "must be a String array, not a paragraph",
-          "Provide an array where each element is one atomic action step",
-          `"execution_steps": ["检查 Node 版本兼容性", "生成 PM2 配置文件", "验证 /healthz 端点"]`
+          `${expectedType}[${index}].applicable_scenarios[${si}]`,
+          "each scenario must be a non-empty string",
+          "每个场景用一句中文描述",
+          `"applicable_scenarios": ["生成新章节前预检设定一致性"]`
         ));
       }
-      for (let si = 0; si < execSteps.length; si++) {
-        if (typeof execSteps[si] !== "string" || execSteps[si].trim() === "") {
-          throw new Error(formatValidationError(
-            `${expectedType}[${index}].execution_steps[${si}]`,
-            "each step must be a non-empty string",
-            "Each element should describe one atomic action",
-            `"execution_steps": ["1. 检查目标主机 Node 版本", "2. 生成 PM2 ecosystem.config.cjs"]`
-          ));
-        }
+      if (!containsChinese(applicableScenarios[si])) {
+        throw new Error(formatValidationError(
+          `${expectedType}[${index}].applicable_scenarios[${si}]`,
+          "must be in Chinese",
+          "适用场景必须包含中文",
+          `"applicable_scenarios": ["生成新章节前预检设定一致性"]`
+        ));
       }
     }
+
+    // 非适用场景必填，String 数组，每个元素必须含中文
+    const nonApplicableScenarios = item.non_applicable_scenarios;
+    if (!Array.isArray(nonApplicableScenarios) || nonApplicableScenarios.length === 0) {
+      throw new Error(formatValidationError(
+        `${expectedType}[${index}].non_applicable_scenarios`,
+        "is required and must be a non-empty String array",
+        "提供至少一个非适用场景，每个场景用中文描述",
+        `"non_applicable_scenarios": ["纯文字润色不涉及设定逻辑时不调用", "新建项目初始设定创建时不调用"]`
+      ));
+    }
+    for (let si = 0; si < nonApplicableScenarios.length; si++) {
+      if (typeof nonApplicableScenarios[si] !== "string" || nonApplicableScenarios[si].trim() === "") {
+        throw new Error(formatValidationError(
+          `${expectedType}[${index}].non_applicable_scenarios[${si}]`,
+          "each scenario must be a non-empty string",
+          "每个场景用一句中文描述",
+          `"non_applicable_scenarios": ["纯文字润色不涉及设定逻辑时不调用"]`
+        ));
+      }
+      if (!containsChinese(nonApplicableScenarios[si])) {
+        throw new Error(formatValidationError(
+          `${expectedType}[${index}].non_applicable_scenarios[${si}]`,
+          "must be in Chinese",
+          "非适用场景必须包含中文",
+          `"non_applicable_scenarios": ["纯文字润色不涉及设定逻辑时不调用"]`
+        ));
+      }
+    }
+
+    // execution_steps 必填，String 数组
+    const execSteps = item.execution_steps;
+    if (!Array.isArray(execSteps) || execSteps.length === 0) {
+      throw new Error(formatValidationError(
+        `${expectedType}[${index}].execution_steps`,
+        "is required and must be a non-empty String array",
+        "提供至少一个执行步骤，每个步骤用中文描述一个原子动作",
+        `"execution_steps": ["检查目标主机的 Node 版本兼容性", "生成 PM2 ecosystem.config.cjs"]`
+      ));
+    }
+    for (let si = 0; si < execSteps.length; si++) {
+      if (typeof execSteps[si] !== "string" || execSteps[si].trim() === "") {
+        throw new Error(formatValidationError(
+          `${expectedType}[${index}].execution_steps[${si}]`,
+          "each step must be a non-empty string",
+          "Each element should describe one atomic action",
+          `"execution_steps": ["1. 检查目标主机 Node 版本", "2. 生成 PM2 ecosystem.config.cjs"]`
+        ));
+      }
+      if (!containsChinese(execSteps[si])) {
+        throw new Error(formatValidationError(
+          `${expectedType}[${index}].execution_steps[${si}]`,
+          "must be in Chinese",
+          "执行步骤必须包含中文",
+          `"execution_steps": ["1. 检查目标主机 Node 版本兼容性"]`
+        ));
+      }
+    }
+
+    // validation_method 必须为中文
+    if (!containsChinese(validationMethod)) {
+      throw new Error(formatValidationError(
+        `${expectedType}[${index}].validation_method`,
+        "must be in Chinese",
+        "验证方法必须包含中文描述",
+        `"validation_method": "选取最近 3 章由该技能预检查，确认无用户后续指出同类设定漏洞"`
+      ));
+    }
+
+    // current_gap 必须为中文
+    if (!containsChinese(currentGap)) {
+      throw new Error(formatValidationError(
+        `${expectedType}[${index}].current_gap`,
+        "must be in Chinese",
+        "当前缺口必须包含中文描述",
+        `"current_gap": "当前技能缺少设定一致性检查步骤，导致章节间出现设定矛盾"`
+      ));
+    }
+
+    // proposed_text 必须为中文
+    if (!containsChinese(proposedText)) {
+      throw new Error(formatValidationError(
+        `${expectedType}[${index}].proposed_text`,
+        "must be in Chinese",
+        "提议文本必须包含中文描述",
+        `"proposed_text": "在生成新章节前，加载设定文档并核对角色状态、道具规则等一致性"`
+      ));
+    }
+
     return {
       ...(item as Partial<GovernanceCandidatePreview>),
       candidate_type: expectedType,
@@ -290,7 +500,11 @@ function validateCandidate(
       current_gap: currentGap,
       change_type: changeType as GovernanceCandidatePreview["change_type"],
       validation_method: validationMethod,
-      proposal_quality: proposalQuality as GovernanceCandidatePreview["proposal_quality"]
+      proposal_quality: proposalQuality as GovernanceCandidatePreview["proposal_quality"],
+      description: description,
+      applicable_scenarios: applicableScenarios,
+      non_applicable_scenarios: nonApplicableScenarios,
+      execution_steps: execSteps
     } as GovernanceCandidatePreview;
   }
 
@@ -312,7 +526,7 @@ function validateCandidate(
   if (expectedType === "rule_candidate") {
     validated.content = readOptionalString(item, "content") ?? sourceExcerpt;
     validated.rule_domain = (readOptionalEnum(item, "rule_domain", VALID_RULE_DOMAINS) ?? "execution") as GovernanceCandidatePreview["rule_domain"];
-    validated.rule_scope = (readOptionalEnum(item, "rule_scope", VALID_ORIGIN_SCOPES) ?? originScope) as GovernanceCandidatePreview["rule_scope"];
+    validated.rule_scope = (readOptionalEnum(item, "rule_scope", GOVERNANCE_SCOPE_BY_LAYER.rule_candidate.origin_scope) ?? originScope) as GovernanceCandidatePreview["rule_scope"];
     validated.applies_to_phase = readOptionalStringArrayEnum(item, "applies_to_phase", VALID_PHASES, ["review"]) as GovernanceCandidatePreview["applies_to_phase"];
     validated.violation_behavior = (readOptionalEnum(item, "violation_behavior", VALID_VIOLATION_BEHAVIORS) ?? "warn") as GovernanceCandidatePreview["violation_behavior"];
     // NEW: validate rule_id (UPPER_SNAKE_CASE)
@@ -323,6 +537,85 @@ function validateCandidate(
         `must be UPPER_SNAKE_CASE (e.g. FORBID_CATCHALL_SCHEMA) but got "${ruleId}"`,
         "Use uppercase letters, digits, and underscores only. Must start with a letter.",
         `"rule_id": "UP_OVERRIDE_VERBOSE_MODE"`
+      ));
+    }
+
+    // 硬拦截：规则必须经人工审批，禁止直接激活
+    validated.promotion_status = "needs_review";
+
+    // 硬拦截：规则执行级别必须是 must，禁止 must_not
+    const enforcementLevel = readOptionalString(item, "enforcement_level");
+    if (enforcementLevel !== null && enforcementLevel !== "must") {
+      throw new Error(formatValidationError(
+        `${expectedType}[${index}].enforcement_level`,
+        `must be "must" but got "${enforcementLevel}"`,
+        "All rules extracted from host governance are mandatory constraints and must use enforcement_level='must'.",
+        `"enforcement_level": "must"`
+      ));
+    }
+
+    // 硬拦截：人类可读解释必须存在且为中文
+    const metadata = item.metadata ?? {};
+    if (typeof metadata !== "object" || metadata === null) {
+      throw new Error(formatValidationError(
+        `${expectedType}[${index}].metadata`,
+        "must be an object",
+        "Provide a metadata object with human_readable_statement and classification_rationale",
+        `"metadata": { "human_readable_statement": "...", "classification_rationale": "..." }`
+      ));
+    }
+    const humanReadable = (metadata as Record<string, unknown>).human_readable_statement;
+    if (typeof humanReadable !== "string" || humanReadable.trim().length === 0) {
+      throw new Error(formatValidationError(
+        `${expectedType}[${index}].metadata.human_readable_statement`,
+        "is required and must be a non-empty Chinese statement",
+        "Provide a Chinese human-readable summary of the rule intent and consequence.",
+        `"metadata": { "human_readable_statement": "规则要求所有治理抽取的规则必须使用中文描述，否则会被拦截。" }`
+      ));
+    }
+    if (!containsChinese(humanReadable)) {
+      throw new Error(formatValidationError(
+        `${expectedType}[${index}].metadata.human_readable_statement`,
+        "must be in Chinese",
+        "Translate the human-readable explanation into Chinese.",
+        `"metadata": { "human_readable_statement": "规则要求..." }`
+      ));
+    }
+
+    // 硬拦截：必须说明为何归类为 rule 而非 skill
+    const classificationRationale = (metadata as Record<string, unknown>).classification_rationale;
+    if (typeof classificationRationale !== "string" || classificationRationale.trim().length === 0) {
+      throw new Error(formatValidationError(
+        `${expectedType}[${index}].metadata.classification_rationale`,
+        "is required",
+        "Explain why this item is a rule (IF/THEN constraint) rather than a skill (reusable procedure).",
+        `"metadata": { "classification_rationale": "这是约束性规则，因为它规定了 IF...THEN 必须/禁止的行为，而不是可复用的操作步骤。" }`
+      ));
+    }
+    if (!containsChinese(classificationRationale)) {
+      throw new Error(formatValidationError(
+        `${expectedType}[${index}].metadata.classification_rationale`,
+        "must be in Chinese",
+        "Provide the classification rationale in Chinese.",
+        `"metadata": { "classification_rationale": "这是约束性规则..." }`
+      ));
+    }
+
+    // 硬拦截：来源对话必须至少包含一轮完整对话（user + assistant）
+    const sourceRefs = Array.isArray(item.source_refs) ? item.source_refs : [];
+    const userRefs = sourceRefs.filter(
+      (r: unknown) => typeof r === "object" && r !== null && (r as Record<string, unknown>).source_kind === "user_message"
+    );
+    const assistantRefs = sourceRefs.filter(
+      (r: unknown) => typeof r === "object" && r !== null &&
+        ["assistant_message", "commentary"].includes(String((r as Record<string, unknown>).source_kind))
+    );
+    if (userRefs.length === 0 || assistantRefs.length === 0) {
+      throw new Error(formatValidationError(
+        `${expectedType}[${index}].source_refs`,
+        "must contain at least one complete conversation round (user_message + assistant_message)",
+        "Include both sides of the conversation that justifies this rule, not a single excerpt.",
+        `"source_refs": [{ "source_kind": "user_message", ... }, { "source_kind": "assistant_message", ... }]`
       ));
     }
   }
@@ -340,7 +633,8 @@ function validateCandidate(
 
   if (expectedType === "knowledge_candidate") {
     validated.content = readOptionalString(item, "content") ?? sourceExcerpt;
-    validated.knowledge_type = (readOptionalEnum(item, "knowledge_type", VALID_KNOWLEDGE_TYPES) ?? "external_fact") as GovernanceCandidatePreview["knowledge_type"];
+    // P0-b: default to a spec-valid synthesis type; "cross_source_pattern" is not in spec 39 §7.5.
+    validated.knowledge_type = (readOptionalEnum(item, "knowledge_type", VALID_KNOWLEDGE_TYPES) ?? "synthesis") as GovernanceCandidatePreview["knowledge_type"];
     validated.governance_action = (readOptionalEnum(item, "governance_action", VALID_GOVERNANCE_ACTIONS) ?? "create") as GovernanceCandidatePreview["governance_action"];
     const recallState = readOptionalEnum(item, "recall_state", VALID_RECALL_STATES);
     validated.recall_state = (recallState ?? "audit_only") as GovernanceCandidatePreview["recall_state"];
@@ -508,24 +802,8 @@ function validateLayerBoundary(
 ): void {
   const text = `${candidate.title}\n${candidate.content ?? ""}\n${candidate.source_excerpt}`.toLowerCase();
   if (expectedType === "knowledge_candidate") {
-    const projectOrPrivateSignals = [
-      "d:\\workspace",
-      "c:\\users\\administrator",
-      "superagentsystem",
-      "本机",
-      "这台机器",
-      "项目路径",
-      "workspace 目录",
-      "用户偏好"
-    ];
-    if (projectOrPrivateSignals.some((signal) => text.includes(signal))) {
-      throw new Error(formatValidationError(
-        `knowledge_candidate[${index}]`,
-        "contains project/user/machine-specific context",
-        "Move this to memory_candidate (if it's a project-specific fact) or governance_evidence_candidate (if it's just a log). Knowledge must be universally reusable.",
-        `knowledge_candidate content: "Zod catchall schemas silently strip undeclared fields during JSON-RPC serialization" (no paths, no machine names)`
-      ));
-    }
+    // P0.5: project-internal / machine-specific / user-preference checks are enforced
+    // centrally by auditCrossLayerBoundaries (spec 39 §9) so that the backstop is single-sourced.
     if (candidate.governance_level !== "shared" || candidate.availability_scope === "session_only") {
       throw new Error(formatValidationError(
         `knowledge_candidate[${index}]`,
@@ -706,6 +984,10 @@ function normalizeForAudit(value: unknown): string | null {
   }
   const normalized = value.trim().replace(/\s+/g, " ").toLowerCase();
   return normalized.length > 12 ? normalized : null;
+}
+
+function containsChinese(value: string): boolean {
+  return /[\u4e00-\u9fa5]/.test(value);
 }
 
 function looksLikeProcedure(value: unknown): boolean {

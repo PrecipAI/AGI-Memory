@@ -83,3 +83,90 @@ export async function countMemoryAccessLogs(input: {
   );
   return Number(result.rows[0]?.count ?? 0);
 }
+
+export async function countAccessByObjectRef(input: {
+  tenantId: string;
+  scope: string;
+  objectType: string;
+  objectRefs: string[];
+}): Promise<Record<string, number>> {
+  if (input.objectRefs.length === 0) return {};
+  const pool = getPool();
+  const result = await pool.query(
+    `
+    SELECT object_ref, COUNT(*) AS cnt
+    FROM memory_access_log
+    WHERE tenant_id = $1
+      AND scope = $2
+      AND object_type = $3
+      AND object_ref = ANY($4)
+    GROUP BY object_ref
+    `,
+    [input.tenantId, input.scope, input.objectType, input.objectRefs]
+  );
+  const counts: Record<string, number> = {};
+  for (const row of result.rows) {
+    counts[String(row.object_ref)] = Number(row.cnt);
+  }
+  return counts;
+}
+
+export async function getLastAccessTimeByObjectRef(input: {
+  tenantId: string;
+  scope: string;
+  objectType: string;
+  objectRefs: string[];
+}): Promise<Record<string, string>> {
+  if (input.objectRefs.length === 0) return {};
+  const pool = getPool();
+  const result = await pool.query(
+    `
+    SELECT object_ref, MAX(created_at) AS last_access
+    FROM memory_access_log
+    WHERE tenant_id = $1
+      AND scope = $2
+      AND object_type = $3
+      AND object_ref = ANY($4)
+    GROUP BY object_ref
+    `,
+    [input.tenantId, input.scope, input.objectType, input.objectRefs]
+  );
+  const times: Record<string, string> = {};
+  for (const row of result.rows) {
+    times[String(row.object_ref)] = String(row.last_access);
+  }
+  return times;
+}
+
+export async function listAccessLogsByTimeRange(input: {
+  tenantId: string;
+  scope: string;
+  objectType?: string | null;
+  startTime?: Date | null;
+  endTime?: Date | null;
+  limit?: number;
+}): Promise<Record<string, unknown>[]> {
+  const pool = getPool();
+  const result = await pool.query(
+    `
+    SELECT *
+    FROM memory_access_log
+    WHERE tenant_id = $1
+      AND scope = $2
+      AND ($3::text IS NULL OR object_type = $3)
+      AND ($4::timestamptz IS NULL OR created_at >= $4)
+      AND ($5::timestamptz IS NULL OR created_at < $5)
+    ORDER BY created_at DESC
+    LIMIT $6
+    `,
+    [
+      input.tenantId,
+      input.scope,
+      input.objectType ?? null,
+      input.startTime ?? null,
+      input.endTime ?? null,
+      input.limit ?? 1000
+    ]
+  );
+  return result.rows;
+}

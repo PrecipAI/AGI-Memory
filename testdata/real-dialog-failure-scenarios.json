@@ -1,0 +1,363 @@
+[
+  {
+    "round": 21,
+    "scenario_type": "ai_corrected",
+    "outcome": "failure_recovered",
+    "user_message": "useEffect 里我直接 setCount(count + 1) 监听 props.id 变化，行不行？",
+    "assistant_thought_initial": "用户在 useEffect 里用 setCount(count + 1) 监听 props.id 变化，这是标准用法，依赖数组放 [props.id] 即可。",
+    "assistant_response_initial": "可以，这是标准写法。useEffect 里 setState 没问题，依赖数组放 [props.id] 就行。",
+    "user_followup": "不对啊，我的 count 一直是 0，根本不更新。控制台也没报错。",
+    "assistant_thought_correction": "用户说 count 一直是 0 不更新。问题出在闭包陈旧值：useEffect 的依赖数组只有 [props.id]，但 effect 闭包里读的 count 是 props.id 变化那一刻的旧值，不是最新值。setCount(count + 1) 用的是闭包里的旧 count，所以每次都是 0+1=1，但下次渲染时 count 已经是 1，可 effect 不会再跑（因为 props.id 没变）。正确做法是用函数式更新 setCount(prev => prev + 1)，让 React 传入最新的 prev。这是我第一次答错的边界点：useEffect 闭包捕获的 state 是 effect 创建那一刻的值，不是执行时的最新值。",
+    "assistant_response_correction": "我说错了，这不是标准写法。问题在闭包陈旧值：useEffect 的 effect 闭包里读的 count 是 effect 创建那一刻的值，不是执行时的最新值。你依赖数组放 [props.id]，effect 只在 props.id 变化时跑，但闭包里的 count 是那一刻的旧值，setCount(count + 1) 用的就是旧 count。\n\n正确做法：用函数式更新，让 React 传入最新值。\n```tsx\nuseEffect(() => {\n  setCount(prev => prev + 1);  // ✅ 函数式，React 传最新 prev\n}, [props.id]);\n```\n\n或者如果 count 真的依赖 props.id，把 count 加进依赖数组：\n```tsx\nuseEffect(() => {\n  setCount(count + 1);\n}, [props.id, count]);  // 但这样可能导致不必要的重渲染\n```\n\n函数式更新是首选，因为它不依赖闭包里的值。",
+    "knowledge_gap": "useEffect 闭包陈旧值问题",
+    "candidates": [
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "useEffect 闭包内 setState 必须用函数式更新",
+        "content": "约束：useEffect 的 effect 闭包里读到的 state 是 effect 创建那一刻的值，不是执行时的最新值。如果依赖数组没包含该 state，setCount(count + 1) 会用闭包里的旧值导致状态不更新。必须用函数式更新 setCount(prev => prev + 1) 让 React 传入最新值，或者把 state 加进依赖数组。函数式更新是首选，不依赖闭包。",
+        "source_type": "assistant_response",
+        "verification_status": "verified",
+        "correction_source": "user",
+        "ai_initial_error": "useEffect 里直接 setState(value + 1) 是可以的",
+        "weight_signal": "high"
+      }
+    ]
+  },
+  {
+    "round": 22,
+    "scenario_type": "ai_corrected",
+    "outcome": "failure_recovered",
+    "user_message": "我用 useMemo(() => expensiveCalc(a, b), []) 缓存计算结果，但 a/b 变了结果不更新。",
+    "assistant_thought_initial": "用户用 useMemo 缓存 expensiveCalc(a, b)，空依赖数组 [] 表示只在挂载时计算一次。如果 a/b 变了结果不更新，可能是 a/b 是 props 没加进依赖。建议把 a/b 加进依赖数组。",
+    "assistant_response_initial": "把 a/b 加进依赖数组就行：useMemo(() => expensiveCalc(a, b), [a, b])。",
+    "user_followup": "加了，但还是不更新，控制台有个 React Hook warning 说 useMemo 缺少依赖。",
+    "assistant_thought_correction": "用户说加了 [a, b] 还是不更新，且有 warning。重新想：如果 a/b 是对象或数组，每次渲染都是新引用，useMemo 会每次都重新计算——但用户说不更新，说明 a/b 引用没变。更可能的情况：a/b 来自 useState 但更新时用了 push/mutate 而非 setState 新对象，引用没变 useMemo 自然不重算。我第一次答错是因为只看了依赖数组，没考虑引用相等性。useMemo 比较的是 Object.is，对象 mutate 不触发重算。",
+    "assistant_response_correction": "我第一次答得不完整。问题可能在 a/b 的引用相等性：useMemo 用 Object.is 比较依赖，如果你用 push/splice 直接 mutate 数组，引用没变，useMemo 不会重算。\n\n检查你的更新方式：\n```tsx\n// ❌ 错误：直接 mutate，引用没变\nsetArr(prev => { prev.push(newItem); return prev; });\n\n// ✅ 正确：返回新引用\nsetArr(prev => [...prev, newItem]);\n```\n\n同理对象更新：\n```tsx\n// ❌ 错误\nsetObj(prev => { prev.key = newValue; return prev; });\n\n// ✅ 正确\nsetObj(prev => ({ ...prev, key: newValue }));\n```\n\nuseMemo 的依赖比较是 Object.is，引用不变就不重算。如果 a/b 是基本类型（number/string）则不受影响，问题一定出在引用类型。",
+    "knowledge_gap": "useMemo 依赖比较的引用相等性",
+    "candidates": [
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "useMemo 依赖用 Object.is 比较引用相等性",
+        "content": "约束：useMemo 的依赖数组用 Object.is 比较每个依赖，对象/数组直接 mutate（push/splice/赋值属性）不改变引用，useMemo 不会重新计算。更新状态时必须返回新引用：数组用 [...prev, newItem]，对象用 {...prev, key: newValue}。基本类型（number/string/boolean）值相等即相等，不受引用影响。",
+        "source_type": "assistant_response",
+        "verification_status": "verified",
+        "correction_source": "user",
+        "ai_initial_error": "把 a/b 加进依赖数组就行",
+        "weight_signal": "high"
+      }
+    ]
+  },
+  {
+    "round": 23,
+    "scenario_type": "ai_corrected",
+    "outcome": "failure_recovered",
+    "user_message": "我用 async/await 在 useEffect 里请求数据，为什么 React 报 warning 'Can't perform a state update on an unmounted component'？",
+    "assistant_thought_initial": "用户在 useEffect 里用 async/await 请求，报 unmounted warning。这是因为组件卸载后 setState。建议加 isMounted flag。",
+    "assistant_response_initial": "加个 isMounted 标志位：useEffect(() => { let isMounted = true; fetchData().then(data => { if (isMounted) setState(data); }); return () => { isMounted = false; }; }, []);",
+    "user_followup": "加了 isMounted 但 warning 还在，而且内存泄漏工具显示 fetch 还在跑。",
+    "assistant_thought_correction": "isMounted flag 只是避免 setState，但 fetch 请求本身没被取消，请求还在跑，只是结果被丢弃。这是资源泄漏不是内存泄漏。正确做法是用 AbortController 取消请求，这样 fetch 真的会被中止。我第一次答错是因为把 isMounted flag 当成银弹，没意识到请求本身需要取消。fetch 原生支持 signal 参数配合 AbortController。",
+    "assistant_response_correction": "isMounted flag 只避免了 setState，没取消请求本身——请求还在跑，只是结果被丢弃，这是资源泄漏。\n\n正确做法：用 AbortController 取消请求。\n```tsx\nuseEffect(() => {\n  const controller = new AbortController();\n  fetch('/api/data', { signal: controller.signal })\n    .then(res => res.json())\n    .then(data => setState(data))\n    .catch(err => {\n      if (err.name === 'AbortError') return;  // 主动取消，忽略\n      console.error(err);\n    });\n  return () => controller.abort();  // 组件卸载时取消请求\n}, []);\n```\n\nAbortController 的好处：\n1. fetch 真的被中止，不再消耗网络/CPU。\n2. 中止会抛 AbortError，catch 里判断 err.name 跳过即可。\n3. 多个请求可以共用一个 controller 一起取消。",
+    "knowledge_gap": "useEffect 异步请求的资源泄漏 vs 内存泄漏",
+    "candidates": [
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "useEffect 异步请求必须用 AbortController 取消",
+        "content": "约束：useEffect 里的异步请求（fetch/axios）必须用 AbortController 取消，不能只靠 isMounted flag。isMounted flag 只避免 setState，请求本身继续跑是资源泄漏。正确做法：useEffect 创建 AbortController，fetch 传 signal 参数，cleanup 函数调 controller.abort()。中止会抛 AbortError，catch 里判断 err.name === 'AbortError' 跳过即可。",
+        "source_type": "assistant_response",
+        "verification_status": "verified",
+        "correction_source": "user",
+        "ai_initial_error": "加个 isMounted 标志位就行",
+        "weight_signal": "high"
+      },
+      {
+        "artifact_tag": "verified_fix",
+        "title": "useEffect 异步请求未取消导致资源泄漏的修复流程",
+        "content": "修复流程：1. useEffect 内创建 const controller = new AbortController()；2. fetch 调用传 { signal: controller.signal }；3. cleanup 函数 return () => controller.abort()；4. catch 里判断 err.name === 'AbortError' 跳过。根因是 isMounted flag 只避免 setState 不取消请求，fetch 继续跑是资源泄漏。AbortController 让 fetch 真正中止。",
+        "source_type": "assistant_response",
+        "verification_status": "verified_fix",
+        "error_code": "RUNTIME_LEAK"
+      }
+    ]
+  },
+  {
+    "round": 24,
+    "scenario_type": "ai_corrected",
+    "outcome": "failure_recovered",
+    "user_message": "我用 useCallback(() => handler, []) 包了处理函数，但子组件还是每次都重渲染。",
+    "assistant_thought_initial": "用户用 useCallback 包了 handler 但子组件还重渲染。可能是子组件没用 React.memo。建议子组件加 React.memo。",
+    "assistant_response_initial": "子组件加 React.memo 就行：const MemoChild = React.memo(Child);",
+    "user_followup": "加了 React.memo 还是重渲染，我 console.log 了 props 发现引用都变了。",
+    "assistant_thought_correction": "用户说加了 React.memo 还重渲染，props 引用都变了。React.memo 做的是浅比较，如果 props 里有对象/数组/函数每次都是新引用，memo 失效。用户用 useCallback 包了 handler，但如果 useCallback 依赖数组里有每次变化的值，handler 引用每次都变。或者 props 里有 inline 对象 style={{color: 'red'}} 每次新引用。我第一次答错是因为只想到 React.memo，没考虑 props 引用稳定性。React.memo 浅比较 + props 引用不稳定 = memo 失效。",
+    "assistant_response_correction": "React.memo 做的是浅比较，props 引用每次都变 memo 自然失效。需要检查每个 props 的引用稳定性：\n\n1. 函数 props：确认 useCallback 的依赖数组没包含每次变化的值。如果依赖 [count] 而 count 每次渲染都变，handler 引用每次都变，memo 无效。\n\n2. 对象/数组 props：\n```tsx\n// ❌ 每次渲染新引用\n<Child style={{ color: 'red' }} config={{ enabled: true }} />\n\n// ✅ 用 useMemo 缓存\nconst style = useMemo(() => ({ color: 'red' }), []);\nconst config = useMemo(() => ({ enabled: true }), []);\n<Child style={style} config={config} />\n```\n\n3. 或者把静态对象提到组件外：\n```tsx\nconst STATIC_STYLE = { color: 'red' };  // 模块级，引用永远不变\nfunction Parent() {\n  return <Child style={STATIC_STYLE} />;\n}\n```\n\nReact.memo + useCallback + useMemo 是三件套，缺一个 memo 就失效。",
+    "knowledge_gap": "React.memo 浅比较与 props 引用稳定性",
+    "candidates": [
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "React.memo 配合 useCallback/useMemo 保证 props 引用稳定",
+        "content": "约束：React.memo 做浅比较，props 引用每次都变则 memo 失效。函数 props 用 useCallback 且依赖数组不含每次变化的值；对象/数组 props 用 useMemo 缓存或提到组件外作为模块级常量；内联对象 style={{}} 每次新引用必须用 useMemo 或提外。React.memo + useCallback + useMemo 是三件套，缺一个 memo 就失效。",
+        "source_type": "assistant_response",
+        "verification_status": "verified",
+        "correction_source": "user",
+        "ai_initial_error": "子组件加 React.memo 就行",
+        "weight_signal": "high"
+      }
+    ]
+  },
+  {
+    "round": 25,
+    "scenario_type": "ai_corrected",
+    "outcome": "failure_recovered",
+    "user_message": "我用 Promise.all 并发请求 3 个接口，但只要有一个失败，其他成功的也不显示了。为什么？",
+    "assistant_thought_initial": "Promise.all 的特性是任一 reject 整个 Promise.all 就 reject。用户想要部分失败不阻塞。建议用 try/catch 包每个 promise。",
+    "assistant_response_initial": "Promise.all 任一 reject 整体就 reject，这是设计如此。你可以给每个 promise 加 .catch(() => null)，失败的返回 null，Promise.all 就不会整体 reject。",
+    "user_followup": "加了 .catch(() => null) 但是成功的也变成 null 了，数据丢了。",
+    "assistant_thought_correction": "用户说加了 .catch(() => null) 后成功的也变 null。这不可能——.catch 只在 reject 时触发，resolve 不会进 catch。除非用户的 catch 逻辑写错了，或者 promise 链里 then 抛错了。更可能的情况：用户把 .catch 加在了 Promise.all 之后而不是每个 promise 上，或者 then 里访问了 undefined 抛错被 catch 吞了。我第一次答错是因为没确认用户的代码结构。但更重要的是：Promise.all 不适合部分失败场景，应该用 Promise.allSettled，它等所有 promise 都 settle（无论 resolve 还是 reject），返回 {status, value/reason} 数组。",
+    "assistant_response_correction": "先确认：.catch(() => null) 只在 reject 时触发，resolve 不会进 catch。如果成功的也变 null，可能是你的代码结构有问题，把 .catch 加在了 Promise.all 之后而不是每个 promise 上。\n\n但更重要的：部分失败场景不该用 Promise.all，应该用 Promise.allSettled：\n```tsx\nconst results = await Promise.allSettled([fetchA(), fetchB(), fetchC()]);\nresults.forEach((r, i) => {\n  if (r.status === 'fulfilled') {\n    console.log(`接口${i} 成功:`, r.value);\n  } else {\n    console.error(`接口${i} 失败:`, r.reason);\n  }\n});\n```\n\nPromise.allSettled 的优势：\n1. 等所有 promise 都 settle，不会因为一个失败就整体 reject。\n2. 返回 {status: 'fulfilled', value} 或 {status: 'rejected', reason}。\n3. 部分失败时成功的照样能拿到数据。\n\n判断标准：需要全部成功才继续用 Promise.all；允许部分失败用 Promise.allSettled。",
+    "knowledge_gap": "Promise.all vs Promise.allSettled 的部分失败处理",
+    "candidates": [
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "部分失败场景用 Promise.allSettled 而非 Promise.all",
+        "content": "约束：需要全部成功才继续用 Promise.all（任一 reject 整体 reject）；允许部分失败用 Promise.allSettled（等所有 settle 返回 {status, value/reason} 数组）。Promise.all 给每个 promise 加 .catch(() => null) 是 hack，失败的返回 null 后续要额外判空，且会掩盖真正的错误。Promise.allSettled 是语言原生支持的部分失败处理方案。",
+        "source_type": "assistant_response",
+        "verification_status": "verified",
+        "correction_source": "user",
+        "ai_initial_error": "给每个 promise 加 .catch(() => null)",
+        "weight_signal": "high"
+      }
+    ]
+  },
+  {
+    "round": 26,
+    "scenario_type": "tool_failure_recovered",
+    "outcome": "failure_recovered",
+    "user_message": "帮我装 zustand，npm install zustand 报错了。",
+    "tool_use": {
+      "name": "run_command",
+      "args": { "command": "npm install zustand" },
+      "summary": "安装 zustand"
+    },
+    "tool_result": "npm ERR! code ERESOLVE\nnpm ERR! ERESOLVE unable to resolve dependency tree\nnpm ERR! \nnpm ERR! While resolving: todo-app@0.0.0\nnpm ERR! Found: react@16.14.0\nnpm ERR! \nnpm ERR! Could not resolve dependency:\nnpm ERR! peer react@\">=17.0.0\" from zustand@4.4.0\nnpm ERR! \nnpm ERR! Fix the upstream dependency conflict, or retry\nnpm ERR! with --legacy-peer-deps",
+    "assistant_thought": "ERESOLVE 错误，zustand 4.4 要求 peer react >= 17，但项目是 react 16.14。两个解法：1. 升级 react 到 17+（推荐，zustand 4 依赖新特性）；2. 用 --legacy-peer-deps 强装（hack，可能运行时崩）。根因是 peer dependency 版本冲突。应该先升级 react 再装 zustand。",
+    "recovery_action": {
+      "steps": ["npm install react@18 react-dom@18", "npm install zustand@4"],
+      "root_cause": "zustand 4.x peer dependency 要求 react >= 17，项目 react 16.14 不满足",
+      "signal_keywords": ["ERESOLVE", "peer dependency", "react version"]
+    },
+    "assistant_response": "这是 peer dependency 版本冲突。zustand 4.x 要求 react >= 17，你项目是 react 16.14。\n\n根因：zustand 4 用了 React 18 的 useSyncExternalStore，react 16 没这个 API。\n\n修复步骤：\n```bash\nnpm install react@18 react-dom@18\nnpm install zustand@4\n```\n\n升级 react 18 后注意：\n1. ReactDOM.render 改成 createRoot：\n```tsx\n// 旧\nReactDOM.render(<App />, document.getElementById('root'));\n// 新\nimport { createRoot } from 'react-dom/client';\ncreateRoot(document.getElementById('root')).render(<App />);\n```\n2. 检查第三方库是否兼容 react 18。\n\n千万别用 --legacy-peer-deps 强装，zustand 4 运行时会因为缺 useSyncExternalStore 直接崩。",
+    "candidates": [
+      {
+        "artifact_tag": "verified_fix",
+        "title": "npm install ERESOLVE peer dependency 冲突的修复流程",
+        "content": "修复流程：1. 读错误找 peer dependency 要求（zustand@4 peer react@>=17）；2. 查项目当前版本 npm ls react；3. 升级冲突的依赖 npm install react@18 react-dom@18；4. 重新安装目标包 npm install zustand@4；5. 验证运行时无崩溃。根因是 peer dependency 版本冲突，目标包依赖的 React 版本比项目现有版本高。禁止用 --legacy-peer-deps 强装，会运行时崩。",
+        "source_type": "tool_result",
+        "verification_status": "verified_fix",
+        "error_code": "ERESOLVE_PEER_DEPS",
+        "failure_signal": "ERESOLVE unable to resolve dependency tree",
+        "root_cause": "peer dependency version conflict",
+        "recovery_steps": ["升级冲突依赖", "重新安装目标包"]
+      }
+    ]
+  },
+  {
+    "round": 27,
+    "scenario_type": "tool_failure_recovered",
+    "outcome": "failure_recovered",
+    "user_message": "npm run build 失败了，一堆 TypeScript 报错。",
+    "tool_use": {
+      "name": "run_command",
+      "args": { "command": "npm run build" },
+      "summary": "构建项目"
+    },
+    "tool_result": "src/components/TodoItem.tsx(12,5): error TS2322: Type 'string' is not assignable to type 'number'.\nsrc/utils/date.ts(8,10): error TS2345: Argument of type 'string' is not assignable to parameter of type 'Date'.\nsrc/api/client.ts(45,3): error TS2554: Expected 2 arguments, but got 1.\nsrc/store/todoStore.ts(22,7): error TS2304: Cannot find name 'Todo'.\nerror Command failed with exit code 1",
+    "assistant_thought": "4 个 TS 错误：1. TodoItem 类型不匹配（string 赋给 number）；2. date 工具函数传参类型错；3. api client 参数数量不对；4. todoStore 找不到 Todo 类型。根因是开发时没开 strict 或没跑 tsc --noEmit 检查。应该逐个修：先看类型定义，再看调用处。类型错误是渐进的，一个底层类型改了上层全报错。",
+    "recovery_action": {
+      "steps": ["修 TodoItem 类型", "修 date 工具函数", "修 api client 参数", "修 todoStore 类型导入", "重跑 npm run build"],
+      "root_cause": "类型定义与实现不一致，开发时未持续运行 tsc 检查",
+      "signal_keywords": ["TS2322", "TS2345", "TS2554", "TS2304", "exit code 1"]
+    },
+    "assistant_response": "4 个 TS 错误，逐个修：\n\n1. TodoItem 类型不匹配（string 赋给 number）：检查 props 类型定义，completed 应该是 boolean 不是 string。\n2. date 工具函数传参错：函数签名要 Date，传了 string，加 new Date() 包装或改签名。\n3. api client 参数不对：函数定义 2 个参数，调用只传 1 个，补上缺失参数。\n4. todoStore 找不到 Todo 类型：检查 import 路径，确认 types/todo.ts 导出 Todo 接口。\n\n修复后重跑 npm run build 验证。\n\n预防：在 package.json 加 precommit hook 跑 tsc --noEmit，CI 里 npm run build 必须过。",
+    "candidates": [
+      {
+        "artifact_tag": "verified_fix",
+        "title": "TypeScript 构建失败的批量修复流程",
+        "content": "修复流程：1. 按 TS 错误码分类（TS2322 类型不匹配 / TS2345 参数类型错 / TS2554 参数数量错 / TS2304 未定义名称）；2. 逐个修：先看类型定义再看调用处，底层类型改了上层全报错要从底向上修；3. 修完重跑 npm run build 验证全部通过。根因是类型定义与实现不一致，开发时未持续运行 tsc --noEmit 检查。预防：precommit hook + CI 必须过 build。",
+        "source_type": "tool_result",
+        "verification_status": "verified_fix",
+        "error_code": "TS_BUILD_FAILED",
+        "failure_signal": "error TS",
+        "root_cause": "type definition mismatch",
+        "recovery_steps": ["按错误码分类", "从底向上修", "重跑 build 验证"]
+      },
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "TypeScript 开发时必须持续运行 tsc --noEmit",
+        "content": "约束：开发时必须持续运行 tsc --noEmit 或 IDE 类型检查，不能等 npm run build 才发现类型错误。类型错误是渐进的，底层类型改了上层全报错，越晚修成本越高。precommit hook 跑 tsc --noEmit + CI 跑 npm run build 双重保障。",
+        "source_type": "tool_result",
+        "verification_status": "verified"
+      }
+    ]
+  },
+  {
+    "round": 28,
+    "scenario_type": "tool_failure_recovered",
+    "outcome": "failure_recovered",
+    "user_message": "我 docker compose up 起后端，数据库连不上。",
+    "tool_use": {
+      "name": "run_command",
+      "args": { "command": "docker compose up -d" },
+      "summary": "启动 docker compose"
+    },
+    "tool_result": "Error response from daemon: Get \"https://registry-1.docker.io/v2/\": dial tcp: lookup registry-1.docker.io on 192.168.1.1:53: no such host",
+    "assistant_thought": "DNS 解析失败，lookup registry-1.docker.io on 192.168.1.1:53: no such host。根因是 DNS 服务器无法解析 docker registry 域名。两个可能：1. 本地 DNS 配置问题（192.168.1.1 是路由器 DNS，可能挂了或没配 docker registry）；2. 网络不通。国内常见原因：docker hub 被墙，需要配镜像源。修法：配 docker daemon.json 加国内镜像 registry mirror。",
+    "recovery_action": {
+      "steps": ["配 docker daemon.json 镜像源", "重启 docker", "重新 docker compose up"],
+      "root_cause": "DNS 无法解析 docker registry，国内网络环境 docker hub 被墙",
+      "signal_keywords": ["no such host", "dial tcp", "lookup registry-1.docker.io"]
+    },
+    "assistant_response": "DNS 解析失败，lookup registry-1.docker.io no such host。国内网络环境 docker hub 经常连不上。\n\n根因：DNS 服务器（192.168.1.1，路由器）无法解析 docker registry 域名，通常是 docker hub 被墙。\n\n修复步骤：\n1. 配 docker 镜像源（Windows/Mac 在 Docker Desktop 设置里，Linux 改 /etc/docker/daemon.json）：\n```json\n{\n  \"registry-mirrors\": [\n    \"https://docker.mirrors.ustc.edu.cn\",\n    \"https://hub-mirror.c.163.com\"\n  ]\n}\n```\n2. 重启 Docker（Docker Desktop 重启应用，Linux: systemctl restart docker）。\n3. 重新 docker compose up -d。\n\n验证：docker pull hello-world 能拉下来说明镜像源配通了。",
+    "candidates": [
+      {
+        "artifact_tag": "verified_fix",
+        "title": "docker pull DNS 解析失败的修复流程",
+        "content": "修复流程：1. 读错误找域名（lookup registry-1.docker.io）；2. 判断是 DNS 问题还是网络不通（ping 8.8.8.8 测网络，nslookup 测 DNS）；3. 国内环境通常是 docker hub 被墙，配 /etc/docker/daemon.json 或 Docker Desktop 设置加 registry-mirrors 镜像源；4. 重启 docker；5. docker pull hello-world 验证。根因是 DNS 无法解析 docker registry 域名。",
+        "source_type": "tool_result",
+        "verification_status": "verified_fix",
+        "error_code": "DNS_RESOLUTION_FAILED",
+        "failure_signal": "no such host",
+        "root_cause": "docker registry DNS blocked",
+        "recovery_steps": ["配镜像源", "重启 docker", "验证 pull"]
+      }
+    ]
+  },
+  {
+    "round": 29,
+    "scenario_type": "tool_failure_recovered",
+    "outcome": "failure_recovered",
+    "user_message": "git push 被拒了，说 permission denied。",
+    "tool_use": {
+      "name": "run_command",
+      "args": { "command": "git push origin main" },
+      "summary": "推送代码到远程"
+    },
+    "tool_result": "ERROR: Permission to owner/repo.git denied to user.\nfatal: unable to access 'https://github.com/owner/repo.git/': The requested URL returned error: 403",
+    "assistant_thought": "403 permission denied，两种可能：1. SSH key 没配或失效；2. HTTPS 模式下 credential 缓存的 token 过期。需要先确认当前是 SSH 还是 HTTPS 模式（git remote -v），再对症修。如果是 SSH 模式且 key 失效，重新生成 ssh-keygen 并加到 GitHub；如果是 HTTPS 模式且 token 过期，更新 credential helper 或切 SSH。",
+    "recovery_action": {
+      "steps": ["git remote -v 确认模式", "SSH 模式重新配 key 或 HTTPS 模式更新 token", "重新 push"],
+      "root_cause": "认证凭证失效（SSH key 失效或 HTTPS token 过期）",
+      "signal_keywords": ["Permission denied", "403", "credential"]
+    },
+    "assistant_response": "403 permission denied，认证凭证失效。先确认模式：\n```bash\ngit remote -v\n```\n\n如果是 SSH（git@github.com:...）：\n1. 检查 SSH key：`ssh -T git@github.com`\n2. 如果 key 失效，重新生成：`ssh-keygen -t ed25519 -C \"your_email\"`\n3. 把 ~/.ssh/id_ed25519.pub 加到 GitHub Settings → SSH keys\n4. 重新 push\n\n如果是 HTTPS（https://github.com/...）：\n1. token 过期，更新 credential：`git credential reject` 清旧凭证\n2. 或切 SSH：`git remote set-url origin git@github.com:owner/repo.git`\n3. 重新 push\n\n推荐切 SSH 模式，HTTPS 的 token 会过期要定期更新。",
+    "candidates": [
+      {
+        "artifact_tag": "verified_fix",
+        "title": "git push 403 permission denied 的修复流程",
+        "content": "修复流程：1. git remote -v 确认是 SSH 还是 HTTPS 模式；2. SSH 模式 ssh -T git@github.com 测 key，失效则 ssh-keygen 重新生成并加到 GitHub Settings → SSH keys；3. HTTPS 模式 token 过期，git credential reject 清旧凭证或切 SSH 模式 git remote set-url；4. 重新 push 验证。根因是认证凭证失效。推荐用 SSH 模式避免 token 过期问题。",
+        "source_type": "tool_result",
+        "verification_status": "verified_fix",
+        "error_code": "GIT_PERMISSION_DENIED",
+        "failure_signal": "Permission denied",
+        "root_cause": "credential expired or invalid",
+        "recovery_steps": ["确认模式", "SSH 配 key 或 HTTPS 更新 token", "重新 push"]
+      }
+    ]
+  },
+  {
+    "round": 30,
+    "scenario_type": "tool_failure_recovered",
+    "outcome": "failure_recovered",
+    "user_message": "npm run dev 启动报错了，说端口被占用。",
+    "tool_use": {
+      "name": "run_command",
+      "args": { "command": "npm run dev" },
+      "summary": "启动开发服务器"
+    },
+    "tool_result": "Error: listen EADDRINUSE: address already in use :::3000\n    at Server.setupListenHandle\n    at emitted ifError\nnpm ERR! code ELIFECYCLE\nnpm ERR! errno 1",
+    "assistant_thought": "EADDRINUSE 端口 3000 被占用。之前有进程没杀干净。两个解法：1. 找到占用进程杀掉（lsof -i:3000 / netstat -ano | findstr :3000）；2. 换个端口（Vite 用 --port 3001）。根因是之前的 dev server 没正常退出。推荐先杀进程，避免占用残留。",
+    "recovery_action": {
+      "steps": ["查占用进程", "kill 进程", "重新 npm run dev"],
+      "root_cause": "之前 dev server 进程未正常退出，端口残留占用",
+      "signal_keywords": ["EADDRINUSE", "address already in use"]
+    },
+    "assistant_response": "EADDRINUSE 端口 3000 被占用，之前的 dev server 没正常退出。\n\nWindows 修复：\n```powershell\nnetstat -ano | findstr :3000\n# 找到 PID\ntaskkill /PID <PID> /F\nnpm run dev\n```\n\nMac/Linux 修复：\n```bash\nlsof -i:3000\nkill -9 <PID>\nnpm run dev\n```\n\n或者临时换端口（不推荐，治标不治本）：\n```bash\nnpm run dev -- --port 3001\n```\n\n预防：关闭终端前先 Ctrl+C 停 dev server，避免进程残留。",
+    "candidates": [
+      {
+        "artifact_tag": "verified_fix",
+        "title": "EADDRINUSE 端口占用的修复流程",
+        "content": "修复流程：1. Windows 用 netstat -ano | findstr :3000 找 PID，Mac/Linux 用 lsof -i:3000；2. kill 进程（Windows: taskkill /PID <PID> /F，Linux: kill -9 <PID>）；3. 重新 npm run dev 验证。根因是之前 dev server 进程未正常退出导致端口残留占用。预防：关闭终端前 Ctrl+C 停 dev server。临时方案可换端口但不治本。",
+        "source_type": "tool_result",
+        "verification_status": "verified_fix",
+        "error_code": "EADDRINUSE",
+        "failure_signal": "address already in use",
+        "root_cause": "process not terminated",
+        "recovery_steps": ["找占用进程", "kill", "重启服务"]
+      }
+    ]
+  },
+  {
+    "round": 31,
+    "scenario_type": "knowledge_outdated",
+    "outcome": "knowledge_outdated",
+    "user_message": "我用 redux 的 createStore 配置 store 吧，之前项目都这么用。",
+    "assistant_thought": "用户想用 redux 的 createStore。但 createStore 在 Redux 4.2+ 已标记 deprecated，Redux Toolkit (RTK) 的 configureStore 是现在推荐用法。用户可能看的是旧版文档或旧项目。这是知识过时的典型信号：旧 API 还能用但有更好的替代方案。需要指出 deprecated 并推荐 RTK，同时给出迁移路径。",
+    "assistant_response": "createStore 在 Redux 4.2+ 已标记 @deprecated，现在推荐用 Redux Toolkit (RTK) 的 configureStore。\n\n旧写法（deprecated）：\n```tsx\nimport { createStore } from 'redux';\nconst store = createStore(reducer);\n```\n\n新写法（推荐）：\n```tsx\nimport { configureStore } from '@reduxjs/toolkit';\nconst store = configureStore({\n  reducer: { todos: todosReducer },\n});\n```\n\nRTK 的优势：\n1. configureStore 默认集成 redux-devtools、redux-thunk、序列化检查中间件。\n2. 不用手写 bindActionCreators。\n3. 配合 createSlice 自动生成 action creators。\n4. immer 内置支持可变写法（state.todos.push(item) 自动转不可变）。\n\n如果你已有 createStore 的旧代码，迁移很简单：\n1. npm install @reduxjs/toolkit\n2. 把 createStore 改成 configureStore\n3. reducer 结构保持不变\n\n这属于 API 时效性信号：createStore 被弃用说明该知识点可能过时，需要降权或标注 deprecated。",
+    "stale_knowledge_ref": "Redux createStore API",
+    "replacement": "RTK configureStore",
+    "candidates": [
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "Redux 状态管理用 RTK configureStore 而非 deprecated createStore",
+        "content": "约束：Redux 状态管理禁止用 createStore（4.2+ 已 deprecated），必须用 Redux Toolkit 的 configureStore。createStore 弃用原因：RTK 集成了 devtools/thunk/序列化检查，createStore 需要手动配这些。configureStore 默认开 immer 支持可变写法。迁移路径：npm install @reduxjs/toolkit，createStore 改 configureStore，reducer 结构不变。",
+        "source_type": "assistant_response",
+        "verification_status": "verified",
+        "supersedes": "createStore",
+        "is_deprecated": true,
+        "weight_signal": "outdated_correction"
+      }
+    ]
+  },
+  {
+    "round": 32,
+    "scenario_type": "knowledge_outdated",
+    "outcome": "knowledge_outdated",
+    "user_message": "我用 ReactDOM.render 挂载组件，和之前一样。",
+    "assistant_thought": "用户用 ReactDOM.render，这是 React 17 的 API，React 18 已标记 deprecated，改用 createRoot。这是知识过时信号：React 18 升级后挂载 API 变了，旧 API 还能用但不支持并发特性。需要指出 deprecated 并给出迁移路径，同时提醒 React 18 的并发特性需要 createRoot 才能生效。",
+    "assistant_response": "ReactDOM.render 在 React 18 已标记 deprecated，改用 createRoot。\n\n旧写法（React 17，deprecated）：\n```tsx\nimport ReactDOM from 'react-dom';\nReactDOM.render(<App />, document.getElementById('root'));\n```\n\n新写法（React 18，推荐）：\n```tsx\nimport { createRoot } from 'react-dom/client';\nconst root = createRoot(document.getElementById('root'));\nroot.render(<App />);\n```\n\n关键区别：\n1. createRoot 是 React 18 并发特性的入口，ReactDOM.render 不支持并发渲染。\n2. useTransition、useDeferredValue、自动 batching 等 React 18 特性需要 createRoot 才生效。\n3. React 18 的 Strict Mode 行为变化（双重渲染检测副作用）需要 createRoot。\n\n迁移注意：\n1. 检查第三方库是否兼容 createRoot（大部分已支持）。\n2. hydrate 也改了：ReactDOMServer.hydrate → hydrateRoot。\n3. unmountComponentAtNode 改成 root.unmount()。\n\n这是 API 时效性信号：ReactDOM.render 弃用说明 React 17 的挂载知识点可能过时。",
+    "stale_knowledge_ref": "ReactDOM.render",
+    "replacement": "createRoot",
+    "candidates": [
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "React 18 挂载用 createRoot 而非 deprecated ReactDOM.render",
+        "content": "约束：React 18 挂载必须用 createRoot（react-dom/client），禁止用 ReactDOM.render（已 deprecated）。createRoot 是并发特性入口，ReactDOM.render 不支持并发渲染。useTransition/useDeferredValue/自动 batching 等 React 18 特性需要 createRoot 才生效。迁移：import { createRoot } from 'react-dom/client'，createRoot(el).render(<App/>)。hydrate 改 hydrateRoot，unmount 改 root.unmount()。",
+        "source_type": "assistant_response",
+        "verification_status": "verified",
+        "supersedes": "ReactDOM.render",
+        "is_deprecated": true,
+        "weight_signal": "outdated_correction"
+      }
+    ]
+  },
+  {
+    "round": 33,
+    "scenario_type": "knowledge_outdated",
+    "outcome": "knowledge_outdated",
+    "user_message": "我用 PropTypes 做类型检查吧，TypeScript 太麻烦了。",
+    "assistant_thought": "用户想用 PropTypes 做类型检查。PropTypes 是 React 15 时代的运行时类型检查方案，现在 TypeScript 已是 React 生态标准，PropTypes 在 TS 项目里是冗余且过时的。PropTypes 的局限：只运行时检查、不能在编译期拦错误、不能 IDE 自动补全。TypeScript 是编译期检查、IDE 全力支持、生态主流。这是知识过时信号：PropTypes 在 TS 项目里不应再用。",
+    "assistant_response": "PropTypes 是 React 15 时代的方案，现在 TypeScript 已是 React 生态标准，TS 项目里不应该再用 PropTypes。\n\nPropTypes 的局限：\n1. 只运行时检查，报错时已经晚了（用户已看到错误页面）。\n2. 不能在编译期拦错误，开发时写错类型要跑起来才发现。\n3. 不能 IDE 自动补全和跳转。\n4. 运行时有性能开销（每个组件渲染都检查）。\n\nTypeScript 的优势：\n1. 编译期检查，写错类型 IDE 立即红线。\n2. IDE 自动补全、跳转定义、重构支持。\n3. 零运行时开销（类型只在编译期存在）。\n4. 配合 strict 模式能拦住大量隐式 any 和 null 引用。\n\nTS 项目里禁用 PropTypes 的具体做法：\n1. 卸载 prop-types：npm uninstall prop-types\n2. 组件用 interface 定义 props 类型：\n```tsx\ninterface TodoItemProps {\n  todo: Todo;\n  onToggle: (id: string) => void;\n}\nexport function TodoItem({ todo, onToggle }: TodoItemProps) { ... }\n```\n3. tsconfig 开 strict + noImplicitAny + strictNullChecks。\n\n这是知识过时信号：PropTypes 在 TS 项目里已无存在价值。",
+    "stale_knowledge_ref": "PropTypes runtime type checking",
+    "replacement": "TypeScript compile-time type checking",
+    "candidates": [
+      {
+        "artifact_tag": "constraint_fact",
+        "title": "TypeScript 项目禁用 PropTypes 改用 interface 定义 props 类型",
+        "content": "约束：TypeScript 项目禁止用 PropTypes 做运行时类型检查，必须用 interface 定义组件 props 类型。PropTypes 局限：只运行时检查、无编译期拦截、无 IDE 支持、有运行时开销。TypeScript 优势：编译期检查、IDE 自动补全跳转、零运行时开销、配合 strict 模式拦隐式 any。做法：npm uninstall prop-types，组件用 interface TodoItemProps 定义 props，tsconfig 开 strict + noImplicitAny + strictNullChecks。",
+        "source_type": "assistant_response",
+        "verification_status": "verified",
+        "supersedes": "PropTypes",
+        "is_deprecated": true,
+        "weight_signal": "outdated_correction"
+      }
+    ]
+  }
+]

@@ -1,0 +1,68 @@
+{
+  "rule_candidates": [],
+  "memory_candidates": [
+    {
+      "candidate_type": "memory_candidate",
+      "title": "用户排查仪表盘缓存的习惯",
+      "origin_scope": "user",
+      "availability_scope": "user_reusable",
+      "governance_level": "shared",
+      "promotion_status": "active",
+      "memory_type": "user_memory",
+      "stability": "long_lived",
+      "source_kind": "user_message",
+      "source_timestamp": "2026-06-23T10:00:00.000Z",
+      "content": "用户在仪表盘数据不刷新时，倾向于通过连续运行 npm run build 来清理缓存并验证状态，而不是优先检查数据源。",
+      "source_excerpt": "再跑一次 build，有时候要两次。",
+      "reason": "用户的固定排查习惯，应作为用户画像记录。",
+      "confidence": "high"
+    }
+  ],
+  "skill_proposal_candidates": [
+    {
+      "candidate_type": "skill_proposal_candidate",
+      "title": "仪表盘数据不刷新时的缓存清理 SOP",
+      "origin_scope": "project",
+      "availability_scope": "project_reusable",
+      "governance_level": "shared",
+      "promotion_status": "needs_review",
+      "source_kind": "assistant_message",
+      "source_timestamp": "2026-06-23T10:00:01.000Z",
+      "target_skill": "frontend-troubleshooting",
+      "target_skill_path": null,
+      "change_type": "add",
+      "current_section": "缓存排查",
+      "current_text": "检查浏览器缓存和 API 响应。",
+      "current_gap": "未将 npm run build 作为缓存清理和验证步骤纳入标准排查流程。",
+      "proposed_text": "当仪表盘数据不刷新时，按顺序执行：1. 运行 npm run build 清理构建缓存；2. 若一次未生效，等待 5 秒后再次运行 npm run build；3. 验证仪表盘时间戳是否更新。",
+      "proposed_patch": "*** Begin Patch\n+ ## 仪表盘数据不刷新\n+ 1. 运行 npm run build 清理构建缓存。\n+ 2. 若未恢复，5 秒后再次运行 npm run build。\n+ 3. 验证仪表盘最新数据时间戳。\n*** End Patch",
+      "validation_method": "运行后仪表盘数据时间戳更新。",
+      "rationale": "从两次连续 build 解决仪表盘缓存问题的模式中提取的 SOP。",
+      "reason": "从两次连续 build 解决仪表盘缓存问题的模式中提取的 SOP。",
+      "proposal_quality": "actionable",
+      "source_refs": [
+        { "source_kind": "assistant_message", "source_timestamp": "2026-06-23T10:00:00.000Z", "source_excerpt": "运行 npm run build 完成，没有报错，但仪表盘还是没更新。" },
+        { "source_kind": "assistant_message", "source_timestamp": "2026-06-23T10:00:01.000Z", "source_excerpt": "第二次 npm run build 完成，仪表盘数据刷新了。" }
+      ],
+      "merged_source_count": 2,
+      "source_excerpt": "第二次 npm run build 完成，仪表盘数据刷新了。"
+    }
+  ],
+  "knowledge_candidates": [],
+  "governance_evidence_candidates": [
+    {
+      "candidate_type": "governance_evidence_candidate",
+      "title": "pgvector 搜索结果原文",
+      "origin_scope": "session",
+      "availability_scope": "session_only",
+      "governance_level": "session",
+      "promotion_status": "candidate",
+      "evidence_category": "external_reference",
+      "source_kind": "assistant_message",
+      "source_timestamp": "2026-06-23T10:00:02.000Z",
+      "source_excerpt": "搜索结果：pgvector 是 PostgreSQL 的向量扩展，支持 ivfflat 和 hnsw 索引。安装步骤：1. 安装 postgresql-server-dev 和 build-essential；2. git clone pgvector；3. make && make install；4. CREATE EXTENSION vector; 5. 创建表时指定 vector(1536)。",
+      "reason": "搜索工具原文，未结合本次项目实践加工，仅作为 session-only 证据保留。",
+      "confidence": "medium"
+    }
+  ]
+}

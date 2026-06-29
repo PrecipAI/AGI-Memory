@@ -34,14 +34,23 @@ export class SkillBuilder {
       },
       procedurePayload: {
         ...input.candidate.candidate_payload,
-        source_ref: input.candidate.source_ref
+        source_ref: input.candidate.source_ref,
+        // host_action：L1 写入 skill 时标记为 pending，
+        // 这样 fetchPendingHostActions 才能把它拉出来交给宿主侧 skill-creator 技能写成 .trae/skills/{key}/SKILL.md
+        // 之前没写这个字段，导致 skill 进了数据库但永远没同步到宿主
+        host_action: {
+          status: "pending",
+          skill: "skill-creator",
+          created_at: new Date().toISOString()
+        }
       },
       verificationStatus: input.candidate.verification_status,
       fingerprintRequirement: input.candidate.fingerprint ?? null,
       riskLevel: "low",
       successRate: 95,
       tags: [input.candidate.artifact_tag, "memory-v3"],
-      traceId: input.traceId
+      traceId: input.traceId,
+      sourceKind: "l1_extracted"
     });
   }
 }

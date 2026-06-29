@@ -15,7 +15,7 @@ function estimateTokenCount(input: string): number {
   return Math.max(1, latinWordCount + Math.ceil(cjkCharCount / 2) + symbolChunkCount);
 }
 
-function extractLooseSearchTerms(input?: string | null): string[] {
+export function extractLooseSearchTerms(input?: string | null): string[] {
   const normalized = input?.trim().toLowerCase();
   if (!normalized) {
     return [];
@@ -120,6 +120,15 @@ function extractLooseSearchTerms(input?: string | null): string[] {
     for (const cjk of trimmed.match(/[\u3400-\u9FFF]{2,}/g) ?? []) {
       if (cjk.length <= 4 && !stopwords.has(cjk)) {
         terms.add(cjk);
+      }
+      // 长中文串用 bigram 滑动窗口拆分，避免超过 4 字的整句被丢弃
+      if (cjk.length > 4) {
+        for (let i = 0; i < cjk.length - 1; i++) {
+          const bigram = cjk.slice(i, i + 2);
+          if (!stopwords.has(bigram)) {
+            terms.add(bigram);
+          }
+        }
       }
     }
   }
@@ -654,6 +663,48 @@ export async function updateKnowledgeDocumentReviewState(input: {
   );
 }
 
+export async function updateSynthesizedKnowledgeRecord(input: {
+  tenantId: string;
+  scope: string;
+  knowledgeId: string;
+  patch: Record<string, unknown>;
+  traceId: string;
+}): Promise<Record<string, unknown> | null> {
+  const pool = getPool();
+  const allowed = [
+    "title", "content", "normalized_content", "knowledge_type",
+    "confidence_score", "risk_level", "lifecycle_state",
+    "review_state", "recall_state", "reasoning_summary",
+    "source_object_ids", "evidence_ids", "metadata"
+  ];
+  const sets: string[] = [];
+  const vals: unknown[] = [input.knowledgeId, input.tenantId, input.scope];
+  let idx = 4;
+  for (const key of allowed) {
+    if (key in input.patch) {
+      const val = input.patch[key];
+      if (key === "source_object_ids" || key === "evidence_ids" || key === "metadata") {
+        sets.push(`${key} = $${idx}::jsonb`);
+        vals.push(JSON.stringify(val ?? {}));
+      } else if (key === "risk_level") {
+        sets.push(`${key} = $${idx}::risk_level`);
+        vals.push(val);
+      } else {
+        sets.push(`${key} = $${idx}`);
+        vals.push(val);
+      }
+      idx++;
+    }
+  }
+  if (sets.length === 0) return null;
+  sets.push(`updated_at = now()`);
+  const result = await pool.query(
+    `UPDATE kp_synthesized_knowledge SET ${sets.join(", ")} WHERE id = $1::uuid AND tenant_id = $2 AND scope = $3 RETURNING *`,
+    vals
+  );
+  return result.rows[0] ?? null;
+}
+
 export async function createOrResolveKnowledgeSection(input: {
   documentId: string;
   tenantId: string;
@@ -749,17 +800,20 @@ export async function createOrResolveKnowledgeEntity(input: {
 }): Promise<string> {
   const pool = getPool();
   const slug = input.canonicalName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "entity";
+  // 实体决议只看 slug：同一 slug 不管被标成 framework / technology / tech_term，
+  // 都认为是同一个实体，resolve 到首次写入的节点，entity_type 不覆盖（保留首次分类）。
+  // 否则 LLM 返回 entity_type=technology 和 candidateProvenance 返回 entity_type=framework
+  // 会把同一个 React 分裂成两个节点（这正是"React/React 18/react 18 是三个独立节点"的根因）。
   const existing = await pool.query<{ id: string }>(
     `
     SELECT id
     FROM kp_entity
     WHERE tenant_id = $1
       AND scope = $2
-      AND entity_type = $3
-      AND slug = $4
+      AND slug = $3
     LIMIT 1
     `,
-    [input.tenantId, input.scope, input.entityType, slug]
+    [input.tenantId, input.scope, slug]
   );
   if (existing.rowCount && existing.rows[0]) {
     await pool.query(
@@ -988,6 +1042,8 @@ export async function createSynthesizedKnowledge(input: {
   riskLevel?: string;
   governanceJobId?: string | null;
   metadata?: Record<string, unknown>;
+  originScope?: string;
+  availabilityScope?: string;
   traceId: string;
 }): Promise<{ id: string; existed: boolean }> {
   const pool = getPool();
@@ -1049,13 +1105,13 @@ export async function createSynthesizedKnowledge(input: {
       tenant_id, scope, status, version, memory_domain, lifecycle_state, review_state,
       recall_state, knowledge_type, title, content, normalized_content, source_object_ids,
       evidence_ids, reasoning_summary, confidence_score, risk_level, governance_job_id,
-      metadata, trace_id
+      metadata, trace_id, origin_scope, availability_scope
     )
     VALUES (
       $1, $2, 'active', 1, $3, $4, $5,
       $6, $7, $8, $9, $10, $11::jsonb,
       $12::jsonb, $13, $14, $15::risk_level, $16,
-      $17::jsonb, $18
+      $17::jsonb, $18, $19, $20
     )
     RETURNING id
     `,
@@ -1077,7 +1133,9 @@ export async function createSynthesizedKnowledge(input: {
       input.riskLevel ?? "low",
       input.governanceJobId ?? null,
       toJson(input.metadata),
-      input.traceId
+      input.traceId,
+      input.originScope ?? "project",
+      input.availabilityScope ?? "project_reusable"
     ]
   );
   return { id: result.rows[0].id, existed: false };
@@ -1134,6 +1192,213 @@ export async function linkSynthesizedKnowledgeEvidence(input: {
     ]
   );
   return result.rows[0].id;
+}
+
+/**
+ * evidence 跨层关联：建立 evidence → rule/skill/memory/synthesis 的关联
+ *
+ * 与 linkSynthesizedKnowledgeEvidence 的区别：
+ * 后者只关联 synthesized_knowledge ↔ evidence（表名写死了）；
+ * 本函数通过 evidence_links 表支持 evidence 关联到任意层，link_type 区分语义。
+ *
+ * L1 candidateIngress 写入 rule/skill/memory 时调本函数建 source_of 关联，
+ * 让图谱能展示"这条规则从哪轮对话的哪句话抽取的"。
+ */
+export async function createEvidenceLink(input: {
+  tenantId: string;
+  scope: string;
+  evidenceId: string;
+  targetId: string;
+  targetLayer: "rule" | "skill" | "memory" | "knowledge" | "synthesis";
+  linkType: "supports" | "explains" | "source_of" | "contradicts";
+  confidence?: number;
+  traceId: string;
+}): Promise<string> {
+  const pool = getPool();
+  const existing = await pool.query<{ id: string }>(
+    `
+    SELECT id
+    FROM evidence_links
+    WHERE tenant_id = $1
+      AND scope = $2
+      AND evidence_id = $3
+      AND target_id = $4
+      AND target_layer = $5
+      AND link_type = $6
+      AND status = 'active'
+    LIMIT 1
+    `,
+    [input.tenantId, input.scope, input.evidenceId, input.targetId, input.targetLayer, input.linkType]
+  );
+  if (existing.rowCount && existing.rows[0]) {
+    return existing.rows[0].id;
+  }
+
+  const result = await pool.query<{ id: string }>(
+    `
+    INSERT INTO evidence_links (
+      tenant_id, scope, status, evidence_id, target_id, target_layer, link_type, confidence, trace_id
+    )
+    VALUES ($1, $2, 'active', $3, $4, $5, $6, $7, $8)
+    RETURNING id
+    `,
+    [
+      input.tenantId,
+      input.scope,
+      input.evidenceId,
+      input.targetId,
+      input.targetLayer,
+      input.linkType,
+      input.confidence ?? 1.0,
+      input.traceId
+    ]
+  );
+  return result.rows[0].id;
+}
+
+/**
+ * 查询某个 target（rule/skill/memory）的所有 evidence 关联
+ * 用于图谱展示"这条规则从哪轮对话的哪句话抽取的"
+ */
+export async function queryEvidenceLinksByTarget(input: {
+  tenantId: string;
+  scope: string;
+  targetId: string;
+  targetLayer?: "rule" | "skill" | "memory" | "knowledge" | "synthesis";
+  linkType?: "supports" | "explains" | "source_of" | "contradicts";
+}): Promise<Array<{
+  id: string;
+  evidenceId: string;
+  targetLayer: string;
+  linkType: string;
+  confidence: number;
+  evidenceContentExcerpt: string | null;
+  evidenceSourceUri: string;
+  evidenceSourceType: string;
+  evidenceType: string;
+}>> {
+  const pool = getPool();
+  const result = await pool.query(
+    `
+    SELECT el.id,
+           el.evidence_id AS "evidenceId",
+           el.target_layer AS "targetLayer",
+           el.link_type AS "linkType",
+           el.confidence,
+           e.content_excerpt AS "evidenceContentExcerpt",
+           e.source_uri AS "evidenceSourceUri",
+           e.source_type AS "evidenceSourceType",
+           e.evidence_type AS "evidenceType"
+    FROM evidence_links el
+    JOIN kp_evidence e ON e.id = el.evidence_id
+    WHERE el.tenant_id = $1
+      AND el.scope = $2
+      AND el.target_id = $3
+      AND el.status = 'active'
+      ${input.targetLayer ? "AND el.target_layer = $4" : ""}
+      ${input.linkType ? `AND el.link_type = $${input.targetLayer ? 5 : 4}` : ""}
+    ORDER BY el.created_at DESC
+    `,
+    input.targetLayer || input.linkType
+      ? [input.tenantId, input.scope, input.targetId, input.targetLayer, input.linkType].filter((x): x is string => Boolean(x))
+      : [input.tenantId, input.scope, input.targetId]
+  );
+  return result.rows as Array<{
+    id: string;
+    evidenceId: string;
+    targetLayer: string;
+    linkType: string;
+    confidence: number;
+    evidenceContentExcerpt: string | null;
+    evidenceSourceUri: string;
+    evidenceSourceType: string;
+    evidenceType: string;
+  }>;
+}
+
+// ============ Outcome Tracker（P1-2）============
+// 记录每次对话的 outcome + 这次 retrieve 用了哪些知识条目
+// 这是"越用越聪明"的分水岭：从"只写不读反馈"到"知道知识有没有帮上忙"
+
+export async function recordSessionOutcome(input: {
+  tenantId: string;
+  scope: string;
+  sessionId: string;
+  roundNumber?: number;
+  taskDescription?: string;
+  retrievedIds?: string[];
+  usedIds?: string[];
+  outcome: "success" | "failure" | "failure_recovered" | "knowledge_outdated" | "abandoned";
+  toolSuccess?: boolean;
+  failureReason?: string;
+  scenarioType?: string;
+  traceId: string;
+}): Promise<string> {
+  const pool = getPool();
+  const result = await pool.query<{ id: string }>(
+    `
+    INSERT INTO session_outcomes (
+      tenant_id, scope, status, session_id, round_number, task_description,
+      retrieved_ids, used_ids, outcome, tool_success, failure_reason,
+      scenario_type, trace_id
+    )
+    VALUES (
+      $1, $2, 'active', $3, $4, $5,
+      $6::uuid[], $7::uuid[], $8, $9, $10,
+      $11, $12
+    )
+    RETURNING id
+    `,
+    [
+      input.tenantId,
+      input.scope,
+      input.sessionId,
+      input.roundNumber ?? null,
+      input.taskDescription ?? null,
+      input.retrievedIds ?? [],
+      input.usedIds ?? [],
+      input.outcome,
+      input.toolSuccess ?? null,
+      input.failureReason ?? null,
+      input.scenarioType ?? null,
+      input.traceId
+    ]
+  );
+  return result.rows[0].id;
+}
+
+// 查询某条知识的 utility_score（成功率）
+// 从 knowledge_utility 视图聚合，NULL 表示从未被用到（无信号）
+export async function getKnowledgeUtility(input: {
+  tenantId: string;
+  scope: string;
+  entryIds: string[];
+}): Promise<Map<string, { utilityScore: number | null; totalRecalls: number; successCount: number; failureCount: number; outdatedCount: number }>> {
+  const pool = getPool();
+  const result = await pool.query(
+    `
+    SELECT ku.entry_id::text AS entry_id,
+           ku.total_recalls,
+           ku.success_count,
+           ku.failure_count,
+           ku.outdated_count,
+           ku.utility_score
+    FROM knowledge_utility ku
+    WHERE ku.entry_id::text = ANY($1::text[])
+    `,
+    [input.entryIds]
+  );
+  const map = new Map();
+  for (const row of result.rows) {
+    map.set(String(row.entry_id), {
+      utilityScore: row.utility_score,
+      totalRecalls: row.total_recalls,
+      successCount: row.success_count,
+      failureCount: row.failure_count,
+      outdatedCount: row.outdated_count
+    });
+  }
+  return map;
 }
 
 export async function upsertRecallSurfaceState(input: {
@@ -1281,6 +1546,7 @@ export async function applyKnowledgeReviewAction(input: {
   let reviewState = "human_approved";
   let lifecycleState: string | null = null;
   let status: string | null = null;
+  let setRejectedAt = false;
 
   switch (input.action) {
     case "approve":
@@ -1288,8 +1554,10 @@ export async function applyKnowledgeReviewAction(input: {
       lifecycleState = "curated";
       break;
     case "reject":
-      reviewState = "human_rejected";
+      // 统一用 'rejected'，与 L4 loadRejectedHypothesisCombos 查询一致
+      reviewState = "rejected";
       lifecycleState = "deprecated";
+      setRejectedAt = true;
       break;
     case "deprecate":
       reviewState = "human_approved";
@@ -1317,10 +1585,11 @@ export async function applyKnowledgeReviewAction(input: {
         lifecycle_state = COALESCE($3, lifecycle_state),
         status = COALESCE($4::record_status, status),
         review_at = now(),
+        rejected_at = CASE WHEN $5 THEN now() ELSE rejected_at END,
         updated_at = now()
     WHERE id = $1
     `,
-    [targetObjectId, reviewState, lifecycleState, status]
+    [targetObjectId, reviewState, lifecycleState, status, setRejectedAt]
   );
 
   await pool.query(
@@ -1575,13 +1844,17 @@ export async function queryActiveDerivedKnowledge(input: {
       AND status = 'active'
       AND lifecycle_state = 'curated'
       AND recall_state = 'active'
+      AND review_state = 'human_approved'
       AND knowledge_type IN (
-        'cross_source_pattern',
-        'design_principle',
-        'derived_rule',
-        'boundary_condition',
-        'application_result',
-        'conflict_summary'
+        'external_fact',
+        'method',
+        'pattern',
+        'principle',
+        'comparison',
+        'limitation',
+        'trend',
+        'synthesis',
+        'counterexample'
       )
       AND (
         $3::text[] IS NULL
@@ -1610,12 +1883,547 @@ export async function queryActiveDerivedKnowledge(input: {
              )
         ) >= $5
       )
-    ORDER BY derived_match_count DESC, confidence_score DESC, updated_at DESC
+    ORDER BY derived_match_count DESC,
+             importance_weight DESC NULLS LAST,
+             confidence_score DESC,
+             updated_at DESC
     LIMIT $4
     `,
     [input.tenantId, input.scope, terms.length > 0 ? terms : null, input.limit ?? 10, minMatchCount]
   );
   return result.rows;
+}
+
+// ─── 遗忘机制：更新召回时间戳 ───
+// retrieve 召回 synthesized_knowledge 后调用，记录"这条知识上次被用到是什么时候"
+// 90 天没召回的会被 archiveStaleSynthesizedKnowledge 归档
+export async function updateSynthesizedKnowledgeRecallTimestamp(input: {
+  tenantId: string;
+  scope: string;
+  knowledgeIds: string[];
+}): Promise<void> {
+  if (input.knowledgeIds.length === 0) return;
+  const pool = getPool();
+  await pool.query(
+    `
+    UPDATE kp_synthesized_knowledge
+    SET last_recalled_at = now(),
+        updated_at = now()
+    WHERE tenant_id = $1
+      AND scope = $2
+      AND id = ANY($3::uuid[])
+    `,
+    [input.tenantId, input.scope, input.knowledgeIds]
+  );
+}
+
+// ─── 遗忘机制：归档过期合成知识 ───
+// 90 天没被召回的 lifecycle_state='archived'，不再参与 retrieve
+// 这是 TTL 归档，不是删除——archived 的知识仍可查可恢复
+// 返回归档数量
+// fix-8-3 改造：从"90 天 last_recalled_at"改成"importance_weight < 0.2 持续 30 天"
+// fix-8-3 归档保护：调用方传 retrieveQualityGate，<0.4 时跳过归档（retrieve 的锅，不是知识的锅）
+export async function archiveStaleSynthesizedKnowledge(input: {
+  tenantId: string;
+  scope: string;
+  weightThreshold?: number;       // 默认 0.2
+  staleDays?: number;            // 默认 30（importance_weight_updated_at 老化窗口）
+  retrieveQualityGate?: number;  // 默认 0.4，同 scope 平均 term_hit_ratio 低于此值时跳过归档
+}): Promise<{ archivedCount: number; skippedCount: number; skippedReason: string | null }> {
+  const pool = getPool();
+  const weightThreshold = input.weightThreshold ?? 0.2;
+  const staleDays = input.staleDays ?? 30;
+  const qualityGate = input.retrieveQualityGate ?? 0.4;
+
+  // ─── 归档保护：查最近 30 天同 scope 的平均 term_hit_ratio ───
+  // 没有数据（null）时默认 retrieve 正常（new scope 冷启动保护）
+  const qualityResult = await pool.query(
+    `
+    SELECT AVG(term_hit_ratio) AS avg_ratio, COUNT(*) AS sample_size
+    FROM kp_retrieve_quality_log
+    WHERE tenant_id = $1 AND scope = $2 AND status = 'active'
+      AND created_at >= now() - '30 days'::interval
+    `,
+    [input.tenantId, input.scope]
+  );
+  const qualityRow = qualityResult.rows[0];
+  const avgRatio = qualityRow?.avg_ratio ? Number(qualityRow.avg_ratio) : null;
+  const sampleSize = qualityRow?.sample_size ? Number(qualityRow.sample_size) : 0;
+
+  // 样本不足 10 条时直接跳过归档（数据底子太薄，不可信）
+  if (sampleSize < 10) {
+    return { archivedCount: 0, skippedCount: 0, skippedReason: `retrieve_quality_sample_too_small:${sampleSize}` };
+  }
+  // retrieve 整体 poor 时跳过归档
+  if (avgRatio !== null && avgRatio < qualityGate) {
+    return { archivedCount: 0, skippedCount: 0, skippedReason: `retrieve_quality_poor:${avgRatio.toFixed(3)}` };
+  }
+
+  // ─── 归档候选：importance_weight < threshold AND updated_at 老化 ───
+  const result = await pool.query(
+    `
+    UPDATE kp_synthesized_knowledge
+    SET lifecycle_state = 'archived',
+        updated_at = now()
+    WHERE tenant_id = $1
+      AND scope = $2
+      AND status = 'active'
+      AND lifecycle_state = 'curated'
+      AND importance_weight < $3
+      AND importance_weight_updated_at < now() - ($4 || ' days')::interval
+    RETURNING id
+    `,
+    [input.tenantId, input.scope, weightThreshold, String(staleDays)]
+  );
+  const archivedCount = result.rowCount ?? 0;
+  return { archivedCount, skippedCount: 0, skippedReason: null };
+}
+
+// ─── fix-8-3: 重新计算 importance_weight ───
+// importance_weight = 0.3×recency + 0.3×frequency + 0.4×utility
+// recency = exp(-days_since_last_recall / 30)
+// frequency = log(1+recall_count) / log(1+max_recall_count_in_scope)
+// utility = knowledge_utility.utility_score ?? 0.5
+//
+// 数据不足降级：session_outcomes < 300 条时全写 0.5（不惩罚新知识）
+// 返回重算的条数
+export async function recomputeImportanceWeights(input: {
+  tenantId: string;
+  scope: string;
+  minOutcomeSample?: number;  // 默认 300
+}): Promise<{ reweightedCount: number; degraded: boolean; reason: string | null }> {
+  const pool = getPool();
+  const minSample = input.minOutcomeSample ?? 300;
+
+  // ─── 数据不足降级检查 ───
+  const sampleResult = await pool.query(
+    `SELECT COUNT(*) AS n FROM session_outcomes WHERE tenant_id = $1 AND scope = $2`,
+    [input.tenantId, input.scope]
+  );
+  const outcomeCount = Number(sampleResult.rows[0]?.n ?? 0);
+  if (outcomeCount < minSample) {
+    // 降级模式：全写 0.5，避免数据不足导致误判
+    await pool.query(
+      `UPDATE kp_synthesized_knowledge
+       SET importance_weight = 0.5, importance_weight_updated_at = now()
+       WHERE tenant_id = $1 AND scope = $2 AND status = 'active' AND lifecycle_state = 'curated'`,
+      [input.tenantId, input.scope]
+    );
+    return { reweightedCount: 0, degraded: true, reason: `session_outcomes_insufficient:${outcomeCount}<${minSample}` };
+  }
+
+  // ─── 取 max_recall_count 用于 frequency 归一化 ───
+  const maxResult = await pool.query(
+    `SELECT COALESCE(MAX(recall_count), 1) AS max_recall
+     FROM kp_synthesized_knowledge
+     WHERE tenant_id = $1 AND scope = $2 AND status = 'active' AND lifecycle_state = 'curated'`,
+    [input.tenantId, input.scope]
+  );
+  const maxRecall = Number(maxResult.rows[0]?.max_recall ?? 1);
+
+  // ─── fix-9: utility 因子从 retrieve_quality_log 反推 ───
+  // 同 scope 最近 30 天平均 term_hit_ratio → scope 级别 utility
+  // 粗糙但简单：整个 scope 共用一个 utility 值
+  // 后期可改成 per-knowledge utility（join memory_access_log 找该知识被召回的记录）
+  const utilityResult = await pool.query(
+    `SELECT AVG(term_hit_ratio) AS avg_ratio, COUNT(*) AS sample_n
+     FROM kp_retrieve_quality_log
+     WHERE tenant_id = $1 AND scope = $2
+       AND created_at > now() - interval '30 days'`,
+    [input.tenantId, input.scope]
+  );
+  const avgRatio = utilityResult.rows[0]?.avg_ratio;
+  const sampleN = Number(utilityResult.rows[0]?.sample_n ?? 0);
+  // 样本不足 10 条时用默认 0.5（冷启动不惩罚）
+  const scopeUtility = sampleN >= 10 && typeof avgRatio === "number" ? avgRatio : 0.5;
+
+  // ─── 批量重算：单条 UPDATE，循环 ───
+  // 对于小规模知识库（<10000 条）可接受，超大规模需要改成单条 SQL 内联公式
+  const candidates = await pool.query(
+    `SELECT id,
+            recall_count,
+            last_recalled_at
+     FROM kp_synthesized_knowledge
+     WHERE tenant_id = $1 AND scope = $2 AND status = 'active' AND lifecycle_state = 'curated'`,
+    [input.tenantId, input.scope]
+  );
+
+  let reweightedCount = 0;
+  const DECAY_CONSTANT = 30;  // recency 衰减常数
+  for (const row of candidates.rows) {
+    const recallCount = Number(row.recall_count ?? 0);
+    const lastRecalledAt = row.last_recalled_at ? new Date(row.last_recalled_at) : null;
+    const utilityScore = scopeUtility;  // fix-9: scope 级别 utility
+
+    // recency：没召回过的给 0（最衰减），刚召回过的给 1
+    let recency: number;
+    if (!lastRecalledAt) {
+      recency = 0;
+    } else {
+      const daysSince = (Date.now() - lastRecalledAt.getTime()) / (1000 * 60 * 60 * 24);
+      recency = Math.exp(-daysSince / DECAY_CONSTANT);
+    }
+
+    // frequency：log 归一化到 [0, 1]
+    const frequency = maxRecall > 0 ? Math.log(1 + recallCount) / Math.log(1 + maxRecall) : 0;
+
+    // 三因子加权
+    const importance = 0.3 * recency + 0.3 * frequency + 0.4 * utilityScore;
+
+    await pool.query(
+      `UPDATE kp_synthesized_knowledge
+       SET importance_weight = $3,
+           importance_weight_updated_at = now(),
+           utility_score = $4,
+           utility_score_updated_at = now()
+       WHERE id = $1 AND tenant_id = $2`,
+      [row.id, input.tenantId, Math.max(0, Math.min(1, importance)), utilityScore]
+    );
+    reweightedCount++;
+  }
+
+  return { reweightedCount, degraded: false, reason: null };
+}
+
+// ─── 情景记忆：从 session_outcomes 提炼的结构化事件记忆 ───
+// 把"什么时候、发生了什么、AI 知道什么、做了什么、结果怎样、因果链"结构化记录
+// 这是从"语义记忆索引"到"情景记忆"的桥梁，让系统能"回忆"而非"检索"
+export async function createEpisodicMemory(input: {
+  tenantId: string;
+  scope: string;
+  sessionId: string;
+  roundNumber?: number;
+  taskDescription: string;
+  scenarioType?: string;
+  aiKnew?: unknown[];
+  aiDid?: string;
+  outcome: "success" | "failure" | "failure_recovered" | "knowledge_outdated" | "abandoned";
+  toolSuccess?: boolean;
+  causalChain?: unknown[];
+  lessons?: string;
+  sourceOutcomeId?: string;
+  traceId: string;
+}): Promise<string> {
+  const pool = getPool();
+
+  // lessons 根据 outcome 推导（规则提炼）
+  const lessons = input.lessons ?? deriveLessonsFromOutcome(input.outcome, input.scenarioType);
+
+  // causal_chain 默认：[task → retrieve → outcome] 简单链条
+  const causalChain = input.causalChain ?? [
+    { step: 1, action: "user_request", result: input.taskDescription.slice(0, 100) },
+    { step: 2, action: "retrieve", result: `recalled ${Array.isArray(input.aiKnew) ? input.aiKnew.length : 0} items` },
+    { step: 3, action: "outcome", result: input.outcome },
+  ];
+
+  const result = await pool.query<{ id: string }>(
+    `
+    INSERT INTO episodic_memory (
+      tenant_id, scope, status, version,
+      event_time, session_id, round_number,
+      task_description, scenario_type,
+      ai_knew, ai_did, outcome, tool_success,
+      causal_chain, lessons,
+      source_outcome_id, trace_id
+    ) VALUES (
+      $1, $2, 'active', 1,
+      now(), $3, $4,
+      $5, $6,
+      $7::jsonb, $8, $9, $10,
+      $11::jsonb, $12,
+      $13::uuid, $14
+    ) RETURNING id
+    `,
+    [
+      input.tenantId, input.scope,
+      input.sessionId, input.roundNumber ?? null,
+      input.taskDescription, input.scenarioType ?? null,
+      JSON.stringify(input.aiKnew ?? []), input.aiDid ?? null,
+      input.outcome, input.toolSuccess ?? null,
+      JSON.stringify(causalChain), lessons,
+      input.sourceOutcomeId ?? null, input.traceId,
+    ]
+  );
+  return result.rows[0].id;
+}
+
+function deriveLessonsFromOutcome(
+  outcome: string,
+  scenarioType?: string
+): string {
+  switch (outcome) {
+    case "success":
+      return "知识有效，可复用";
+    case "failure_recovered":
+      if (scenarioType === "ai_corrected") return "AI 初次答错被纠正，知识需补充或更新";
+      if (scenarioType === "tool_failure_recovered") return "工具失败后恢复，修复流程已验证";
+      return "初次失败后恢复，知识需补充";
+    case "knowledge_outdated":
+      return "知识过时，需更新或替换";
+    case "failure":
+      return "失败，知识不足或错误";
+    case "abandoned":
+      return "用户放弃，需求可能不明确";
+    default:
+      return "未知结果";
+  }
+}
+
+export async function queryEpisodicMemory(input: {
+  tenantId: string;
+  scope: string;
+  sessionId?: string;
+  outcome?: string;
+  scenarioType?: string;
+  limit?: number;
+}): Promise<Record<string, unknown>[]> {
+  const pool = getPool();
+  const conditions = ["tenant_id = $1", "scope = $2", "status = 'active'"];
+  const params: unknown[] = [input.tenantId, input.scope];
+  let paramIdx = 3;
+  if (input.sessionId) {
+    conditions.push(`session_id = $${paramIdx++}`);
+    params.push(input.sessionId);
+  }
+  if (input.outcome) {
+    conditions.push(`outcome = $${paramIdx++}`);
+    params.push(input.outcome);
+  }
+  if (input.scenarioType) {
+    conditions.push(`scenario_type = $${paramIdx++}`);
+    params.push(input.scenarioType);
+  }
+  const result = await pool.query(
+    `
+    SELECT id, event_time, session_id, round_number,
+           task_description, scenario_type,
+           ai_knew, ai_did, outcome, tool_success,
+           causal_chain, lessons, trace_id
+    FROM episodic_memory
+    WHERE ${conditions.join(" AND ")}
+    ORDER BY event_time DESC
+    LIMIT $${paramIdx}
+    `,
+    [...params, input.limit ?? 50]
+  );
+  return result.rows;
+}
+
+// ─── fix-7 阈值自适应：从 session_outcomes 反推 L2 阈值校准 ───
+// 拉 outcome + retrieved_ids 对应的 content（跨 4 张表 LEFT JOIN）
+// 供 L2ThresholdCalibrator 算 task_description vs content 的相似度分布
+export async function queryOutcomeRetrievedContents(input: {
+  tenantId: string;
+  scope: string;
+  limit?: number;
+}): Promise<Array<{
+  outcome_id: string;
+  outcome: string;
+  task_description: string;
+  retrieved_id: string;
+  content: string;
+  layer: string;
+}>> {
+  const pool = getPool();
+  const result = await pool.query(
+    `
+    WITH retrieved AS (
+      SELECT
+        so.id AS outcome_id,
+        so.outcome,
+        so.task_description,
+        UNNEST(so.retrieved_ids) AS retrieved_id
+      FROM session_outcomes so
+      WHERE so.tenant_id = $1
+        AND so.scope = $2
+        AND so.status = 'active'
+        AND array_length(so.retrieved_ids, 1) > 0
+      ORDER BY so.created_at DESC
+      LIMIT $3
+    )
+    SELECT
+      r.outcome_id,
+      r.outcome,
+      r.task_description,
+      r.retrieved_id::text AS retrieved_id,
+      COALESCE(m.content, ru.statement, sk.content, s.description, '') AS content,
+      CASE
+        WHEN m.id IS NOT NULL THEN 'memory'
+        WHEN ru.id IS NOT NULL THEN 'rule'
+        WHEN s.id IS NOT NULL THEN 'skill'
+        WHEN sk.id IS NOT NULL THEN 'synthesized_knowledge'
+        ELSE 'unknown'
+      END AS layer
+    FROM retrieved r
+    LEFT JOIN memory m ON m.id = r.retrieved_id
+    LEFT JOIN rule ru ON ru.id = r.retrieved_id
+    LEFT JOIN skill s ON s.id = r.retrieved_id
+    LEFT JOIN kp_synthesized_knowledge sk ON sk.id = r.retrieved_id
+    WHERE COALESCE(m.content, ru.statement, sk.content, s.description, '') <> ''
+    `,
+    [input.tenantId, input.scope, input.limit ?? 200]
+  );
+  return result.rows as Array<{
+    outcome_id: string;
+    outcome: string;
+    task_description: string;
+    retrieved_id: string;
+    content: string;
+    layer: string;
+  }>;
+}
+
+// 写入校准结果（同一 threshold_name 的旧记录置 'superseded'）
+export async function upsertThresholdCalibration(input: {
+  tenantId: string;
+  scope: string;
+  thresholdName: string;
+  recommendedValue: number;
+  defaultValue: number;
+  appliedValue: number;
+  sampleSize: number;
+  basisOutcome: string;
+  distributionP25?: number | null;
+  distributionP50?: number | null;
+  distributionP95?: number | null;
+  rationale: string;
+}): Promise<string> {
+  const pool = getPool();
+  // 旧记录置 superseded
+  await pool.query(
+    `UPDATE kp_threshold_calibration
+     SET status = 'superseded', updated_at = now()
+     WHERE tenant_id = $1 AND scope = $2 AND threshold_name = $3 AND status = 'active'`,
+    [input.tenantId, input.scope, input.thresholdName]
+  );
+  const result = await pool.query<{ id: string }>(
+    `
+    INSERT INTO kp_threshold_calibration (
+      tenant_id, scope, status, threshold_name,
+      recommended_value, default_value, applied_value,
+      sample_size, basis_outcome,
+      distribution_p25, distribution_p50, distribution_p95,
+      rationale
+    )
+    VALUES (
+      $1, $2, 'active', $3,
+      $4, $5, $6,
+      $7, $8,
+      $9, $10, $11,
+      $12
+    )
+    RETURNING id
+    `,
+    [
+      input.tenantId, input.scope, input.thresholdName,
+      input.recommendedValue, input.defaultValue, input.appliedValue,
+      input.sampleSize, input.basisOutcome,
+      input.distributionP25 ?? null, input.distributionP50 ?? null, input.distributionP95 ?? null,
+      input.rationale
+    ]
+  );
+  return result.rows[0].id;
+}
+
+// 读取最新校准值（L2ConflictDetector 用）
+export async function getLatestThresholdCalibration(input: {
+  tenantId: string;
+  scope: string;
+  thresholdName: string;
+}): Promise<{
+  recommended_value: number;
+  applied_value: number;
+  default_value: number;
+  sample_size: number;
+  basis_outcome: string;
+  calibrated_at: Date;
+} | null> {
+  const pool = getPool();
+  const result = await pool.query(
+    `
+    SELECT recommended_value, applied_value, default_value,
+           sample_size, basis_outcome, calibrated_at
+    FROM kp_threshold_calibration
+    WHERE tenant_id = $1 AND scope = $2 AND threshold_name = $3 AND status = 'active'
+    ORDER BY calibrated_at DESC
+    LIMIT 1
+    `,
+    [input.tenantId, input.scope, input.thresholdName]
+  );
+  return result.rows[0] ?? null;
+}
+
+// ─── fix-8 retrieve_quality 评估：记录每次 retrieve 的 term 命中率 ───
+// 复用 buildMetacognitionAssessment 的 knowledge_gaps 信号，零额外成本
+// 给归档保护做数据底子（避免 retrieve 失败导致误归档）
+export async function logRetrieveQuality(input: {
+  tenantId: string;
+  scope: string;
+  traceId: string;
+  query: string;
+  queryTerms: string[];
+  hitTerms: string[];
+  termHitRatio: number;
+  retrieveQuality: "good" | "partial" | "poor";
+}): Promise<void> {
+  const pool = getPool();
+  await pool.query(
+    `
+    INSERT INTO kp_retrieve_quality_log (
+      tenant_id, scope, status, trace_id, query,
+      query_terms, hit_terms, term_hit_ratio, retrieve_quality
+    )
+    VALUES (
+      $1, $2, 'active', $3, $4,
+      $5::jsonb, $6::jsonb, $7, $8
+    )
+    `,
+    [
+      input.tenantId, input.scope, input.traceId, input.query,
+      toJsonArray(input.queryTerms), toJsonArray(input.hitTerms),
+      input.termHitRatio, input.retrieveQuality
+    ]
+  );
+}
+
+// ─── fix-8 归档保护：查最近 N 天同 scope 的平均 term_hit_ratio ───
+// 平均 < 0.4 → retrieve 整体 poor，归档跳过（retrieve 的锅，不是知识的锅）
+export async function getAverageRetrieveQuality(input: {
+  tenantId: string;
+  scope: string;
+  days?: number;
+}): Promise<{
+  averageTermHitRatio: number;
+  sampleSize: number;
+  retrieveQuality: "good" | "partial" | "poor";
+} | null> {
+  const pool = getPool();
+  const days = input.days ?? 30;
+  const result = await pool.query(
+    `
+    SELECT
+      AVG(term_hit_ratio) AS avg_ratio,
+      COUNT(*) AS sample_size
+    FROM kp_retrieve_quality_log
+    WHERE tenant_id = $1 AND scope = $2 AND status = 'active'
+      AND created_at >= now() - ($3 || ' days')::interval
+    `,
+    [input.tenantId, input.scope, String(days)]
+  );
+  const row = result.rows[0];
+  if (!row || !row.avg_ratio || Number(row.sample_size) === 0) {
+    return null;
+  }
+  const avg = Number(row.avg_ratio);
+  let quality: "good" | "partial" | "poor";
+  if (avg >= 0.6) quality = "good";
+  else if (avg >= 0.3) quality = "partial";
+  else quality = "poor";
+  return {
+    averageTermHitRatio: avg,
+    sampleSize: Number(row.sample_size),
+    retrieveQuality: quality
+  };
 }
 
 export async function queryDerivedKnowledgeEvidence(input: {
@@ -1637,6 +2445,14 @@ export async function queryDerivedKnowledgeEvidence(input: {
       e.id AS evidence_id,
       e.source_uri,
       e.content_excerpt,
+      e.evidence_type,
+      e.source_type,
+      e.trust_level,
+      e.status AS evidence_status,
+      e.lifecycle_state AS evidence_lifecycle_state,
+      e.review_state AS evidence_review_state,
+      e.created_at AS evidence_created_at,
+      e.metadata AS evidence_metadata,
       f.id AS fact_id,
       COALESCE(f.title, e.source_uri, e.id::text) AS fact_title,
       COALESCE(f.statement, e.content_excerpt) AS fact_statement

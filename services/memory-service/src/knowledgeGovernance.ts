@@ -172,7 +172,7 @@ function buildSynthesisInput(rows: Record<string, unknown>[]): KnowledgeSynthesi
   }
 
   return {
-    synthesis_type: "cross_source_pattern",
+    synthesis_type: "pattern",
     facts: selected.map((row) => ({
       fact_id: String(row.fact_id),
       title: String(row.fact_title ?? "Untitled fact"),
@@ -980,7 +980,10 @@ export async function runKnowledgeGovernance(input: {
         limit: input.body.max_items ?? 20
       });
       const synthesisInput = buildSynthesisInput(synthesisRows);
-      const rawSynthesis = synthesisInput ? await modelWorker.synthesize(synthesisInput) : null;
+      // fix-9: modelWorker.synthesize 已废弃（return null），rawSynthesis 永远 null
+      // 真正的合成由宿主侧通过 host_model_result.synthesis_result 通道完成
+      // 下面的 if (synthesis && synthesisInput) 分支等待 host_model_result 通道激活后重新生效
+      const rawSynthesis = null as KnowledgeSynthesisOutput | null;
       const synthesisBoundary = rawSynthesis && synthesisInput ? enforceSynthesisBoundary({ synthesis: rawSynthesis, synthesisInput }) : null;
       const synthesis = synthesisBoundary?.synthesis ?? rawSynthesis;
 
@@ -1154,13 +1157,11 @@ export async function runKnowledgeGovernance(input: {
         );
         }
       } else {
-        const modelEndpointConfigured = Boolean(process.env.KNOWLEDGE_MODEL_ENDPOINT?.trim());
-        const heuristicEnabled = process.env.KNOWLEDGE_HEURISTIC_SYNTHESIS_ENABLED === "1";
+        // fix-9: KNOWLEDGE_MODEL_ENDPOINT 已废弃，synthesize 总是 return null
+        // synthesize return null 后调用方走降级路径，这里只记录 warning
         warnings.push(
           synthesisInput
-            ? modelEndpointConfigured || heuristicEnabled
-              ? "synthesis_skipped:model_rejected_or_invalid_output"
-              : "synthesis_skipped:model_not_configured"
+            ? "synthesis_skipped:model_not_configured"
             : "synthesis_skipped:not_enough_evidence_bound_facts"
         );
       }

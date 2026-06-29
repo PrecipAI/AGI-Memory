@@ -364,7 +364,7 @@ try {
     )
     VALUES (
       $1, $2, $3, 'active', 1, 'knowledge', 'curated', 'model_accepted',
-      'active', 'derived_rule', $4, $5, $6, $7::jsonb,
+      'active', 'pattern', $4, $5, $6, $7::jsonb,
       $8::jsonb, 'verify inserted active derived knowledge for retrieval contract', 0.9100, 'low', $9,
       '{"verify":true}'::jsonb, 'verify-knowledge-platform'
     )

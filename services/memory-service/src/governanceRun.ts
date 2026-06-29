@@ -81,8 +81,10 @@ export async function handleGovernanceRun(input: {
           scope: input.scope,
           fingerprint: input.body.fingerprint ?? null
         });
+  // fix-9: lifecycle 改成显式触发，默认不自动跑
+  // 宿主通过 memory-lifecycle skill 显式调用，或显式传 run_lifecycle=true
   const lifecycle =
-    input.body.run_lifecycle === false
+    input.body.run_lifecycle !== true
       ? {
           downgraded_skill_ids: [],
           retired_memory_ids: [],

@@ -1,0 +1,108 @@
+{
+  "rule_candidates": [
+    {
+      "candidate_type": "rule_candidate",
+      "title": "服务启动前必须加载环境变量配置",
+      "origin_scope": "project",
+      "availability_scope": "project_reusable",
+      "governance_level": "shared",
+      "promotion_status": "active",
+      "rule_domain": "execution",
+      "source_kind": "user_message",
+      "source_timestamp": "2026-06-23T10:00:00.000Z",
+      "content": "IF [启动 Node.js 服务] THEN MUST [在读取 process.env 之前调用 dotenv.config() 或等效环境变量加载机制]; MUST [验证 DATABASE_URL 等关键环境变量已定义且非空]; MUST NOT [假设 .env 文件会被自动加载]。",
+      "source_excerpt": "服务启动时根本没加载 .env，DATABASE_URL 是 undefined。",
+      "reason": "将 .env 未加载导致的故障抽象为通用启动约束规则。",
+      "confidence": "high",
+      "metadata": {
+        "human_readable_statement": "Node.js 服务启动前必须先加载 .env 并验证关键环境变量，禁止假设配置会自动就位。",
+        "classification_rationale": "这是 IF/THEN 执行约束，适合 rule_candidate。"
+      },
+      "source_refs": [
+        { "source_kind": "user_message", "source_timestamp": "2026-06-23T10:00:00.000Z", "source_excerpt": "服务启动时根本没加载 .env，DATABASE_URL 是 undefined。" },
+        { "source_kind": "assistant_message", "source_timestamp": "2026-06-23T10:00:01.000Z", "source_excerpt": "进程里 DATABASE_URL 为空，.env 文件存在但启动脚本没 dotenv。" }
+      ]
+    }
+  ],
+  "memory_candidates": [
+    {
+      "candidate_type": "memory_candidate",
+      "title": "项目仪表盘依赖 .env 中的 DATABASE_URL",
+      "origin_scope": "project",
+      "availability_scope": "project_reusable",
+      "governance_level": "shared",
+      "promotion_status": "active",
+      "memory_type": "project_memory",
+      "stability": "long_lived",
+      "source_kind": "user_message",
+      "source_timestamp": "2026-06-23T10:00:00.000Z",
+      "content": "本项目仪表盘服务依赖 .env 中的 DATABASE_URL。若启动时未加载 .env，仪表盘会显示昨日数据（数据库连接为空导致未刷新）。",
+      "source_excerpt": "仪表盘今天显示的数据是昨天的，看起来没更新。我检查了代码，发现服务启动时根本没加载 .env，DATABASE_URL 是 undefined。",
+      "reason": "项目特定运行上下文，用于未来排查类似症状时快速定位。",
+      "confidence": "high"
+    }
+  ],
+  "skill_proposal_candidates": [
+    {
+      "candidate_type": "skill_proposal_candidate",
+      "title": "仪表盘数据不刷新排查 SOP",
+      "origin_scope": "project",
+      "availability_scope": "project_reusable",
+      "governance_level": "shared",
+      "promotion_status": "needs_review",
+      "source_kind": "assistant_message",
+      "source_timestamp": "2026-06-23T10:00:01.000Z",
+      "target_skill": "ops-troubleshooting",
+      "target_skill_path": null,
+      "change_type": "update",
+      "current_section": "数据不刷新",
+      "current_text": "检查数据库连接和缓存。",
+      "current_gap": "未将 .env 未加载作为首要排查点，也未区分项目配置问题与通用数据库问题。",
+      "proposed_text": "1. 检查进程内 DATABASE_URL 是否已定义；2. 确认 .env 已在启动脚本中加载；3. 验证服务启动日志中无 'undefined' 环境变量；4. 重启服务并验证仪表盘数据时间戳。",
+      "proposed_patch": "*** Begin Patch\n+ ## 仪表盘数据不刷新\n+ 1. 运行 `ps eww <pid> | grep DATABASE_URL` 确认环境变量已注入。\n+ 2. 检查启动脚本是否调用 `dotenv.config()`。\n+ 3. 若无，在读取 process.env 之前加入环境变量加载。\n+ 4. 重启服务并核对仪表盘最新数据时间。\n*** End Patch",
+      "validation_method": "重启后仪表盘显示最新数据。",
+      "rationale": "将 .env 加载缺失的排查步骤封装为可复用流程。",
+      "reason": "将 .env 加载缺失的排查步骤封装为可复用流程。",
+      "proposal_quality": "actionable",
+      "source_refs": [
+        { "source_kind": "user_message", "source_timestamp": "2026-06-23T10:00:00.000Z", "source_excerpt": "服务启动时根本没加载 .env，DATABASE_URL 是 undefined。" },
+        { "source_kind": "assistant_message", "source_timestamp": "2026-06-23T10:00:01.000Z", "source_excerpt": "进程里 DATABASE_URL 为空，.env 文件存在但启动脚本没 dotenv。" }
+      ],
+      "merged_source_count": 1,
+      "source_excerpt": "服务启动时根本没加载 .env，DATABASE_URL 是 undefined。"
+    }
+  ],
+  "knowledge_candidates": [
+    {
+      "candidate_type": "knowledge_candidate",
+      "title": "Zod catchall schema 在 JSON-RPC 边界静默丢失嵌套字段",
+      "origin_scope": "project",
+      "availability_scope": "global_reusable",
+      "governance_level": "shared",
+      "promotion_status": "active",
+      "knowledge_type": "limitation",
+      "source_kind": "assistant_message",
+      "source_timestamp": "2026-06-23T10:00:02.000Z",
+      "content": "Zod 的 catchall schema（如 z.object({}).catchall(z.any())）在跨进程 JSON-RPC 序列化边界会静默剥离未显式声明的嵌套字段，导致下游收到空对象且无任何验证错误。该行为不依赖具体项目，凡使用 catchall 进行跨进程传参的场景均存在此风险。",
+      "source_excerpt": "服务端用 `z.object({}).catchall(z.any())` 转发嵌套对象，JSON-RPC 序列化时未声明字段被静默剥离。根因是 catchall 把未知字段当作 `any` 放行，但跨进程序列化只保留 schema 显式声明的键。",
+      "reason": "跨项目的通用技术陷阱，应沉淀为通用知识以改变未来 schema 设计。",
+      "confidence": "high"
+    }
+  ],
+  "governance_evidence_candidates": [
+    {
+      "candidate_type": "governance_evidence_candidate",
+      "title": "仪表盘 typo 修复记录",
+      "origin_scope": "session",
+      "availability_scope": "session_only",
+      "governance_level": "session",
+      "promotion_status": "candidate",
+      "evidence_category": "execution_step",
+      "source_kind": "user_message",
+      "source_timestamp": "2026-06-23T10:00:02.000Z",
+      "source_excerpt": "对了，仪表盘的 typo 我刚顺手改掉了，那个不用存。",
+      "reason": "已完成的一次性待办，仅作为 session-only 证据保留，不进入可复用层。",
+      "confidence": "high"
+    }
+  ]
+}

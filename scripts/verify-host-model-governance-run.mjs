@@ -6,16 +6,36 @@ import { buildMemoryServiceApp } from "../services/memory-service/dist/services/
 const app = buildMemoryServiceApp();
 const fixtureRoot = path.join(process.cwd(), "tests", "fixtures", "codex-capture");
 const threadId = "019df330-e9df-7ef3-90bc-7c403ef1741e";
+const testTenantId = "tenant-local";
+const testScope = "memory.validation";
 
 try {
+  // Clean up any stale fixture rows from previous runs so this E2E is idempotent.
   await getPool().query(
     "DELETE FROM host_governance_event WHERE tenant_id = $1 AND scope = $2 AND host = $3 AND thread_id = $4",
-    ["tenant-local", "memory.validation", "codex", threadId]
+    [testTenantId, testScope, "codex", threadId]
+  );
+  await getPool().query(
+    `DELETE FROM memory
+     WHERE tenant_id = $1 AND scope = $2 AND memory_type = 'factual'
+       AND title = $3`,
+    [testTenantId, testScope, "Host model governance contract decision"]
+  );
+  await getPool().query(
+    `DELETE FROM governance_change_proposal
+     WHERE tenant_id = $1 AND scope = $2
+       AND proposed_payload->>'target_skill' = $3
+       AND proposed_payload->>'proposed_text' = $4`,
+    [testTenantId, testScope, "memory-governance-guidelines", "治理层默认由宿主 agent 使用其当前模型生成结构化治理结果；memory-service 只负责校验、去重、审批和落库，规则 fallback 仅用于无模型测试链路。"]
   );
 
   const previewResponse = await app.inject({
     method: "POST",
     url: "/internal/host-capture/codex/preview",
+    headers: {
+      "x-tenant-id": testTenantId,
+      "x-scope": testScope
+    },
     payload: {
       codex_home: fixtureRoot,
       thread_id: threadId,
@@ -48,7 +68,23 @@ try {
           content: "宿主模型治理完成后必须展示具体抽取结果，不能只返回数量。",
           source_excerpt: firstUserMessage.text,
           reason: "Host model identified a reusable governance reporting rule.",
-          confidence: "high"
+          confidence: "high",
+          metadata: {
+            human_readable_statement: "规则要求宿主模型治理完成后必须展示具体抽取结果，不能只返回数量；缺少具体结果只返回计数会被视为未满足治理透明度要求。",
+            classification_rationale: "这是约束性规则，因为它规定了 IF 治理完成 THEN 必须展示具体抽取结果，而不是可复用的操作步骤或流程。"
+          },
+          source_refs: [
+            {
+              source_kind: "user_message",
+              source_timestamp: firstUserMessage.timestamp,
+              source_excerpt: firstUserMessage.text
+            },
+            {
+              source_kind: "assistant_message",
+              source_timestamp: "2026-05-04T13:33:19.000Z",
+              source_excerpt: "已确认当前会话能看到 memory-v3 MCP 工具，接下来会继续做真实验证。"
+            }
+          ]
         }
       ],
       memory_candidates: [
@@ -126,6 +162,10 @@ try {
   const runResponse = await app.inject({
     method: "POST",
     url: "/internal/host-capture/codex/governance-run",
+    headers: {
+      "x-tenant-id": testTenantId,
+      "x-scope": testScope
+    },
     payload: {
       codex_home: fixtureRoot,
       thread_id: threadId,
@@ -153,6 +193,10 @@ try {
   const invalidResponse = await app.inject({
     method: "POST",
     url: "/internal/host-capture/codex/governance-run",
+    headers: {
+      "x-tenant-id": testTenantId,
+      "x-scope": testScope
+    },
     payload: {
       codex_home: fixtureRoot,
       thread_id: threadId,

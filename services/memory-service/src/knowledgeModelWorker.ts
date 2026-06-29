@@ -1,3 +1,15 @@
+// KnowledgeModelWorker — MCP 架构下的 LLM 适配层
+//
+// 架构认知（fix-9 纠正后）：
+// - memory-service 是 MCP 插件后端，所有 LLM 调用都在宿主侧（TRAE/Qoder/Codex/CC）
+// - memory-service 不应该自己调 LLM（KNOWLEDGE_MODEL_ENDPOINT 已废弃）
+// - 宿主 LLM 产物通过 host_model_result.extraction_preview / synthesis_result 传入
+//
+// 三个方法的当前状态：
+// - analyze: 纯启发式（heuristicAnalyze），不再调 HTTP endpoint
+// - synthesize: 返回 null，由调用方读 host_model_result.synthesis_result
+// - assessMetacognition: 返回 null，由调用方返回 mission_brief 让宿主自己做 LLM 评估
+
 type KnowledgeModelInput = {
   memoryDomain: string;
   title: string;
@@ -42,36 +54,6 @@ export type KnowledgeSynthesisOutput = {
   recall_state?: "active" | "inactive" | "audit_only";
   context_assembly_state?: "active" | "inactive" | "audit_only";
 };
-
-type HttpModelResponse = Partial<KnowledgeModelOutput & KnowledgeSynthesisOutput> & Record<string, unknown>;
-
-const ALLOWED_SYNTHESIS_TYPES = new Set([
-  "consolidated_fact",
-  "derived_relation",
-  "cross_source_pattern",
-  "design_principle",
-  "derived_rule",
-  "boundary_condition",
-  "application_result",
-  "memory_revision",
-  "conflict_summary"
-]);
-
-const ALLOWED_GOVERNANCE_OUTPUT_TYPES = new Set([
-  "derived_knowledge",
-  "skill_candidate",
-  "memory_candidate",
-  "audit_only",
-  "archive"
-]);
-
-function normalizeGovernanceOutputType(value: unknown, fallback = "derived_knowledge"): KnowledgeSynthesisOutput["governance_output_type"] {
-  return typeof value === "string" && ALLOWED_GOVERNANCE_OUTPUT_TYPES.has(value) ? value as KnowledgeSynthesisOutput["governance_output_type"] : fallback as KnowledgeSynthesisOutput["governance_output_type"];
-}
-
-function normalizeKnowledgeType(value: unknown, fallback = "cross_source_pattern"): string {
-  return typeof value === "string" && ALLOWED_SYNTHESIS_TYPES.has(value) ? value : fallback;
-}
 
 function trimText(value: string, limit: number): string {
   return value.length <= limit ? value : `${value.slice(0, limit - 3)}...`;
@@ -179,201 +161,101 @@ function heuristicAnalyze(input: KnowledgeModelInput): KnowledgeModelOutput {
   };
 }
 
-function heuristicSynthesize(input: KnowledgeSynthesisInput): KnowledgeSynthesisOutput | null {
-  const seenStatements = new Set<string>();
-  const usable = input.facts
-    .filter((fact) => {
-      const normalized = fact.statement.trim().replace(/\s+/g, " ").toLowerCase();
-      const source = `${fact.evidence_source_uri ?? ""} ${fact.document_title ?? ""} ${fact.title}`.toLowerCase();
-      if (source.includes("verify://") || source.includes("smoke")) {
-        return false;
-      }
-      if (normalized.includes("knowledge governance smoke")) {
-        return false;
-      }
-      if (seenStatements.has(normalized)) {
-        return false;
-      }
-      seenStatements.add(normalized);
-      const title = fact.title.trim().toLowerCase();
-      const lowValueTitle = ["metadata", "source note", "languages", "uh oh"].includes(title);
-      const lowValueStatement =
-        normalized.includes("this markdown was generated from") ||
-        normalized.includes("you can't perform that action") ||
-        normalized.includes("there was an error while loading") ||
-        normalized.startsWith("- source:") ||
-        normalized.includes("@article") ||
-        normalized.includes("@misc") ||
-        normalized.includes("curl -") ||
-        normalized.includes("autotokenizer.from_pretrained") ||
-        normalized.includes("open-source models -") ||
-        /[🔥]{2,}/u.test(fact.statement) ||
-        normalized.length < 80;
-      return !lowValueTitle && !lowValueStatement;
-    })
-    .slice(0, 8);
-  if (usable.length < 2) {
-    return null;
-  }
-
-  const sourceTitles = Array.from(new Set(usable.map((fact) => fact.document_title ?? fact.evidence_source_uri ?? "unknown source"))).slice(0, 5);
-  if (sourceTitles.length < 2) {
-    return null;
-  }
-
-  const topic = typeof input.metadata?.topic === "string" ? input.metadata.topic : "governed knowledge";
-  const title = `Cross-source pattern: ${topic}`;
-  const content = [
-    `# ${title}`,
-    "",
-    "## Pattern",
-    "",
-    "Multiple evidence-backed facts appear to describe a reusable cross-source pattern. This fallback output is only an audit candidate; a model-led governance pass must decide whether it is a principle, rule, boundary condition, or application result.",
-    "",
-    "## Supporting facts",
-    "",
-    ...usable.map((fact, index) => `${index + 1}. ${fact.statement}`),
-    "",
-    "## Evidence sources",
-    "",
-    ...sourceTitles.map((source, index) => `${index + 1}. ${source}`)
-  ].join("\n");
-
-  return {
-    provider: "heuristic-synthesis",
-    governance_output_type: "audit_only",
-    knowledge_type: "cross_source_pattern",
-    title,
-    content,
-    reasoning_summary: `Rules-based fallback detected ${usable.length} non-duplicate evidence-backed facts from ${sourceTitles.length} sources. It is a pattern proposal only, not an accepted derived rule.`,
-    confidence_score: 0.64,
-    risk_level: "medium",
-    recall_state: "audit_only",
-    context_assembly_state: "audit_only"
+export type MetacognitionAssessmentInput = {
+  query: string;
+  retrieve_quality: "good" | "partial" | "poor";
+  rule_baseline: {
+    overall_confidence: number;
+    confidence_basis: {
+      layer_coverage: number;
+      avg_item_confidence: number;
+      high_utility_ratio: number;
+      evidence_backed_ratio: number;
+    };
+    boundary_status: "covered" | "partial" | "unknown";
+    coverage_areas: Array<{ area: string; layer_hits: string[]; confidence: number; item_count: number }>;
+    knowledge_gaps: Array<{ term: string; hit: boolean; hint?: string }>;
+    recommended_actions: string[];
   };
+  retrieved_summary: {
+    rules_count: number;
+    factual_memory_count: number;
+    procedural_memory_count: number;
+    synthesized_knowledge_count: number;
+    evidence_count: number;
+    top_items: Array<{ layer: string; title: string; confidence: number | null; utility: number | null }>;
+  };
+};
+
+export type MetacognitionAssessmentOutput = {
+  provider: string;
+  boundary: {
+    status: "covered" | "partial" | "unknown";
+    covered_aspects: string[];
+    uncertain_aspects: string[];
+    unknown_aspects: string[];
+  };
+  coverage_areas: Array<{
+    area: string;
+    layer_hits: string[];
+    confidence: number;
+    item_count: number;
+  }>;
+  knowledge_gaps: Array<{
+    term: string;
+    checked_layers: string[];
+    hit: boolean;
+    hint?: string;
+  }>;
+  recommended_actions: string[];
+  reasoning_summary: string;
+};
+
+// ─── mission_brief 生成器：让宿主 LLM 自己做元认知评估 ───
+// fix-9: 删掉 HTTP fetch 后，改成返回 mission_brief 让宿主自己跑 LLM
+// 宿主拿到 mission_brief 后自己用 LLM 评估，结果可直接用或回写（回写留后续）
+export function buildMetacognitionMissionBrief(input: MetacognitionAssessmentInput): string {
+  return JSON.stringify({
+    task: "metacognition_assessment",
+    contract: {
+      goal: "基于 retrieve 结果推理查询的知识边界——高置信覆盖什么、明确不知道什么、需要查证什么",
+      input_policy: {
+        query_is_user_intent: true,
+        retrieved_summary_is_ground_truth: true,
+        rule_baseline_is_reference_only: true,
+        do_not_invent_items_not_in_retrieved_summary: true
+      },
+      output_policy: {
+        boundary_status_must_match_rule_baseline_if_covered: true,
+        unknown_aspects_must_come_from_knowledge_gaps: true,
+        recommended_actions_can_extend_preset: true,
+        reasoning_summary_required: true
+      },
+      retrieve_quality_hint:
+        input.retrieve_quality === "partial"
+          ? "召回可能不完整，部分查询词未命中，boundary.unknown_aspects 的判断需保守"
+          : "召回质量良好，boundary 判断可基于完整 retrieve 结果"
+    },
+    input
+  }, null, 2);
 }
 
 export class KnowledgeModelWorker {
+  // fix-9: 纯启发式，不再调 KNOWLEDGE_MODEL_ENDPOINT
+  // 宿主 LLM 产物通过 host_model_result 通道传入，不在这里调 LLM
   async analyze(input: KnowledgeModelInput): Promise<KnowledgeModelOutput> {
-    const endpoint = process.env.KNOWLEDGE_MODEL_ENDPOINT?.trim();
-    if (!endpoint) {
-      return heuristicAnalyze(input);
-    }
-
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json"
-        },
-        body: JSON.stringify({
-          task: "knowledge_governance_analyze",
-          input
-        })
-      });
-      if (!response.ok) {
-        return heuristicAnalyze(input);
-      }
-
-      const payload = (await response.json()) as HttpModelResponse;
-      return {
-        provider: typeof payload.provider === "string" ? payload.provider : "http-model",
-        entity_name: typeof payload.entity_name === "string" ? payload.entity_name : heuristicAnalyze(input).entity_name,
-        entity_type: typeof payload.entity_type === "string" ? payload.entity_type : heuristicAnalyze(input).entity_type,
-        aliases: Array.isArray(payload.aliases) ? payload.aliases.filter((item): item is string => typeof item === "string") : heuristicAnalyze(input).aliases,
-        summary: typeof payload.summary === "string" ? payload.summary : heuristicAnalyze(input).summary,
-        confidence_delta: typeof payload.confidence_delta === "number" ? payload.confidence_delta : heuristicAnalyze(input).confidence_delta,
-        review_reason: typeof payload.review_reason === "string" ? payload.review_reason : heuristicAnalyze(input).review_reason
-      };
-    } catch {
-      return heuristicAnalyze(input);
-    }
+    return heuristicAnalyze(input);
   }
 
-  async synthesize(input: KnowledgeSynthesisInput): Promise<KnowledgeSynthesisOutput | null> {
-    const endpoint = process.env.KNOWLEDGE_MODEL_ENDPOINT?.trim();
-    if (!endpoint) {
-      return process.env.KNOWLEDGE_HEURISTIC_SYNTHESIS_ENABLED === "1" ? heuristicSynthesize(input) : null;
-    }
-    const fallback = process.env.KNOWLEDGE_HEURISTIC_SYNTHESIS_ENABLED === "1" ? heuristicSynthesize(input) : null;
+  // fix-9: synthesize 改成返回 null
+  // 调用方（knowledgeGovernance/L4CognitiveEngine）应改用 host_model_result.synthesis_result
+  async synthesize(_input: KnowledgeSynthesisInput): Promise<KnowledgeSynthesisOutput | null> {
+    return null;
+  }
 
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json"
-        },
-        body: JSON.stringify({
-          task: "knowledge_governance_synthesize",
-          contract: {
-            goal: "derive reusable abstract knowledge from evidence-backed facts; do not summarize unrelated documents",
-            allowed_knowledge_types: [...ALLOWED_SYNTHESIS_TYPES],
-            allowed_governance_output_types: [...ALLOWED_GOVERNANCE_OUTPUT_TYPES],
-            output_policy: {
-              derived_knowledge_is_primary_recall_object: true,
-              facts_are_evidence_only: true,
-              external_general_knowledge_only: true,
-              local_adopted_decisions_are_not_knowledge: true,
-              route_local_adoption_or_project_specific_norms_to_memory_candidate: true,
-              route_internal_process_or_validation_material_to_audit_only: true,
-              route_execution_experience_to_skill_candidate: true,
-              route_user_project_environment_preferences_to_memory_candidate: true,
-              keep_weak_or_uncertain_links_audit_only: true,
-              allow_knowledge_islands_when_relation_is_weak: true,
-              require_evidence_chain: true,
-              reject_if_topic_mixed: true,
-              reject_if_sources_are_internal_or_mixed: true,
-              reject_if_output_uses_local_adoption_wording_for_external_knowledge: true,
-              reject_if_only_tutorial_toc_citation_install_or_metadata: true,
-              use_active_recall_only_for_high_confidence_low_risk_model_outputs: true
-            },
-            required_output_fields: [
-              "provider",
-              "governance_output_type",
-              "knowledge_type",
-              "title",
-              "content",
-              "reasoning_summary",
-              "confidence_score",
-              "risk_level",
-              "recall_state",
-              "context_assembly_state"
-            ]
-          },
-          input
-        })
-      });
-      if (!response.ok) {
-        return fallback;
-      }
-
-      const payload = (await response.json()) as HttpModelResponse;
-      if (typeof payload.title !== "string" || typeof payload.content !== "string" || typeof payload.reasoning_summary !== "string") {
-        return fallback;
-      }
-
-      const riskLevel =
-        payload.risk_level === "low" || payload.risk_level === "medium" || payload.risk_level === "high" || payload.risk_level === "critical"
-          ? payload.risk_level
-          : fallback?.risk_level ?? "medium";
-
-      return {
-        provider: typeof payload.provider === "string" ? payload.provider : "http-model",
-        governance_output_type: normalizeGovernanceOutputType(payload.governance_output_type, fallback?.governance_output_type ?? "derived_knowledge"),
-        knowledge_type: normalizeKnowledgeType(payload.knowledge_type, fallback?.knowledge_type ?? "cross_source_pattern"),
-        title: payload.title,
-        content: payload.content,
-        reasoning_summary: payload.reasoning_summary,
-        confidence_score: typeof payload.confidence_score === "number" ? Math.max(0, Math.min(0.99, payload.confidence_score)) : fallback?.confidence_score ?? 0.65,
-        risk_level: riskLevel,
-        recall_state: payload.recall_state === "active" || payload.recall_state === "inactive" || payload.recall_state === "audit_only" ? payload.recall_state : fallback?.recall_state,
-        context_assembly_state:
-          payload.context_assembly_state === "active" || payload.context_assembly_state === "inactive" || payload.context_assembly_state === "audit_only"
-            ? payload.context_assembly_state
-            : fallback?.context_assembly_state
-      };
-    } catch {
-      return fallback;
-    }
+  // fix-9: assessMetacognition 改成返回 null
+  // 调用方（retrieveBundle）应改用 buildMetacognitionMissionBrief 返回 mission_brief
+  async assessMetacognition(_input: MetacognitionAssessmentInput): Promise<MetacognitionAssessmentOutput | null> {
+    return null;
   }
 }

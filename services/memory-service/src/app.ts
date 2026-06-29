@@ -29,9 +29,14 @@ import {
   applyGovernanceChangeProposal,
   createMemoryAccessLog,
   getEnvironmentFingerprint,
+  getPool,
   listActiveRules,
   listActiveSkills,
   listGovernanceChangeProposals,
+  updateMemoryRecord,
+  updateRuleRecord,
+  updateSkillRecord,
+  updateSynthesizedKnowledgeRecord,
 } from "@super-agent/db";
 import { CandidateRanker } from "./candidateRanker.js";
 import { handleCandidateIngress } from "./candidateIngress.js";
@@ -51,6 +56,7 @@ import {
   getKnowledgeContextBundle,
   getKnowledgeDocumentDetails,
   getKnowledgeGovernanceRunDetails,
+  getKnowledgeGraphOverview,
   getKnowledgeOpsOverviewData,
   getSynthesizedKnowledgeDetails,
   handleKnowledgeReviewAction,
@@ -73,6 +79,7 @@ import { resolveRequestContext, getTraceId } from "./requestContext.js";
 import { ResidentMemoryBuilder } from "./residentMemoryBuilder.js";
 import { RetrievalGate } from "./retrievalGate.js";
 import { buildRetrieveBundle } from "./retrieveBundle.js";
+import { fetchPendingHostActions, markHostActionStatus } from "./hostAction.js";
 import { handleRuleGateCheck } from "./ruleGateCheck.js";
 import { RuleBuilder } from "./ruleBuilder.js";
 import { SkillBuilder } from "./skillBuilder.js";
@@ -91,6 +98,34 @@ export function buildMemoryServiceApp() {
   const lifecycleWorker = new LifecycleWorker();
   const summaryGenerator = new SummaryGenerator();
 
+  async function batchCountAccessLogs(input: {
+    tenantId: string;
+    scope: string;
+    objectType: string;
+    objectIds: string[];
+  }): Promise<Record<string, number>> {
+    if (!input.objectIds.length) return {};
+    const db = getPool();
+    const result = await db.query(
+      `SELECT object_ref, COUNT(*) AS cnt
+       FROM memory_access_log
+       WHERE tenant_id = $1 AND scope = $2 AND object_type = $3 AND object_ref = ANY($4)
+       GROUP BY object_ref`,
+      [input.tenantId, input.scope, input.objectType, input.objectIds]
+    );
+    const counts: Record<string, number> = {};
+    for (const row of result.rows) {
+      counts[String(row.object_ref)] = Number(row.cnt);
+    }
+    return counts;
+  }
+
+  function attachRecallCounts(items: Array<{ id: string }>, counts: Record<string, number>) {
+    for (const item of items) {
+      (item as Record<string, unknown>).recall_count = counts[item.id] ?? 0;
+    }
+  }
+
   app.setErrorHandler((error, request, reply) => {
     const traceId = getTraceId(request.headers as Record<string, unknown>, `trace-memory-error-${Date.now()}`);
     const frozen = formatFrozenErrorResponse({
@@ -101,7 +136,7 @@ export function buildMemoryServiceApp() {
     reply.status(frozen.statusCode).send(frozen.body);
   });
 
-  const publicDir = path.resolve(process.cwd(), "public");
+  const publicDir = path.resolve(import.meta.dirname, "../public");
 
   app.register(fastifyStatic, {
     root: publicDir,
@@ -136,6 +171,16 @@ export function buildMemoryServiceApp() {
       fingerprint,
       limit
     });
+
+    if (kind === "factual" && items.length) {
+      const counts = await batchCountAccessLogs({
+        tenantId: context.tenantId,
+        scope: context.scope,
+        objectType: "memory",
+        objectIds: items.map((m) => (m as { id: string }).id)
+      });
+      attachRecallCounts(items as Array<{ id: string }>, counts);
+    }
 
     await createMemoryAccessLog({
       tenantId: context.tenantId,
@@ -195,31 +240,123 @@ export function buildMemoryServiceApp() {
     const context = resolveRequestContext(request.headers as Record<string, unknown>, "rules-list");
     const query = (request.query ?? {}) as { limit?: number | string };
     const limit = typeof query.limit === "string" ? Number(query.limit) : query.limit;
-    const items = await listActiveRules({
+    const items = (await listActiveRules({
       tenantId: context.tenantId,
       scope: context.scope
+    })) as Array<{ id: string } & Record<string, unknown>>;
+    const visibleItems = Number.isFinite(limit) ? items.slice(0, limit) : items;
+    const counts = await batchCountAccessLogs({
+      tenantId: context.tenantId,
+      scope: context.scope,
+      objectType: "rule",
+      objectIds: visibleItems.map((r) => r.id)
     });
+    attachRecallCounts(visibleItems, counts);
     return {
       tenant_id: context.tenantId,
       scope: context.scope,
-      items: Number.isFinite(limit) ? items.slice(0, limit) : items
+      items: visibleItems
     };
   });
 
   app.get("/internal/skills", async (request) => {
     const context = resolveRequestContext(request.headers as Record<string, unknown>, "skills-list");
-    const query = (request.query ?? {}) as { limit?: number | string };
+    const query = (request.query ?? {}) as { limit?: number | string; project_id?: string };
     const limit = typeof query.limit === "string" ? Number(query.limit) : query.limit;
-    const items = await listActiveSkills({
+    const projectId = query.project_id ?? context.scope;
+    const items = (await listActiveSkills({
       tenantId: context.tenantId,
       scope: context.scope,
-      fingerprint: null
+      fingerprint: null,
+      projectId
+    })) as Array<{ id: string } & Record<string, unknown>>;
+    const visibleItems = Number.isFinite(limit) ? items.slice(0, limit) : items;
+    const counts = await batchCountAccessLogs({
+      tenantId: context.tenantId,
+      scope: context.scope,
+      objectType: "skill",
+      objectIds: visibleItems.map((s) => s.id)
     });
+    attachRecallCounts(visibleItems, counts);
     return {
       tenant_id: context.tenantId,
       scope: context.scope,
-      items: Number.isFinite(limit) ? items.slice(0, limit) : items
+      items: visibleItems
     };
+  });
+
+  // ─── PUT: Inline edit for approved artifacts ───────────────────────
+
+  app.put("/internal/rules/:id", async (request, reply) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "rule-update");
+    const params = request.params as { id: string };
+    const body = (request.body ?? {}) as Record<string, unknown>;
+    const updated = await updateRuleRecord({
+      tenantId: context.tenantId,
+      scope: context.scope,
+      ruleId: params.id,
+      patch: body,
+      traceId: context.traceId
+    });
+    if (!updated) {
+      reply.status(404);
+      return { error_code: "RULE_NOT_FOUND", message: "Rule not found or not active", trace_id: context.traceId };
+    }
+    return { item: updated };
+  });
+
+  app.put("/internal/skills/:id", async (request, reply) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "skill-update");
+    const params = request.params as { id: string };
+    const body = (request.body ?? {}) as Record<string, unknown>;
+    const updated = await updateSkillRecord({
+      tenantId: context.tenantId,
+      scope: context.scope,
+      skillId: params.id,
+      patch: body,
+      traceId: context.traceId
+    });
+    if (!updated) {
+      reply.status(404);
+      return { error_code: "SKILL_NOT_FOUND", message: "Skill not found or not active", trace_id: context.traceId };
+    }
+    return { item: updated };
+  });
+
+  app.put("/internal/memory/:id", async (request, reply) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "memory-update");
+    const params = request.params as { id: string };
+    const body = (request.body ?? {}) as Record<string, unknown>;
+    const updated = await updateMemoryRecord({
+      tenantId: context.tenantId,
+      scope: context.scope,
+      memoryId: params.id,
+      patch: body,
+      traceId: context.traceId
+    });
+    if (!updated) {
+      reply.status(404);
+      return { error_code: "MEMORY_NOT_FOUND", message: "Memory not found or not active", trace_id: context.traceId };
+    }
+    return { item: updated };
+  });
+
+  app.put("/internal/knowledge/synthesized-knowledge/:id", async (request, reply) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "knowledge-update");
+    const params = request.params as { id: string };
+    const body = (request.body ?? {}) as Record<string, unknown>;
+    const updated = await updateSynthesizedKnowledgeRecord({
+      tenantId: context.tenantId,
+      scope: context.scope,
+      knowledgeId: params.id,
+      patch: body,
+      traceId: context.traceId
+    });
+    if (!updated) {
+      reply.status(404);
+      return { error_code: "KNOWLEDGE_NOT_FOUND", message: "Synthesized knowledge not found", trace_id: context.traceId };
+    }
+    return { item: updated };
   });
 
   app.post("/internal/rules/gate/check", async (request) => {
@@ -623,7 +760,9 @@ export function buildMemoryServiceApp() {
         });
       }
 
-      if (body.run_lifecycle !== false && indexSync) {
+      // fix-9: lifecycle 改成显式触发，默认不自动跑
+      // 宿主通过 memory-lifecycle skill 显式调用，或显式传 run_lifecycle=true
+      if (body.run_lifecycle === true && indexSync) {
         lifecycleResult = await lifecycleWorker.run({
           tenantId: context.tenantId,
           scope: context.scope,
@@ -657,18 +796,78 @@ export function buildMemoryServiceApp() {
 
   app.get("/internal/governance/change-proposals", async (request) => {
     const context = resolveRequestContext(request.headers as Record<string, unknown>, "governance-change-proposals");
-    const query = (request.query ?? {}) as { status?: string; limit?: number | string };
+    const query = (request.query ?? {}) as {
+      status?: string;
+      limit?: number | string;
+      action_type?: string;
+      evolution_signal?: string;
+    };
     const limit = typeof query.limit === "string" ? Number(query.limit) : query.limit;
     const items = await listGovernanceChangeProposals({
       tenantId: context.tenantId,
       scope: context.scope,
       status: query.status ?? "recorded",
-      limit: Number.isFinite(limit) ? Number(limit) : 50
+      limit: Number.isFinite(limit) ? Number(limit) : 50,
+      proposedActionType: query.action_type ?? null,
+      evolutionSignal: query.evolution_signal ?? null
     });
     return {
       tenant_id: context.tenantId,
       scope: context.scope,
       items
+    };
+  });
+
+  app.get("/internal/governance/pipeline-summary", async (request) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "governance-pipeline-summary");
+    const db = getPool();
+
+    const l2Result = await db.query<{ cnt: number }>(
+      `SELECT COUNT(*) AS cnt
+       FROM governance_change_proposal
+       WHERE tenant_id = $1 AND scope = $2 AND proposed_action LIKE 'l2_conflict_%'`,
+      [context.tenantId, context.scope]
+    );
+
+    const l3Result = await db.query<{ evolution_signal: string | null; cnt: number }>(
+      `SELECT evolution_signal, COUNT(*) AS cnt
+       FROM governance_change_proposal
+       WHERE tenant_id = $1 AND scope = $2 AND proposed_action LIKE 'l3_evolution_%'
+       GROUP BY evolution_signal`,
+      [context.tenantId, context.scope]
+    );
+
+    const l4Result = await db.query<{ knowledge_type: string | null; cnt: number }>(
+      `SELECT knowledge_type, COUNT(*) AS cnt
+       FROM kp_synthesized_knowledge
+       WHERE tenant_id = $1 AND scope = $2 AND status = 'active'
+         AND knowledge_type IN ('synthesis', 'pattern')
+       GROUP BY knowledge_type`,
+      [context.tenantId, context.scope]
+    );
+
+    const l3BySignal: Record<string, number> = {};
+    let l3Total = 0;
+    for (const row of l3Result.rows) {
+      const signal = row.evolution_signal ?? "unknown";
+      const cnt = Number(row.cnt);
+      l3BySignal[signal] = (l3BySignal[signal] ?? 0) + cnt;
+      l3Total += cnt;
+    }
+
+    const l4ByType: Record<string, number> = {};
+    let l4Total = 0;
+    for (const row of l4Result.rows) {
+      const type = row.knowledge_type ?? "unknown";
+      const cnt = Number(row.cnt);
+      l4ByType[type] = (l4ByType[type] ?? 0) + cnt;
+      l4Total += cnt;
+    }
+
+    return {
+      l2: { conflict_proposals: Number(l2Result.rows[0]?.cnt ?? 0) },
+      l3: { evolution_signals: l3Total, by_signal: l3BySignal },
+      l4: { synthesized_knowledge: l4Total, by_type: l4ByType }
     };
   });
 
@@ -686,12 +885,17 @@ export function buildMemoryServiceApp() {
         details: {}
       };
     }
+    const feedback = typeof body.payload?.feedback === "string" ? body.payload.feedback : null;
+    const humanResponse = { ...body.payload };
+    if (feedback) {
+      humanResponse.feedback = feedback;
+    }
     const item = await applyGovernanceChangeProposal({
       tenantId: context.tenantId,
       scope: context.scope,
       proposalId: params.proposalId,
       action: body.action,
-      humanResponse: body.payload ?? {},
+      humanResponse,
       traceId: context.traceId
     });
     if (!item) {
@@ -706,6 +910,7 @@ export function buildMemoryServiceApp() {
     }
     let rebuiltSnapshotId: string | null = null;
     let indexSync: Awaited<ReturnType<IndexSyncAdapter["sync"]>> | null = null;
+    let postApprovalAction: { type: string; skill: string; payload: Record<string, unknown> } | null = null;
     if (body.action === "approve") {
       rebuiltSnapshotId = await residentBuilder.rebuild({
         tenantId: context.tenantId,
@@ -719,11 +924,171 @@ export function buildMemoryServiceApp() {
         scope: context.scope,
         fingerprint: body.fingerprint ?? null
       });
+
+      // ─── Post-approval: notify host to invoke skill ─────────────
+      const proposedAction = item.proposed_action as string | undefined;
+      const targetType = item.target_object_type as string | undefined;
+      const appliedObjectId = item.applied_object_id as string | null;
+
+      if (proposedAction === "create_rule" || proposedAction === "replace_rule" || targetType === "rule") {
+        const rules = await listActiveRules({ tenantId: context.tenantId, scope: context.scope });
+        const appliedRule = rules.find((r) => r.id === appliedObjectId) ?? rules[0];
+        if (appliedRule) {
+          postApprovalAction = {
+            type: "invoke_skill",
+            skill: "gate-master",
+            payload: {
+              rule_id: appliedRule.id,
+              rule_key: appliedRule.rule_key,
+              title: appliedRule.title,
+              statement: appliedRule.statement,
+              enforcement_level: appliedRule.enforcement_level,
+              trigger_conditions: appliedRule.trigger_conditions,
+              applies_to: appliedRule.applies_to,
+              risk_level: appliedRule.risk_level,
+              priority: appliedRule.priority,
+              origin_scope: appliedRule.origin_scope ?? "session",
+              availability_scope: appliedRule.availability_scope ?? "session_only",
+              host_context: {
+                project_id: context.scope,
+                project_root: null
+              }
+            }
+          };
+        }
+      }
+
+      if (proposedAction === "skill_update_proposal" || proposedAction === "replace_skill" || targetType === "skill") {
+        const skills = await listActiveSkills({ tenantId: context.tenantId, scope: context.scope, fingerprint: null });
+        const appliedSkill = skills.find((s) => s.id === appliedObjectId) ?? skills[0];
+        if (appliedSkill) {
+          postApprovalAction = {
+            type: "invoke_skill",
+            skill: "skill-creator",
+            payload: {
+              skill_record: appliedSkill,
+              host_context: {
+                project_id: context.scope,
+                project_root: null,
+                global_skills_dir: ".trae/skills"
+              }
+            }
+          };
+        }
+      }
     }
     return {
       item,
       rebuilt_snapshot_id: rebuiltSnapshotId,
-      index_sync: indexSync
+      index_sync: indexSync,
+      post_approval_action: postApprovalAction,
+      feedback_recorded: feedback != null
+    };
+  });
+
+  // ─── Host actions: pending skill/rule generation queue ───────────────
+  app.get("/internal/host-actions/pending", async (request) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "host-actions-pending");
+    const query = (request.query ?? {}) as {
+      object_type?: "rule" | "skill" | "all";
+      project_id?: string;
+      limit?: number | string;
+    };
+    const limit = typeof query.limit === "string" ? Number(query.limit) : query.limit;
+    const items = await fetchPendingHostActions({
+      tenantId: context.tenantId,
+      scope: context.scope,
+      projectId: query.project_id,
+      objectType: query.object_type ?? "all",
+      limit: Number.isFinite(limit) ? limit : 100
+    });
+    return {
+      tenant_id: context.tenantId,
+      scope: context.scope,
+      items
+    };
+  });
+
+  app.post("/internal/host-actions/:objectType/:id/status", async (request, reply) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "host-action-status");
+    const params = request.params as { objectType: string; id: string };
+    const body = (request.body ?? {}) as Record<string, unknown>;
+
+    if (params.objectType !== "rule" && params.objectType !== "skill") {
+      reply.status(400);
+      return {
+        error_code: "INVALID_OBJECT_TYPE",
+        message: "objectType must be 'rule' or 'skill'",
+        trace_id: context.traceId
+      };
+    }
+
+    const status = typeof body.status === "string" ? body.status : "";
+    if (!["pending", "generated", "done", "failed"].includes(status)) {
+      reply.status(400);
+      return {
+        error_code: "INVALID_STATUS",
+        message: "status must be one of: pending, generated, done, failed",
+        trace_id: context.traceId
+      };
+    }
+
+    const ok = await markHostActionStatus({
+      tenantId: context.tenantId,
+      objectType: params.objectType,
+      objectId: params.id,
+      status: status as "pending" | "generated" | "failed",
+      error: typeof body.error === "string" ? body.error : null,
+      traceId: context.traceId
+    });
+
+    if (!ok) {
+      reply.status(404);
+      return {
+        error_code: "HOST_ACTION_NOT_FOUND",
+        message: "Rule or skill not found for host action update",
+        trace_id: context.traceId
+      };
+    }
+
+    return {
+      object_type: params.objectType,
+      object_id: params.id,
+      status,
+      trace_id: context.traceId
+    };
+  });
+
+  // ─── Regenerate candidate based on feedback ──────────────────────────
+  app.post("/internal/governance/change-proposals/:proposalId/regenerate", async (request, reply) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "governance-regenerate");
+    const params = request.params as { proposalId: string };
+    const body = (request.body ?? {}) as { feedback?: string };
+    if (!body.feedback || typeof body.feedback !== "string") {
+      reply.status(400);
+      return {
+        error_code: "FEEDBACK_REQUIRED",
+        message: "feedback field is required for regeneration",
+        trace_id: context.traceId,
+        retryable: false,
+        details: {}
+      };
+    }
+    // Mark the proposal as needs_review with feedback, so it can be re-extracted
+    const { getPool } = await import("@super-agent/db");
+    const db = getPool();
+    await db.query(
+      `UPDATE governance_change_proposal
+       SET human_response = COALESCE(human_response, '{}'::jsonb) || $4::jsonb,
+           updated_at = now()
+       WHERE id = $1 AND tenant_id = $2 AND scope = $3`,
+      [params.proposalId, context.tenantId, context.scope, JSON.stringify({ regeneration_feedback: body.feedback, regenerated_at: new Date().toISOString() })]
+    );
+    return {
+      proposal_id: params.proposalId,
+      status: "feedback_recorded",
+      feedback: body.feedback,
+      trace_id: context.traceId
     };
   });
 
@@ -932,6 +1297,20 @@ export function buildMemoryServiceApp() {
     return response;
   });
 
+  // 知识图谱聚合视图：一次返回 entities + facts + relations + synthesized_knowledge
+  // + evidence + governance_proposals（按 proposed_action 前缀区分 L2/L3/L4）
+  // 用于前端 graph section 的力导向图 + 演化时间线渲染
+  app.get("/internal/knowledge/graph/overview", async (request) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "knowledge-graph-overview");
+    const query = (request.query ?? {}) as { limit?: number | string };
+    const limit = typeof query.limit === "string" ? Number(query.limit) : query.limit;
+    return getKnowledgeGraphOverview({
+      tenantId: context.tenantId,
+      scope: context.scope,
+      limit: Number.isFinite(limit) ? limit : undefined
+    });
+  });
+
   app.get("/internal/knowledge/governance/runs", async (request) => {
     const context = resolveRequestContext(request.headers as Record<string, unknown>, "knowledge-governance-runs");
     const query = (request.query ?? {}) as { limit?: number };
@@ -980,12 +1359,23 @@ export function buildMemoryServiceApp() {
     const context = resolveRequestContext(request.headers as Record<string, unknown>, "knowledge-synthesized-knowledge");
     const query = (request.query ?? {}) as { job_id?: string; limit?: number | string };
     const limit = typeof query.limit === "string" ? Number(query.limit) : query.limit;
-    return listSynthesizedKnowledge({
+    const result = await listSynthesizedKnowledge({
       tenantId: context.tenantId,
       scope: context.scope,
       governanceJobId: query.job_id ?? null,
       limit: Number.isFinite(limit) ? limit : undefined
     });
+    const items = Array.isArray(result.items) ? result.items : [];
+    if (items.length) {
+      const counts = await batchCountAccessLogs({
+        tenantId: context.tenantId,
+        scope: context.scope,
+        objectType: "knowledge",
+        objectIds: items.map((k) => (k as { id: string }).id)
+      });
+      attachRecallCounts(items as Array<{ id: string }>, counts);
+    }
+    return result;
   });
 
   app.get("/internal/knowledge/synthesized-knowledge/:synthesizedKnowledgeId", async (request, reply) => {

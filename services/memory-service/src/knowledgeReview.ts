@@ -5,6 +5,7 @@ import {
   getKnowledgeContextBundleById,
   getSynthesizedKnowledgeById,
   listKnowledgeGovernanceJobs,
+  listGovernanceChangeProposals,
   queryKnowledgeGovernanceCleaningLogs,
   queryKnowledgeGovernanceDecisions,
   queryDerivedKnowledgeEvidence,
@@ -18,8 +19,10 @@ import {
   queryKnowledgeReviewQueue,
   queryKnowledgeSectionsByDocumentId,
   queryRecallSurfaceStates,
-  querySynthesizedKnowledge
+  querySynthesizedKnowledge,
+  getKnowledgeUtility
 } from "@super-agent/db";
+import { getPool } from "@super-agent/db";
 
 type ReviewQueueActionRequest = {
   action: string;
@@ -210,6 +213,191 @@ export async function listKnowledgeGraphRelations(input: {
     limit: input.limit ?? 50
   });
   return { items };
+}
+
+// ─── 知识图谱聚合视图 ─────────────────────────────────
+// 一次返回 entities + facts + relations + synthesized_knowledge + evidence + governance_proposals
+// 治理提案按 proposed_action 前缀区分来源层（L2_/L3_/L4_），用于前端时间线渲染
+export async function getKnowledgeGraphOverview(input: {
+  tenantId: string;
+  scope: string;
+  limit?: number;
+}) {
+  const limit = input.limit ?? 100;
+  const pool = getPool();
+  const [entities, facts, relations, synthesizedKnowledge, governanceProposals, rules, memories, skills] = await Promise.all([
+    queryKnowledgeEntities({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      query: null,
+      limit
+    }),
+    queryKnowledgeFacts({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      query: null,
+      limit
+    }),
+    queryKnowledgeRelationsForObjects({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      objectIds: [],
+      limit: limit * 2 // 关系天然比节点多，放宽
+    }),
+    querySynthesizedKnowledge({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      governanceJobId: null,
+      limit
+    }),
+    listGovernanceChangeProposals({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      status: null,
+      limit: limit * 2
+    }),
+    // 四层节点：rule/memory/skill 也进图谱，让人类一眼看到全部治理对象
+    pool.query(
+      `SELECT id, title, statement, enforcement_level, status, origin_scope, availability_scope, created_at
+       FROM rule
+       WHERE tenant_id = $1 AND scope = $2 AND status = 'active'
+       ORDER BY created_at DESC LIMIT $3`,
+      [input.tenantId, input.scope, limit]
+    ).then(r => r.rows),
+    pool.query(
+      `SELECT id, title, content, memory_type, status, origin_scope, availability_scope, created_at
+       FROM memory
+       WHERE tenant_id = $1 AND scope = $2 AND status = 'active'
+       ORDER BY created_at DESC LIMIT $3`,
+      [input.tenantId, input.scope, limit]
+    ).then(r => r.rows),
+    pool.query(
+      `SELECT id, title, description, skill_type, status, origin_scope, availability_scope, source_kind, created_at
+       FROM skill
+       WHERE tenant_id = $1 AND scope = $2 AND status = 'active'
+       ORDER BY created_at DESC LIMIT $3`,
+      [input.tenantId, input.scope, limit]
+    ).then(r => r.rows)
+  ]);
+
+  // 批量拉取所有合成知识对应的 evidence（避免 N+1）
+  const synthesizedKnowledgeIds = synthesizedKnowledge
+    .map((item) => String(item.id))
+    .filter(Boolean);
+  const evidenceTrace = synthesizedKnowledgeIds.length
+    ? await queryDerivedKnowledgeEvidence({
+        tenantId: input.tenantId,
+        scope: input.scope,
+        synthesizedKnowledgeIds
+      })
+    : [];
+
+  // 聚合 evidence 列表（去重，evidenceTrace 可能按 synthesized_knowledge_id 重复）
+  const evidenceMap = new Map<string, Record<string, unknown>>();
+  for (const row of evidenceTrace) {
+    const evidenceId = String(row.evidence_id ?? row.id ?? "");
+    if (evidenceId && !evidenceMap.has(evidenceId)) {
+      evidenceMap.set(evidenceId, row as Record<string, unknown>);
+    }
+  }
+  const evidence = [...evidenceMap.values()];
+
+  // 治理提案按 proposed_action 前缀分类
+  // L2ConflictDetector 用 "l2_" 前缀（如 l2_conflict_skip），L3EvolutionScanner 用 "l3_"，L4CognitiveEngine 用 "l4_"
+  // 前缀大小写不敏感判断；同时记录未匹配前缀的归为 "other"，方便诊断
+  const proposalsByLayer = { l2: [] as Record<string, unknown>[], l3: [] as Record<string, unknown>[], l4: [] as Record<string, unknown>[], other: [] as Record<string, unknown>[] };
+  for (const proposal of governanceProposals) {
+    const action = String(proposal.proposed_action ?? "").toLowerCase();
+    if (action.startsWith("l2_")) proposalsByLayer.l2.push(proposal);
+    else if (action.startsWith("l3_")) proposalsByLayer.l3.push(proposal);
+    else if (action.startsWith("l4_")) proposalsByLayer.l4.push(proposal);
+    else proposalsByLayer.other.push(proposal);
+  }
+
+  // 动态汇总 entity_type / relation_type（列是 text 无 CHECK，按 DISTINCT 加载）
+  const entityTypes = new Set<string>();
+  for (const e of entities) {
+    const t = String(e.entity_type ?? e.type ?? "unknown");
+    entityTypes.add(t);
+  }
+  const relationTypes = new Set<string>();
+  for (const r of relations) {
+    const t = String(r.relation_type ?? r.type ?? "related_to");
+    relationTypes.add(t);
+  }
+
+  // ─── P1-4: 合并 utility_score 到四层节点 ───
+  // 从 knowledge_utility 视图批量查，让图谱节点按效用着色，展示改善后的知识质量
+  const utilityEntryIds = [
+    ...synthesizedKnowledge.map((k) => String(k.id)),
+    ...rules.map((r) => String(r.id)),
+    ...memories.map((m) => String(m.id)),
+    ...skills.map((s) => String(s.id)),
+  ].filter(Boolean);
+  const utilityMap = utilityEntryIds.length > 0
+    ? await getKnowledgeUtility({
+        tenantId: input.tenantId,
+        scope: input.scope,
+        entryIds: utilityEntryIds,
+      })
+    : new Map();
+
+  function attachUtility<T extends Record<string, unknown>>(items: T[]): T[] {
+    return items.map((item) => {
+      const id = String(item.id ?? "");
+      const u = utilityMap.get(id);
+      return { ...item, utility_score: u?.utilityScore ?? null, total_recalls: u?.totalRecalls ?? 0 };
+    });
+  }
+  const rulesWithUtility = attachUtility(rules as Record<string, unknown>[]) as typeof rules;
+  const memoriesWithUtility = attachUtility(memories as Record<string, unknown>[]) as typeof memories;
+  const skillsWithUtility = attachUtility(skills as Record<string, unknown>[]) as typeof skills;
+  const knowledgeWithUtility = attachUtility(synthesizedKnowledge as Record<string, unknown>[]) as typeof synthesizedKnowledge;
+
+  // utility 分布统计：high ≥0.8 / medium 0.5-0.8 / low <0.5 / no_signal NULL
+  const allWithUtility = [
+    ...rulesWithUtility, ...memoriesWithUtility, ...skillsWithUtility, ...knowledgeWithUtility,
+  ] as Array<Record<string, unknown>>;
+  const utilitySummary = {
+    high: allWithUtility.filter((x) => (x.utility_score as number | null) !== null && (x.utility_score as number) >= 0.8).length,
+    medium: allWithUtility.filter((x) => (x.utility_score as number | null) !== null && (x.utility_score as number) >= 0.5 && (x.utility_score as number) < 0.8).length,
+    low: allWithUtility.filter((x) => (x.utility_score as number | null) !== null && (x.utility_score as number) < 0.5).length,
+    no_signal: allWithUtility.filter((x) => x.utility_score === null).length,
+  };
+
+  return {
+    tenant_id: input.tenantId,
+    scope: input.scope,
+    stats: {
+      entity_count: entities.length,
+      fact_count: facts.length,
+      relation_count: relations.length,
+      synthesized_knowledge_count: synthesizedKnowledge.length,
+      evidence_count: evidence.length,
+      proposal_count: governanceProposals.length,
+      l2_proposal_count: proposalsByLayer.l2.length,
+      l3_proposal_count: proposalsByLayer.l3.length,
+      l4_proposal_count: proposalsByLayer.l4.length,
+      other_proposal_count: proposalsByLayer.other.length,
+      rule_count: rules.length,
+      memory_count: memories.length,
+      skill_count: skills.length,
+      utility_summary: utilitySummary
+    },
+    entities,
+    facts,
+    relations,
+    synthesized_knowledge: knowledgeWithUtility,
+    evidence,
+    evidence_trace: evidenceTrace, // 保留合成知识→evidence 的映射关系
+    governance_proposals: governanceProposals,
+    proposals_by_layer: proposalsByLayer,
+    entity_types: [...entityTypes].sort(),
+    relation_types: [...relationTypes].sort(),
+    rules: rulesWithUtility,
+    memories: memoriesWithUtility,
+    skills: skillsWithUtility
+  };
 }
 
 export async function listKnowledgeGovernanceRuns(input: {

@@ -45,4 +45,5 @@ export type FeedbackCommitRequest = RequestBody<paths["/internal/feedback/commit
 export type FeedbackCommitResponse = SuccessResponse<paths["/internal/feedback/commit"]["post"]>;
 
 export * from "./generated/state-machines.js";
+export * from "./synthesizedKnowledge.js";
 export type { paths };

@@ -1407,6 +1407,113 @@ export interface components {
             gates: {
                 [key: string]: unknown;
             };
+            metacognition?: components["schemas"]["MetacognitionAssessment"];
+        };
+        /**
+         * @description Per-query 元认知评估：针对当前 retrieve 的查询，回答三个问题——
+         *     1. 我有多大把握？（overall_confidence + confidence_basis）
+         *     2. 我的高置信知识覆盖了哪些方面？（coverage_areas）
+         *     3. 我明确不知道什么？（knowledge_gaps + boundary.unknown_aspects）
+         *
+         *     不是对知识库的全局统计，而是基于本次召回结果计算的边界评估。
+         *     这是从 annotation-driven 转向 outcome-driven 的元认知输出：
+         *     系统不再只说"有 N 条知识"，而是说"对于这个问题，我知道的边界在哪里"。
+         */
+        MetacognitionAssessment: {
+            /**
+             * Format: float
+             * @description 本次 retrieve 的整体置信度。综合 layer_coverage / avg_item_confidence /
+             *     high_utility_ratio / evidence_backed_ratio 四个加权计算。
+             *     0.7+ 高置信；0.4-0.7 部分覆盖；<0.4 知识不足。
+             */
+            overall_confidence: number;
+            confidence_basis: {
+                /**
+                 * Format: float
+                 * @description 4 个核心层（rules/factual/procedural/synthesized）中命中的比例。
+                 */
+                layer_coverage: number;
+                /**
+                 * Format: float
+                 * @description 召回条目的平均 confidence_score（无 confidence 字段按 0.5 默认）。
+                 */
+                avg_item_confidence: number;
+                /**
+                 * Format: float
+                 * @description utility_score >= 0.7 的条目占比（无 utility 视为 0）。
+                 */
+                high_utility_ratio: number;
+                /**
+                 * Format: float
+                 * @description synthesized_knowledge 中有 evidence 支撑的比例。
+                 */
+                evidence_backed_ratio: number;
+            };
+            /**
+             * @description 召回质量评估，区分"知识真没有" vs "有但没召回"。
+             *     基于 term_hit_ratio（查询词命中率）三态：
+             *     - good (>= 0.6)：查询词大部分命中，召回正常
+             *     - partial (0.3-0.6)：部分命中，可能召回有问题
+             *     - poor (< 0.3)：查询词几乎没命中，知识库真没有 OR 召回算法严重失败
+             *     用途：1) 修正 LLM trigger 逻辑 2) 归档保护
+             * @enum {string}
+             */
+            retrieve_quality: "good" | "partial" | "poor";
+            /**
+             * @description 本次元认知的生成方式。
+             *     - rule：规则版本，confidence >= 0.4 或 retrieve_quality='poor'
+             *     - llm：LLM 推理，confidence < 0.4 且 retrieve_quality='good' 或 'partial'
+             *     - llm_fallback：LLM 失败时回退规则版本
+             * @enum {string}
+             */
+            method: "rule" | "llm" | "llm_fallback";
+            boundary: {
+                /**
+                 * @description covered = 高置信覆盖查询全部核心方面；
+                 *     partial = 部分方面有覆盖，部分缺失；
+                 *     unknown = 关键方面均无召回。
+                 * @enum {string}
+                 */
+                status: "covered" | "partial" | "unknown";
+                /** @description 高置信覆盖的方面（从召回 title 聚类）。 */
+                covered_aspects: string[];
+                /** @description 召回了但置信度低或无 utility 信号的方面。 */
+                uncertain_aspects: string[];
+                /** @description 查询关键词中无任何召回命中的方面。 */
+                unknown_aspects: string[];
+            };
+            coverage_areas: {
+                /** @description 方面名称（从召回条目的 title 或关键词聚类）。 */
+                area: string;
+                /** @description 该方面命中的层级（rules/factual_memory/procedural_memory/synthesized_knowledge）。 */
+                layer_hits: string[];
+                /**
+                 * Format: float
+                 * @description 该方面的综合置信度（item 平均）。
+                 */
+                confidence: number;
+                /** @description 该方面下的条目数。 */
+                item_count: number;
+            }[];
+            knowledge_gaps: {
+                /** @description 查询中的关键术语。 */
+                term: string;
+                /** @description 检查过的层级。 */
+                checked_layers: string[];
+                /** @description 是否在任何召回条目中命中。 */
+                hit: boolean;
+                /** @description 缺口提示（如"建议查证"/"知识库可能缺失"/"分词未对齐"等）。 */
+                hint?: string;
+            }[];
+            /**
+             * @description 系统建议的下一步动作。可能值：
+             *     - "proceed_with_confidence"（高置信，可直接回答）
+             *     - "verify_before_use"（部分覆盖，需查证）
+             *     - "supplement_with_search"（缺口明显，建议补充外部检索）
+             *     - "escalate_to_human"（关键方面完全缺失）
+             *     - "retrieve_quality_poor_investigate"（召回质量差，先查 retrieve 算法而非归档知识）
+             */
+            recommended_actions: string[];
         };
         RuleGateCheckRequest: {
             /** Format: uuid */
