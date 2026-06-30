@@ -37,6 +37,9 @@ import {
   updateRuleRecord,
   updateSkillRecord,
   updateSynthesizedKnowledgeRecord,
+  upsertHostSkill,
+  upsertHostMemory,
+  upsertHostRule,
 } from "@super-agent/db";
 import { CandidateRanker } from "./candidateRanker.js";
 import { handleCandidateIngress } from "./candidateIngress.js";
@@ -84,6 +87,7 @@ import { handleRuleGateCheck } from "./ruleGateCheck.js";
 import { RuleBuilder } from "./ruleBuilder.js";
 import { SkillBuilder } from "./skillBuilder.js";
 import { SummaryGenerator } from "./summaryGenerator.js";
+import { registerHostBootstrap } from "./hostBootstrap.js";
 
 export function buildMemoryServiceApp() {
   const app = Fastify({ logger: false });
@@ -161,12 +165,14 @@ export function buildMemoryServiceApp() {
     const context = resolveRequestContext(request.headers as Record<string, unknown>, "memory-query");
 
     const kind = typeof body.kind === "string" ? body.kind : "resident";
+    const memoryType = typeof body.memory_type === "string" ? body.memory_type : null;
     const fingerprint = typeof body.fingerprint === "string" ? body.fingerprint : null;
     const limit = typeof body.limit === "number" ? body.limit : 10;
     const items = await queryMemoryByKind({
       tenantId: context.tenantId,
       scope: context.scope,
       kind,
+      memoryType,
       taskRequestId: body.task_request_id ?? null,
       fingerprint,
       limit
@@ -1453,6 +1459,143 @@ export function buildMemoryServiceApp() {
       fingerprint: body.fingerprint,
       record
     };
+  });
+
+  // ─── 宿主挂载注册：POST /internal/host/mount ──────────────────────
+  // 宿主在挂载 memory-service 时调用，把自身已有的 skill/memory/rule 推送注册。
+  // 幂等：重复推送不会产生重复数据（内容未变跳过，内容变化版本递增）。
+  app.post("/internal/host/mount", async (request) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "host-mount");
+    const body = (request.body ?? {}) as {
+      skills?: Array<Record<string, unknown>>;
+      memories?: Array<Record<string, unknown>>;
+      rules?: Array<Record<string, unknown>>;
+    };
+    const traceId = `host-mount-${Date.now()}`;
+    const result = {
+      skills: { created: 0, updated: 0, skipped: 0, errors: [] as string[] },
+      memories: { created: 0, skipped: 0, errors: [] as string[] },
+      rules: { created: 0, updated: 0, skipped: 0, errors: [] as string[] }
+    };
+
+    // 注册 skill
+    if (Array.isArray(body.skills)) {
+      for (const s of body.skills) {
+        const skillKey = String(s.skill_key ?? s.skillKey ?? "").trim();
+        const title = String(s.title ?? "").trim();
+        const description = String(s.description ?? "").trim();
+        if (!skillKey || !title) {
+          result.skills.errors.push(`skill 缺少 skill_key 或 title: ${JSON.stringify(s).slice(0, 80)}`);
+          continue;
+        }
+        try {
+          const r = await upsertHostSkill({
+            tenantId: context.tenantId,
+            scope: context.scope,
+            skillKey,
+            title,
+            description,
+            skillType: typeof s.skill_type === "string" ? s.skill_type : typeof s.skillType === "string" ? s.skillType : "procedural",
+            triggerConditions: (s.trigger_conditions ?? s.triggerConditions ?? null) as Record<string, unknown> | null,
+            procedurePayload: (s.procedure_payload ?? s.procedurePayload ?? null) as Record<string, unknown> | null,
+            riskLevel: typeof s.risk_level === "string" ? s.risk_level : typeof s.riskLevel === "string" ? s.riskLevel : "low",
+            tags: Array.isArray(s.tags) ? s.tags.map(String) : [],
+            traceId
+          });
+          result.skills[r.action]++;
+        } catch (e) {
+          result.skills.errors.push(`skill ${skillKey}: ${(e as Error).message}`);
+        }
+      }
+    }
+
+    // 注册 memory
+    if (Array.isArray(body.memories)) {
+      for (const m of body.memories) {
+        const memoryType = String(m.memory_type ?? m.memoryType ?? "").trim();
+        const title = String(m.title ?? "").trim();
+        const content = String(m.content ?? "").trim();
+        if (!memoryType || !title || !content) {
+          result.memories.errors.push(`memory 缺少 memory_type/title/content: ${JSON.stringify(m).slice(0, 80)}`);
+          continue;
+        }
+        try {
+          const r = await upsertHostMemory({
+            tenantId: context.tenantId,
+            scope: context.scope,
+            memoryType,
+            title,
+            content,
+            importance: typeof m.importance === "number" ? m.importance : null,
+            tags: Array.isArray(m.tags) ? m.tags.map(String) : [],
+            traceId
+          });
+          result.memories[r.action === "created" ? "created" : "skipped"]++;
+        } catch (e) {
+          result.memories.errors.push(`memory ${title}: ${(e as Error).message}`);
+        }
+      }
+    }
+
+    // 注册 rule
+    if (Array.isArray(body.rules)) {
+      for (const r of body.rules) {
+        const ruleKey = String(r.rule_key ?? r.ruleKey ?? "").trim();
+        const ruleType = String(r.rule_type ?? r.ruleType ?? "governance_rule").trim();
+        const title = String(r.title ?? "").trim();
+        const statement = String(r.statement ?? "").trim();
+        if (!ruleKey || !title || !statement) {
+          result.rules.errors.push(`rule 缺少 rule_key/title/statement: ${JSON.stringify(r).slice(0, 80)}`);
+          continue;
+        }
+        try {
+          const rr = await upsertHostRule({
+            tenantId: context.tenantId,
+            scope: context.scope,
+            ruleKey,
+            ruleType,
+            title,
+            statement,
+            enforcementLevel: typeof r.enforcement_level === "string" ? r.enforcement_level : typeof r.enforcementLevel === "string" ? r.enforcementLevel : "must",
+            priority: typeof r.priority === "number" ? r.priority : ({ P0: 10, P1: 20, P2: 50, P3: 75 } as Record<string, number>)[String(r.priority ?? "P2")] ?? 50,
+            riskLevel: typeof r.risk_level === "string" ? r.risk_level : typeof r.riskLevel === "string" ? r.riskLevel : "medium",
+            appliesTo: Array.isArray(r.applies_to) ? r.applies_to.map(String) : Array.isArray(r.appliesTo) ? r.appliesTo.map(String) : [],
+            traceId
+          });
+          result.rules[rr.action]++;
+        } catch (e) {
+          result.rules.errors.push(`rule ${ruleKey}: ${(e as Error).message}`);
+        }
+      }
+    }
+
+    return {
+      tenant_id: context.tenantId,
+      scope: context.scope,
+      trace_id: traceId,
+      summary: {
+        skills: { ...result.skills, total: body.skills?.length ?? 0 },
+        memories: { ...result.memories, total: body.memories?.length ?? 0 },
+        rules: { ...result.rules, total: body.rules?.length ?? 0 }
+      }
+    };
+  });
+
+  // ─── 宿主挂载就绪提示 + 自动注册宿主自带 skill/memory/rule ──────────
+  // 服务启动后自动注册内置的宿主 bootstrap 数据（42 skills + 7 memories + 5 rules），
+  // 确保仪表盘一打开就能看到宿主全部能力。幂等：重复启动不会产生重复数据。
+  app.addHook("onReady", async () => {
+    console.log("[host-mount] memory-service 已就绪，开始自动注册宿主自带数据...");
+    try {
+      const tenantId = getDefaultTenantId();
+      const scope = getDefaultScope();
+      const result = await registerHostBootstrap({ tenantId, scope });
+      console.log(
+        `[host-mount] 宿主数据注册完成: skills(${result.skills.created}+${result.skills.updated}+${result.skills.skipped}) memories(${result.memories.created}+${result.memories.skipped}) rules(${result.rules.created}+${result.rules.updated}+${result.rules.skipped})`
+      );
+    } catch (e) {
+      console.error("[host-mount] 宿主数据注册失败:", (e as Error).message);
+    }
   });
 
   return app;

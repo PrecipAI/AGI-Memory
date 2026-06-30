@@ -1275,7 +1275,14 @@ export interface components {
         };
         MemoryQueryRequest: {
             /** @enum {string} */
-            kind?: "resident" | "factual" | "procedural" | "summary" | "candidate";
+            kind?: "resident" | "factual" | "procedural" | "summary" | "candidate" | "all";
+            /**
+             * 业务层记忆类型，与前端筛选 tab 对齐。
+             * 当 kind="all" 或 kind="factual" 时生效，按 memory_type 过滤；
+             * 省略则返回全部业务类型。
+             * @enum {string}
+             */
+            memory_type?: "user_memory" | "project_memory" | "workspace_memory" | "team_memory" | "session_memory" | "design_decision" | "integration_context";
             /** Format: uuid */
             task_request_id?: string;
             fingerprint?: string;
@@ -1783,6 +1790,20 @@ export interface components {
             relation_count: number;
             active_review_count: number;
             governance_job_count: number;
+            /** 7 天每日治理运行次数（用于仪表盘趋势图） */
+            daily_runs?: Array<{ date: string; l2: number; l3: number; l4: number }>;
+            /** 4 层对象规模（memory/knowledge/rule/skill 各自条数） */
+            layer_counts?: { memory: number; knowledge: number; rule: number; skill: number };
+            /** 治理任务状态分布 */
+            governance_breakdown?: { approved: number; rejected: number; pending: number; auto_promoted: number };
+            /** 近 7 天累计门控触发次数 */
+            gate_trigger_count?: number;
+            /** 近 7 天累计插件调用次数 */
+            plugin_call_count?: number;
+            /** 记忆访问累计去重合成率（百分比 0-100） */
+            dedup_rate?: number;
+            /** 记忆轨迹总数 */
+            trace_count?: number;
             corpus_governance: {
                 total_document_count: number;
                 active_document_count: number;

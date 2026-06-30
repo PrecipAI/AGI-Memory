@@ -2,6 +2,7 @@ import {
   applyKnowledgeReviewAction,
   getKnowledgeDocumentById,
   getKnowledgeOpsOverview,
+  getDailyGovernanceRuns,
   getKnowledgeContextBundleById,
   getSynthesizedKnowledgeById,
   listKnowledgeGovernanceJobs,
@@ -541,10 +542,17 @@ export async function getKnowledgeOpsOverviewData(input: {
   tenantId: string;
   scope: string;
 }) {
-  const result = await getKnowledgeOpsOverview({
-    tenantId: input.tenantId,
-    scope: input.scope
-  });
+  const [result, dailyRuns] = await Promise.all([
+    getKnowledgeOpsOverview({
+      tenantId: input.tenantId,
+      scope: input.scope
+    }),
+    getDailyGovernanceRuns({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      days: 7
+    }).catch(() => [] as Array<{ date: string; l2: number; l3: number; l4: number }>)
+  ]);
   return {
     document_count: Number(result.document_count ?? 0),
     section_count: Number(result.section_count ?? 0),
@@ -554,6 +562,24 @@ export async function getKnowledgeOpsOverviewData(input: {
     relation_count: Number(result.relation_count ?? 0),
     active_review_count: Number(result.active_review_count ?? 0),
     governance_job_count: Number(result.governance_job_count ?? 0),
+    // 仪表盘拟真字段
+    daily_runs: dailyRuns,
+    layer_counts: {
+      memory: Number(result.memory_count ?? 0),
+      knowledge: Number(result.knowledge_count ?? 0),
+      rule: Number(result.rule_count ?? 0),
+      skill: Number(result.skill_count ?? 0)
+    },
+    governance_breakdown: {
+      approved: Number(result.approved_proposal_count ?? 0),
+      rejected: Number(result.rejected_proposal_count ?? 0),
+      pending: Number(result.pending_proposal_count ?? 0),
+      auto_promoted: 0
+    },
+    trace_count: Number(result.trace_count ?? 0),
+    gate_trigger_count: Number(result.gate_trigger_count ?? 0),
+    plugin_call_count: Number(result.plugin_call_count ?? 0),
+    dedup_rate: Number(result.dedup_rate ?? 0),
     corpus_governance: {
       total_document_count: Number(result.total_document_count ?? 0),
       active_document_count: Number(result.document_count ?? 0),

@@ -1805,6 +1805,10 @@ async function filterExistingFactualMemoryCandidates(input: {
     const canonicalContent = candidate.content ?? candidate.source_excerpt;
     const normalizedMemoryContent = normalizeMemoryContent(candidate.title, canonicalContent);
     const normalizedContent = normalizeText(normalizedMemoryContent);
+    // 候选 memory_type 是业务类型（user_memory/project_memory 等），与 DB memory.memory_type 字段一致。
+    // 历史 bug：原 SQL 写死 memory_type='factual'，而 factual 从未真正写入 DB（VALID_MEMORY_TYPES 不含），
+    // 导致去重永远查不到已存在记录，重复写入。现在按候选自身 memory_type 精确匹配；未指定时退到 session_memory（适配器默认值）。
+    const candidateMemoryType = candidate.memory_type ?? "session_memory";
     const existing = await pool.query<{ id: string }>(
       `
       SELECT id
@@ -1812,11 +1816,11 @@ async function filterExistingFactualMemoryCandidates(input: {
       WHERE tenant_id = $1
         AND scope = $2
         AND status = 'active'
-        AND memory_type = 'factual'
-        AND normalized_content = $3
+        AND memory_type = $3
+        AND normalized_content = $4
       LIMIT 1
       `,
-      [input.tenantId, input.scope, normalizedContent]
+      [input.tenantId, input.scope, candidateMemoryType, normalizedContent]
     );
     if (existing.rowCount && existing.rows[0]) {
       skippedExistingMemoryCount += 1;

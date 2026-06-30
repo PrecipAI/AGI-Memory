@@ -57,7 +57,8 @@ function extractMemorySearchTerms(input?: string | null): string[] {
 async function queryMemoryRows(input: {
   tenantId: string;
   scope: string;
-  type: "factual";
+  /** 业务层记忆类型（user_memory/project_memory 等），用于按前端筛选 tab 过滤；省略则返回全部业务类型 */
+  memoryType?: string | null;
   query?: string | null;
   limit?: number;
 }): Promise<Record<string, unknown>[]> {
@@ -80,7 +81,7 @@ async function queryMemoryRows(input: {
     WHERE tenant_id = $1
       AND scope = $2
       AND status = 'active'
-      AND memory_type = $3
+      AND ($3::text IS NULL OR memory_type = $3)
       AND (
         $4::text[] IS NULL
         OR (
@@ -97,7 +98,7 @@ async function queryMemoryRows(input: {
     [
       input.tenantId,
       input.scope,
-      input.type,
+      input.memoryType ?? null,
       terms.length > 0 ? terms : null,
       input.limit ?? 10,
       // 精度优化：CJK bigram 会引入大量噪音 term（"试要"/"求是"/"是什么"），
@@ -178,10 +179,12 @@ export async function queryMemoryCandidates(input: {
 export async function queryFactualMemory(input: {
   tenantId: string;
   scope: string;
+  /** 业务层记忆类型（user_memory/project_memory 等），省略则返回全部业务类型 */
+  memoryType?: string | null;
   query?: string | null;
   limit?: number;
 }): Promise<Record<string, unknown>[]> {
-  return queryMemoryRows({ tenantId: input.tenantId, scope: input.scope, type: "factual", query: input.query, limit: input.limit });
+  return queryMemoryRows({ tenantId: input.tenantId, scope: input.scope, memoryType: input.memoryType ?? null, query: input.query, limit: input.limit });
 }
 
 export async function queryProceduralMemory(input: {
@@ -1873,4 +1876,277 @@ export async function updateHostActionStatus(input: {
   );
 
   return result.rowCount !== null && result.rowCount > 0;
+}
+
+// ============================================================================
+// 宿主挂载注册：幂等 UPSERT
+// 宿主在挂载 memory-service 时调用，把自身已有的 skill/memory/rule 推送注册。
+// 幂等：内容未变化时跳过；内容变化时版本递增并 supersede 旧版本。
+// ============================================================================
+
+/**
+ * 幂等注册宿主 Skill。
+ * 按 (tenant_id, scope, skill_key) 查找 active skill：
+ *   - 不存在 → INSERT version=1
+ *   - 存在但 title/description 变化 → supersede 旧版本 + INSERT 新版本
+ *   - 存在且内容相同 → 跳过
+ * 返回 { id, action }，action ∈ "created" | "updated" | "skipped"
+ */
+export async function upsertHostSkill(input: {
+  tenantId: string;
+  scope: string;
+  skillKey: string;
+  title: string;
+  description: string;
+  skillType?: string;
+  triggerConditions?: Record<string, unknown> | null;
+  procedurePayload?: Record<string, unknown> | null;
+  riskLevel?: string;
+  tags?: string[] | null;
+  traceId: string;
+}): Promise<{ id: string; action: "created" | "updated" | "skipped" }> {
+  const pool = getPool();
+  const existing = await pool.query<{ id: string; version: number; title: string; description: string }>(
+    `
+    SELECT id, version, title, description
+    FROM skill
+    WHERE tenant_id = $1 AND scope = $2 AND skill_key = $3 AND status = 'active'
+    ORDER BY version DESC
+    LIMIT 1
+    `,
+    [input.tenantId, input.scope, input.skillKey]
+  );
+
+  const skillType = input.skillType || "procedural";
+  const triggerConditions = input.triggerConditions ?? {};
+  const procedurePayload = input.procedurePayload ?? {};
+  const riskLevel = input.riskLevel || "low";
+  const tags = input.tags ?? [];
+
+  if (existing.rowCount && existing.rows[0]) {
+    const row = existing.rows[0];
+    // 内容未变化则跳过
+    if (row.title === input.title && row.description === input.description) {
+      return { id: row.id, action: "skipped" };
+    }
+    // 内容变化：supersede 旧版本 + INSERT 新版本
+    await pool.query(
+      "UPDATE skill SET status = 'superseded', updated_at = now(), trace_id = $2 WHERE id = $1",
+      [row.id, input.traceId]
+    );
+    const nextVersion = row.version + 1;
+    const result = await pool.query<{ id: string }>(
+      `
+      INSERT INTO skill (
+        tenant_id, scope, status, version, skill_key, title, description, skill_type,
+        trigger_conditions, procedure_payload, verification_status,
+        risk_level, tags, trace_id, source_kind,
+        origin_scope, governance_level, availability_scope, promotion_status
+      )
+      VALUES (
+        $1, $2, 'active', $3, $4, $5, $6, $7,
+        $8::jsonb, $9::jsonb, 'verified',
+        $10::risk_level, $11::text[], $12, 'host_mounted',
+        'global', 'governance', 'global_reusable', 'active'
+      )
+      RETURNING id
+      `,
+      [
+        input.tenantId, input.scope, nextVersion, input.skillKey,
+        input.title, input.description, skillType,
+        JSON.stringify(triggerConditions), JSON.stringify(procedurePayload),
+        riskLevel, tags, input.traceId
+      ]
+    );
+    return { id: result.rows[0].id, action: "updated" };
+  }
+
+  // 不存在：INSERT version=1
+  const result = await pool.query<{ id: string }>(
+    `
+    INSERT INTO skill (
+      tenant_id, scope, status, version, skill_key, title, description, skill_type,
+      trigger_conditions, procedure_payload, verification_status,
+      risk_level, tags, trace_id, source_kind,
+      origin_scope, governance_level, availability_scope, promotion_status
+    )
+    VALUES (
+      $1, $2, 'active', 1, $3, $4, $5, $6,
+      $7::jsonb, $8::jsonb, 'verified',
+      $9::risk_level, $10::text[], $11, 'host_mounted',
+      'global', 'governance', 'global_reusable', 'active'
+    )
+    RETURNING id
+    `,
+    [
+      input.tenantId, input.scope, input.skillKey,
+      input.title, input.description, skillType,
+      JSON.stringify(triggerConditions), JSON.stringify(procedurePayload),
+      riskLevel, tags, input.traceId
+    ]
+  );
+  return { id: result.rows[0].id, action: "created" };
+}
+
+/**
+ * 幂等注册宿主 Memory。
+ * 按 (tenant_id, scope, memory_type, normalized_content) 查找：
+ *   - 不存在 → INSERT
+ *   - 存在 → 跳过（记忆内容不变）
+ */
+export async function upsertHostMemory(input: {
+  tenantId: string;
+  scope: string;
+  memoryType: string;
+  title: string;
+  content: string;
+  importance?: number | null;
+  tags?: string[] | null;
+  traceId: string;
+}): Promise<{ id: string; action: "created" | "skipped" }> {
+  const pool = getPool();
+  const normalizedContent = `${input.title}\n${input.content}`.toLowerCase().replace(/\s+/g, " ").trim();
+
+  const existing = await pool.query<{ id: string }>(
+    `
+    SELECT id
+    FROM memory
+    WHERE tenant_id = $1 AND scope = $2 AND status = 'active'
+      AND memory_type = $3 AND normalized_content = $4
+    LIMIT 1
+    `,
+    [input.tenantId, input.scope, input.memoryType, normalizedContent]
+  );
+
+  if (existing.rowCount && existing.rows[0]) {
+    return { id: existing.rows[0].id, action: "skipped" };
+  }
+
+  const result = await pool.query<{ id: string }>(
+    `
+    INSERT INTO memory (
+      tenant_id, scope, status, version, memory_type, title, content, normalized_content,
+      source_kind, source_ref, verification_status, tags, importance, confidence_score,
+      origin_scope, governance_level, availability_scope, promotion_status, trace_id
+    )
+    VALUES (
+      $1, $2, 'active', 1, $3, $4, $5, $6,
+      'host_mounted', 'host_mounted', 'verified', $7::text[], $8, 1.0,
+      'global', 'governance', 'global_reusable', 'active', $9
+    )
+    RETURNING id
+    `,
+    [
+      input.tenantId, input.scope, input.memoryType,
+      input.title, input.content, normalizedContent,
+      input.tags ?? [], input.importance ?? 75, input.traceId
+    ]
+  );
+  return { id: result.rows[0].id, action: "created" };
+}
+
+/**
+ * 幂等注册宿主 Rule。
+ * 按 (tenant_id, scope, rule_key) 查找 active rule：
+ *   - 不存在 → INSERT version=1
+ *   - 存在但 statement 变化 → supersede + INSERT 新版本
+ *   - 存在且内容相同 → 跳过
+ */
+export async function upsertHostRule(input: {
+  tenantId: string;
+  scope: string;
+  ruleKey: string;
+  ruleType: string;
+  title: string;
+  statement: string;
+  enforcementLevel?: string;
+  priority?: number;
+  riskLevel?: string;
+  appliesTo?: string[] | null;
+  traceId: string;
+}): Promise<{ id: string; action: "created" | "updated" | "skipped" }> {
+  const pool = getPool();
+  const existing = await pool.query<{ id: string; version: number; statement: string }>(
+    `
+    SELECT id, version, statement
+    FROM rule
+    WHERE tenant_id = $1 AND scope = $2 AND rule_key = $3 AND status = 'active'
+    ORDER BY version DESC
+    LIMIT 1
+    `,
+    [input.tenantId, input.scope, input.ruleKey]
+  );
+
+  const enforcementLevel = input.enforcementLevel || "must";
+  const priority = typeof input.priority === "number" ? input.priority : 50;
+  const riskLevel = input.riskLevel || "medium";
+  const appliesTo = input.appliesTo ?? [];
+  const ruleDomain = input.ruleType.replace(/_rule$/, "") || "governance";
+
+  if (existing.rowCount && existing.rows[0]) {
+    const row = existing.rows[0];
+    if (row.statement === input.statement) {
+      return { id: row.id, action: "skipped" };
+    }
+    await pool.query(
+      "UPDATE rule SET status = 'superseded', updated_at = now(), trace_id = $2 WHERE id = $1",
+      [row.id, input.traceId]
+    );
+    const nextVersion = row.version + 1;
+    const result = await pool.query<{ id: string }>(
+      `
+      INSERT INTO rule (
+        tenant_id, scope, status, version, rule_key, rule_type, title, statement,
+        normalized_statement, applies_to, trigger_conditions, enforcement_level,
+        priority, risk_level, verification_status, source_refs, evidence_refs,
+        metadata, origin_scope, governance_level, availability_scope, promotion_status,
+        rule_domain, rule_scope, trace_id
+      )
+      VALUES (
+        $1, $2, 'active', $3, $4, $5, $6, $7,
+        $8, $9::jsonb, '{}'::jsonb, $10,
+        $11, $12::risk_level, 'verified', '[]'::jsonb, '[]'::jsonb,
+        '{}'::jsonb, 'global', 'governance', 'global_reusable', 'active',
+        $13, 'tenant_global', $14
+      )
+      RETURNING id
+      `,
+      [
+        input.tenantId, input.scope, nextVersion, input.ruleKey,
+        input.ruleType, input.title, input.statement,
+        input.statement.toLowerCase(), JSON.stringify(appliesTo),
+        enforcementLevel, priority, riskLevel,
+        ruleDomain, input.traceId
+      ]
+    );
+    return { id: result.rows[0].id, action: "updated" };
+  }
+
+  const result = await pool.query<{ id: string }>(
+    `
+    INSERT INTO rule (
+      tenant_id, scope, status, version, rule_key, rule_type, title, statement,
+      normalized_statement, applies_to, trigger_conditions, enforcement_level,
+      priority, risk_level, verification_status, source_refs, evidence_refs,
+      metadata, origin_scope, governance_level, availability_scope, promotion_status,
+      rule_domain, rule_scope, trace_id
+    )
+    VALUES (
+      $1, $2, 'active', 1, $3, $4, $5, $6,
+      $7, $8::jsonb, '{}'::jsonb, $9,
+      $10, $11::risk_level, 'verified', '[]'::jsonb, '[]'::jsonb,
+      '{}'::jsonb, 'global', 'governance', 'global_reusable', 'active',
+      $12, 'tenant_global', $13
+    )
+    RETURNING id
+    `,
+    [
+      input.tenantId, input.scope, input.ruleKey,
+      input.ruleType, input.title, input.statement,
+      input.statement.toLowerCase(), JSON.stringify(appliesTo),
+      enforcementLevel, priority, riskLevel,
+      ruleDomain, input.traceId
+    ]
+  );
+  return { id: result.rows[0].id, action: "created" };
 }

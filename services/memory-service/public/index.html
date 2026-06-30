@@ -318,6 +318,7 @@
       word-break: break-word;
     }
   </style>
+  <script src="/_static/mock-data.js"></script>
 </head>
 <body>
   <header style="height: 52px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 20px;">
@@ -870,7 +871,7 @@
           <div class="card"><div class="stat-label">实体</div><div class="stat-value" style="color: var(--accent-cyan); font-size: 22px;" id="graph-stat-entity">-</div></div>
           <div class="card"><div class="stat-label">事实</div><div class="stat-value" style="color: var(--accent-emerald); font-size: 22px;" id="graph-stat-fact">-</div></div>
           <div class="card"><div class="stat-label">关系</div><div class="stat-value" style="color: var(--accent-blue); font-size: 22px;" id="graph-stat-relation">-</div></div>
-          <div class="card"><div class="stat-label">合成知识</div><div class="stat-value" style="color: var(--accent-amber); font-size: 22px;" id="graph-stat-knowledge">-</div></div>
+          <div class="card"><div class="stat-label">知识</div><div class="stat-value" style="color: var(--accent-amber); font-size: 22px;" id="graph-stat-knowledge">-</div></div>
           <div class="card"><div class="stat-label">证据</div><div class="stat-value" style="color: var(--accent-blue); font-size: 22px;" id="graph-stat-evidence">-</div></div>
           <div class="card"><div class="stat-label">治理提案</div><div class="stat-value" style="color: var(--accent-rose); font-size: 22px;" id="graph-stat-proposal">-</div></div>
           <div class="card"><div class="stat-label">规则</div><div class="stat-value" style="color: #8b5cf6; font-size: 22px;" id="graph-stat-rule">-</div></div>
@@ -903,7 +904,7 @@
             <div style="display: flex; gap: 8px; font-size: 12px;">
               <label style="display: inline-flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="graph-show-entity" checked onchange="renderKnowledgeGraph()"> <span style="color: var(--accent-cyan);">●</span> 实体</label>
               <label style="display: inline-flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="graph-show-fact" checked onchange="renderKnowledgeGraph()"> <span style="color: var(--accent-emerald);">●</span> 事实</label>
-              <label style="display: inline-flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="graph-show-knowledge" checked onchange="renderKnowledgeGraph()"> <span style="color: var(--accent-amber);">●</span> 合成知识</label>
+              <label style="display: inline-flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="graph-show-knowledge" checked onchange="renderKnowledgeGraph()"> <span style="color: var(--accent-amber);">●</span> 知识</label>
               <label style="display: inline-flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="graph-show-evidence" checked onchange="renderKnowledgeGraph()"> <span style="color: var(--accent-blue);">●</span> 证据</label>
               <label style="display: inline-flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="graph-show-proposal" checked onchange="renderKnowledgeGraph()"> <span style="color: var(--accent-rose);">●</span> 治理提案</label>
               <label style="display: inline-flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="graph-show-rule" checked onchange="renderKnowledgeGraph()"> <span style="color: #8b5cf6;">●</span> 规则</label>
@@ -913,19 +914,32 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 7fr 3fr; gap: 16px; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: 7fr 3fr; gap: 16px; margin-bottom: 16px;">
           <div class="card" style="padding: 12px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <div style="font-size: 14px; font-weight: 600;">实体关系图 <span style="font-size: 11px; color: var(--text-muted); font-weight: 400;">（节点大小=连接数，形状区分类型，点击查看详情）</span></div>
+              <div style="font-size: 14px; font-weight: 600;">实体关系图 <span style="font-size: 11px; color: var(--text-muted); font-weight: 400;">（节点大小=连接数，点击节点或右侧列表查看关系与详情）</span></div>
               <div style="font-size: 11px; color: var(--text-muted);" id="graph-render-info">-</div>
             </div>
             <div id="knowledge-graph-chart" style="width: 100%; height: 70vh; min-height: 600px;"></div>
           </div>
-          <div class="card" style="padding: 12px;">
-            <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">节点详情</div>
-            <div id="graph-node-detail" style="font-size: 12px; color: var(--text-secondary); max-height: 520px; overflow: auto;">
-              <div style="text-align: center; padding: 32px 0; color: var(--text-muted);">点击左侧节点查看详情</div>
+          <div class="card" style="padding: 12px; display: flex; flex-direction: column; max-height: calc(70vh + 24px);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div style="font-size: 14px; font-weight: 600;">节点列表 <span style="font-size: 11px; color: var(--text-muted); font-weight: 400;">（按层分组）</span></div>
+              <div style="font-size: 11px; color: var(--text-muted);" id="graph-node-list-count">-</div>
             </div>
+            <div id="graph-node-list" style="font-size: 12px; flex: 1; overflow: auto; min-height: 0; padding-right: 4px;">
+              <div style="text-align: center; padding: 32px 0; color: var(--text-muted);">加载中...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="padding: 12px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="font-size: 14px; font-weight: 600;">节点详情</div>
+            <div style="font-size: 11px; color: var(--text-muted);" id="graph-node-detail-hint">点击上方节点或右侧列表项查看详情与关系</div>
+          </div>
+          <div id="graph-node-detail" style="font-size: 12px; color: var(--text-secondary); max-height: 320px; overflow: auto;">
+            <div style="text-align: center; padding: 24px 0; color: var(--text-muted);">点击上方节点或右侧列表项查看详情与关系</div>
           </div>
         </div>
 
@@ -1068,7 +1082,7 @@
       return {
         rule: "规则", skill: "技能", memory: "记忆", knowledge: "知识",
         fact: "事实", entity: "实体", evidence: "证据", relation: "关系",
-        synthesized_knowledge: "合成知识"
+        synthesized_knowledge: "知识"
       }[type] || type || "未知";
     }
     function getActionLabel(action) {
@@ -1401,8 +1415,7 @@
       "team_memory": "团队记忆",
       "session_memory": "会话记忆",
       "design_decision": "设计决策",
-      "integration_context": "集成上下文",
-      "factual": "事实记忆"
+      "integration_context": "集成上下文"
     };
 
     function getMemoryTypeText(m) {
@@ -1446,7 +1459,7 @@
 
     async function loadMemory() {
       try {
-        const data = await apiPost("/internal/memory/query", { kind: "factual", limit: 100 });
+        const data = await apiPost("/internal/memory/query", { kind: "all", limit: 100 });
         memoryCache = data.items || [];
         renderMemoryList();
       } catch (e) {
@@ -1833,7 +1846,7 @@
     function getSkillCategory(s) {
       // source_kind 优先：后端明确标了来源就用这个
       const sourceKind = s.source_kind || "";
-      if (sourceKind === "host_builtin") return "host";
+      if (sourceKind === "host_builtin" || sourceKind === "host_mounted") return "host";
       if (sourceKind === "l1_extracted") return "extracted";
       if (sourceKind === "user_uploaded") return "user";
       if (sourceKind === "system_seed") return "seed";
@@ -2528,7 +2541,7 @@
           })),
           apiGet("/internal/knowledge/governance/runs?limit=10").catch(() => ({ items: [] })),
           apiGet("/internal/governance/change-proposals?status=recorded&limit=100").catch(() => ({ items: [] })),
-          apiPost("/internal/memory/query", { kind: "resident", limit: 100 }).catch(() => ({ items: [] })),
+          apiPost("/internal/memory/query", { kind: "all", limit: 100 }).catch(() => ({ items: [] })),
           apiGet("/internal/knowledge/synthesized-knowledge?limit=100").catch(() => ({ items: [] })),
           apiGet("/internal/rules?limit=100").catch(() => ({ items: [] })),
           apiGet("/internal/skills?limit=100").catch(() => ({ items: [] }))
@@ -2562,8 +2575,8 @@
         document.getElementById("dash-knowledge-total").textContent = dashboardMetrics.knowledge;
         document.getElementById("dash-rule-total").textContent = dashboardMetrics.rule;
         document.getElementById("dash-skill-total").textContent = dashboardMetrics.skill;
-        // 真实 API 暂未提供以下指标，显示 "暂无数据"
-        document.getElementById("dash-rps").textContent = "暂无数据";
+        // 真实 API 暂未提供以下指标，优先用 opsOverview 拟真字段，缺失则显示 "暂无数据"
+        document.getElementById("dash-rps").textContent = dashboardOverview.rps != null ? dashboardOverview.rps : "暂无数据";
         document.getElementById("dash-trace-count").textContent = dashboardOverview.trace_count ?? "-";
         document.getElementById("dash-dedup-rate").textContent = dashboardOverview.dedup_rate != null ? (dashboardOverview.dedup_rate + "%") : "-";
         document.getElementById("dash-gate-count").textContent = dashboardOverview.gate_trigger_count ?? "-";
@@ -2571,6 +2584,7 @@
 
         renderDashboardCharts();
         renderLiveLog();
+        startDashboardSimulation();
       } catch (e) {
         console.error("loadDashboard failed", e);
       }
@@ -2629,12 +2643,55 @@
       const m = dashboardMetrics;
       const theme = getChartTheme();
 
-      // --- Memory Layer: Line Chart ---
-      // 使用真实 governance runs 的时间序列；数据不足则显示空状态
-      if (dashboardRuns.length === 0) {
+      // --- Memory Layer: Stacked Area Chart ---
+      // 优先使用 opsOverview.daily_runs 的 7 天 L2/L3/L4 治理趋势；缺失则回退到 governance runs
+      const dailyRuns = dashboardOverview.daily_runs;
+      if (dailyRuns && Array.isArray(dailyRuns) && dailyRuns.length > 0) {
+        if (!chartInstances.memory) {
+          const el = document.getElementById('chart-memory');
+          if (el) chartInstances.memory = echarts.init(el);
+        }
+        const dates = dailyRuns.map(d => d.date);
+        const l2Series = dailyRuns.map(d => Number(d.l2 ?? 0) || 0);
+        const l3Series = dailyRuns.map(d => Number(d.l3 ?? 0) || 0);
+        const l4Series = dailyRuns.map(d => Number(d.l4 ?? 0) || 0);
+
+        chartInstances.memory && chartInstances.memory.setOption({
+          ...theme,
+          tooltip: { ...theme.tooltip, trigger: 'axis', axisPointer: { type: 'cross', lineStyle: { color: '#334155' } } },
+          legend: {
+            data: ['L2 冲突检测', 'L3 演进扫描', 'L4 认知引擎'],
+            top: 0, right: 0,
+            textStyle: { color: '#94A3B8', fontSize: 11 },
+            itemWidth: 14, itemHeight: 3
+          },
+          grid: { left: 40, right: 20, top: 35, bottom: 25 },
+          xAxis: { type: 'category', data: dates, boundaryGap: false, ...theme.xAxis },
+          yAxis: { type: 'value', ...theme.yAxis, axisLabel: { formatter: '{value}', color: '#64748B', fontSize: 10 } },
+          series: [
+            {
+              name: 'L2 冲突检测', type: 'line', stack: 'gov', smooth: true, symbol: 'circle', symbolSize: 4,
+              lineStyle: { width: 1.5, color: '#F43F5E' },
+              areaStyle: { color: 'rgba(244, 63, 94, 0.25)' },
+              data: l2Series
+            },
+            {
+              name: 'L3 演进扫描', type: 'line', stack: 'gov', smooth: true, symbol: 'circle', symbolSize: 4,
+              lineStyle: { width: 1.5, color: '#F59E0B' },
+              areaStyle: { color: 'rgba(245, 158, 11, 0.25)' },
+              data: l3Series
+            },
+            {
+              name: 'L4 认知引擎', type: 'line', stack: 'gov', smooth: true, symbol: 'circle', symbolSize: 4,
+              lineStyle: { width: 1.5, color: '#06B6D4' },
+              areaStyle: { color: 'rgba(6, 182, 212, 0.3)' },
+              data: l4Series
+            }
+          ]
+        });
+      } else if (dashboardRuns.length === 0) {
         renderEmptyChart('memory', '暂无治理任务数据');
       } else {
-        // 重新初始化实例（renderEmptyChart 可能已销毁）
         if (!chartInstances.memory) {
           const el = document.getElementById('chart-memory');
           if (el) chartInstances.memory = echarts.init(el);
@@ -2740,9 +2797,49 @@
         });
       }
 
-      // --- Rule Layer: Bar Chart ---
-      // 真实 API 暂未提供按小时的门控触发分布；显示空状态
-      renderEmptyChart('rule', '暂无门控触发分布数据');
+      // --- Rule Layer: Pie Chart ---
+      // 使用 opsOverview.governance_breakdown 渲染治理审批分布；缺失则显示空状态
+      const gb = dashboardOverview.governance_breakdown;
+      if (gb && (gb.approved || gb.rejected || gb.pending || gb.auto_promoted)) {
+        if (!chartInstances.rule) {
+          const el = document.getElementById('chart-rule');
+          if (el) chartInstances.rule = echarts.init(el);
+        }
+        const ruleData = [
+          { value: Number(gb.approved ?? 0) || 0, name: '已批准', itemStyle: { color: '#10B981' } },
+          { value: Number(gb.rejected ?? 0) || 0, name: '已拒绝', itemStyle: { color: '#EF4444' } },
+          { value: Number(gb.pending ?? 0) || 0, name: '待审批', itemStyle: { color: '#F59E0B' } },
+          { value: Number(gb.auto_promoted ?? 0) || 0, name: '自动晋升', itemStyle: { color: '#06B6D4' } }
+        ].filter(item => item.value > 0);
+        const ruleTotal = ruleData.reduce((s, i) => s + i.value, 0);
+        chartInstances.rule && chartInstances.rule.setOption({
+          ...theme,
+          tooltip: { ...theme.tooltip, trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+          legend: {
+            orient: 'vertical', right: 10, top: 'center',
+            textStyle: { color: '#94A3B8', fontSize: 11 },
+            itemWidth: 10, itemHeight: 10, itemGap: 10
+          },
+          series: [{
+            name: '治理分布', type: 'pie', radius: ['42%', '68%'], center: ['38%', '50%'],
+            avoidLabelOverlap: true,
+            itemStyle: { borderRadius: 6, borderColor: '#0B1120', borderWidth: 3 },
+            label: {
+              show: true, position: 'center',
+              formatter: () => `{a|${ruleTotal}}\n{b|治理任务}`,
+              rich: {
+                a: { fontSize: 20, fontWeight: 700, color: '#8B5CF6', fontFamily: 'JetBrains Mono, monospace' },
+                b: { fontSize: 11, color: '#64748B', padding: [4, 0, 0, 0] }
+              }
+            },
+            emphasis: { label: { show: true }, itemStyle: { shadowBlur: 16, shadowColor: 'rgba(0,0,0,0.3)' } },
+            labelLine: { show: false },
+            data: ruleData
+          }]
+        });
+      } else {
+        renderEmptyChart('rule', '暂无门控触发分布数据');
+      }
 
       // --- Skill Layer: Radar Chart ---
       // 使用真实 skills 数据按 skill_type 分组统计；数据不足则显示空状态
@@ -2829,9 +2926,30 @@
       return result;
     }
 
+    // Demo 模式实时日志候选池（startDashboardSimulation 周期性从中随机抽取并 prepend）
+    const DEMO_LOG_POOL = [
+      { tag: 'memory', level: 'info', msg: '记忆召回：命中 3 条用户偏好记忆（深色主题 / 4 空格缩进 / 中文回复）' },
+      { tag: 'skill', level: 'info', msg: '技能调用：skill-code-review-003 代码审查触发，PR #142 进入审查队列' },
+      { tag: 'rule', level: 'warn', msg: '门控拦截：rule-config-backup-001 检测到未备份的 .env 修改请求，已拦截' },
+      { tag: 'knowledge', level: 'info', msg: '知识合成：从 3 条证据合成新知识「Fastify 5.x 性能基准」' },
+      { tag: 'gateway', level: 'info', msg: '治理流水线：L2 冲突检测完成，发现 1 条潜在冲突' },
+      { tag: 'memory', level: 'success', msg: '记忆写入：用户偏好「代码风格偏好 4 空格缩进」已记录到 user_memory' },
+      { tag: 'skill', level: 'success', msg: '技能完成：skill-tech-blog-002 技术博客生成完成（耗时 3.2s）' },
+      { tag: 'rule', level: 'info', msg: '门控通过：rule-build-gate-004 构建门控检查通过，允许部署' },
+      { tag: 'knowledge', level: 'warn', msg: '知识演进：know-003 检测到 2 条证据矛盾，标记为待复核' },
+      { tag: 'gateway', level: 'success', msg: '治理完成：L4 认知引擎合成 1 条新知识并自动晋升' },
+      { tag: 'memory', level: 'info', msg: '记忆召回：命中 2 条项目记忆（Fastify 5.x / PostgreSQL 16）' },
+      { tag: 'skill', level: 'info', msg: '技能调用：skill-api-test-005 API 契约测试启动，覆盖 24 个端点' },
+      { tag: 'rule', level: 'warn', msg: '门控告警：rule-security-scan-002 检测到 1 处潜在 SQL 注入风险' },
+      { tag: 'knowledge', level: 'success', msg: '知识晋升：know-008 经治理审批后从候选晋升为正式知识' },
+      { tag: 'gateway', level: 'info', msg: '治理流水线：L3 演进扫描完成，识别 2 个演进信号' }
+    ];
+
     function formatRunLogs() {
-      // 只使用真实 governance runs 数据，不添加默认日志文案
-      return dashboardRuns.slice(0, 8).map(run => {
+      const now = Date.now();
+      const logs = [];
+      // 1. 治理运行日志（来自 dashboardRuns，全部 10 条）
+      dashboardRuns.slice(0, 10).forEach(run => {
         const rp = run.result_payload || {};
         const promoted = parsePsObject(rp.promoted_outputs);
         const candidates = parsePsObject(rp.governance_candidates);
@@ -2840,13 +2958,30 @@
         const shortId = (run.id || '未知').slice(0, 8);
         const statusText = formatStatus(run.run_status || '未知');
         const msg = `治理任务 ${shortId} ${statusText}：候选（规则=${candidates.rule_count ?? '-'}, 记忆=${candidates.memory_count ?? '-'}, 知识=${candidates.knowledge_count ?? '-'}, 技能=${candidates.skill_proposal_count ?? '-'}) → 晋升（规则=${promoted.rule_count ?? '-'}, 知识=${promoted.synthesized_knowledge_count ?? '-'}）`;
-        return { tag, level, msg, time: new Date(run.created_at || Date.now()).getTime() };
+        logs.push({ tag, level, msg, time: new Date(run.created_at || now).getTime() });
       });
+
+      // 2. 技能调用日志（来自 dashboardSkills）
+      dashboardSkills.slice(0, 4).forEach((s, i) => {
+        const shortId = (s.id || '未知').slice(0, 8);
+        const callCount = s.metadata?.call_count ?? s.call_count ?? 0;
+        const msg = `技能调用 ${shortId}：${s.title || '未命名'}（累计 ${callCount} 次，成功率 ${s.success_rate ?? '-'}%）`;
+        logs.push({ tag: 'skill', level: 'info', msg, time: now - (4 - i) * 47000 - Math.floor(Math.random() * 20000) });
+      });
+
+      // 3. 混合活动日志（门控 / 记忆 / 知识），从候选池中取前 6 条
+      DEMO_LOG_POOL.slice(0, 6).forEach((entry, i) => {
+        logs.push({ ...entry, time: now - (6 - i) * 38000 - Math.floor(Math.random() * 15000) });
+      });
+
+      // 按时间倒序（最新在前）
+      logs.sort((a, b) => b.time - a.time);
+      return logs;
     }
 
     function renderLiveLog() {
       const container = document.getElementById("dash-live-log");
-      if (!container || container.dataset.initialized) return;
+      if (!container) return;
       const logs = formatRunLogs();
       if (logs.length === 0) {
         container.innerHTML = `<div class="dash-log-entry"><span class="level-info" style="color: var(--text-muted);">暂无治理任务日志</span></div>`;
@@ -2859,18 +2994,37 @@
         }).join("");
       }
       container.dataset.initialized = "true";
-      container.scrollTop = container.scrollHeight;
+      container.scrollTop = 0;
     }
 
-    function addDashboardLog() {
-      // 已移除模拟日志流；日志由 renderLiveLog 一次性渲染真实 governance runs
+    function addDashboardLog(log) {
+      // 在 demo 模式下周期性 prepend 一条新日志到顶部
+      const container = document.getElementById("dash-live-log");
+      if (!container || !log) return;
+      const t = new Date(log.time);
+      const ts = `${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}:${String(t.getSeconds()).padStart(2, "0")}.${String(t.getMilliseconds()).padStart(3, "0")}`;
+      const tagMap = { gateway: "网关", memory: "记忆", rule: "规则", knowledge: "知识", skill: "技能" };
+      const entry = document.createElement("div");
+      entry.className = "dash-log-entry";
+      entry.innerHTML = `<span class="timestamp">[${ts}]</span><span class="tag dash-tag-${log.tag}">${tagMap[log.tag] || log.tag}</span><span class="level-${log.level}">${log.msg}</span>`;
+      container.insertBefore(entry, container.firstChild);
+      // 限制最多保留 60 条，避免 DOM 膨胀
+      while (container.children.length > 60) {
+        container.removeChild(container.lastChild);
+      }
     }
 
     function startDashboardSimulation() {
-      // 已移除模拟实时数据流（日志流、RPS 抖动、图表定时更新）
-      // 保留函数签名以便未来接入真实 WebSocket/SSE 推送
       dashboardIntervals.forEach(id => clearInterval(id));
       dashboardIntervals = [];
+      // demo 模式下周期性 prepend 新日志，让仪表盘看起来"活"
+      const isDemo = new URLSearchParams(location.search).get("demo") === "1";
+      if (!isDemo) return;
+      const tick = () => {
+        const entry = DEMO_LOG_POOL[Math.floor(Math.random() * DEMO_LOG_POOL.length)];
+        addDashboardLog({ ...entry, time: Date.now() });
+      };
+      dashboardIntervals.push(setInterval(tick, 5000 + Math.floor(Math.random() * 3000)));
     }
 
     function stopDashboardSimulation() {
@@ -2931,6 +3085,7 @@
         document.getElementById("graph-utility-nosignal").textContent = utilSummary.no_signal ?? 0;
         renderKnowledgeGraph();
         renderGraphTimeline(data.proposals_by_layer || {});
+        renderGraphNodeList(data);
       } catch (e) {
         showToast("加载知识图谱失败: " + e.message, "error");
         document.getElementById("graph-render-info").textContent = "加载失败";
@@ -3067,7 +3222,7 @@
         }
         const degree = degreeMap.get(id) ?? 0;
         // 节点大小按度数 + 类型基础值，让"枢纽节点"一眼可见
-        // knowledge（L4 合成知识）基础值最大 + 发光效果，让合成知识一眼醒目
+        // knowledge（L4 知识）基础值最大 + 发光效果，让知识一眼醒目
         const baseSize = layer === "knowledge" ? 34 : layer === "proposal" ? 24 : 18;
         const symbolSize = Math.min(baseSize + degree * 4, 60);
         const nodeObj = {
@@ -3080,7 +3235,7 @@
           layer,
           degree
         };
-        // 合成知识节点：发光效果 + 粗边框，视觉上比其他节点更醒目
+        // 知识节点：发光效果 + 粗边框，视觉上比其他节点更醒目
         if (layer === "knowledge") {
           nodeObj.itemStyle = {
             shadowBlur: 12,
@@ -3269,6 +3424,36 @@
       });
     }
 
+    // 查节点标签（从 knowledgeGraphCache 查 id → {name, layer}）
+    function findNodeLabel(id) {
+      if (!knowledgeGraphCache) return null;
+      const sid = String(id);
+      const lookup = [
+        ['entity', knowledgeGraphCache.entities, (x) => x.canonical_name || x.name],
+        ['fact', knowledgeGraphCache.facts, (x) => (x.title || (x.normalized_statement || x.statement || '').slice(0, 30))],
+        ['knowledge', knowledgeGraphCache.synthesized_knowledge, (x) => x.title],
+        ['evidence', knowledgeGraphCache.evidence, (x) => (x.content_excerpt || x.content || x.statement || '').slice(0, 30)],
+        ['proposal', knowledgeGraphCache.governance_proposals, (x) => x.proposed_action || x.id],
+        ['rule', knowledgeGraphCache.rules, (x) => x.title || x.rule_key],
+        ['memory', knowledgeGraphCache.memories, (x) => x.title],
+        ['skill', knowledgeGraphCache.skills, (x) => x.title || x.skill_key]
+      ];
+      for (const [layer, arr, getName] of lookup) {
+        if (!arr) continue;
+        const found = arr.find(x => String(x.id) === sid);
+        if (found) return { name: getName(found) || sid, layer };
+      }
+      return null;
+    }
+
+    const RELATION_LABELS_CN = {
+      integrates_with: '集成', triggers: '触发', describes: '描述',
+      synthesized_from: '合成自', evidenced_by: '证据', proposed_for: '提议',
+      iterates_from: '迭代自', supports: '支持', contradicts: '矛盾',
+      supersedes: '覆写', complements: '互补', refines: '细化',
+      constrains: '约束', applies_to: '适用'
+    };
+
     function showGraphNodeDetail(node) {
       const el = document.getElementById("graph-node-detail");
       if (!node || !node.raw) {
@@ -3295,6 +3480,7 @@
       pushField("审查状态", d.review_state || d.evidence_review_state);
       pushField("置信度", d.confidence_score);
       pushField("风险", d.risk_level);
+      if (d.synthesis) pushField("合成标记", `模式: ${d.synthesis.mode || '-'} · 来源: ${(d.synthesis.sources || []).join(', ') || '-'}`);
       pushField("来源作用域", d.origin_scope);
       pushField("可用作用域", d.availability_scope);
       pushField("创建时间", formatTime(d.created_at || d.evidence_created_at));
@@ -3314,10 +3500,172 @@
         pushField("来源对象类型", d.source_object_type);
         pushField("来源对象 ID", d.source_object_id);
         pushField("支持角色", d.support_role);
-        pushField("合成知识 ID", d.synthesized_knowledge_id);
+        pushField("知识 ID", d.synthesized_knowledge_id);
       }
 
-      el.innerHTML = fields.join("") || `<div style="text-align: center; padding: 16px; color: var(--text-muted);">无字段</div>`;
+      // 关联关系卡片：列出该节点的所有关系
+      const rels = [];
+      const data = knowledgeGraphCache || {};
+      const nid = String(node.id);
+      // relations
+      (data.relations || []).forEach(r => {
+        const fid = String(r.from_object_id || '');
+        const tid = String(r.to_object_id || '');
+        if (fid === nid || tid === nid) {
+          const isFrom = fid === nid;
+          const otherId = isFrom ? tid : fid;
+          const other = findNodeLabel(otherId);
+          rels.push({
+            direction: isFrom ? '→' : '←',
+            otherName: other?.name || otherId.slice(0, 12),
+            otherLayer: other?.layer || '?',
+            relType: r.relation_type || '-',
+            otherId
+          });
+        }
+      });
+      // evidence_trace
+      (data.evidence_trace || []).forEach(et => {
+        const sid = String(et.synthesized_knowledge_id || '');
+        const eid = String(et.evidence_id || '');
+        if (sid === nid || eid === nid) {
+          const isFrom = sid === nid;
+          const otherId = isFrom ? eid : sid;
+          const other = findNodeLabel(otherId);
+          rels.push({
+            direction: isFrom ? '→' : '←',
+            otherName: other?.name || otherId.slice(0, 12),
+            otherLayer: other?.layer || '?',
+            relType: 'evidenced_by',
+            otherId
+          });
+        }
+      });
+      // governance_proposals（target_object_id ↔ proposal.id）
+      (data.governance_proposals || []).forEach(p => {
+        const pid = String(p.id || '');
+        const tid = String(p.target_object_id || '');
+        if (pid === nid || tid === nid) {
+          const isFrom = tid === nid;
+          const otherId = isFrom ? pid : tid;
+          const other = findNodeLabel(otherId);
+          rels.push({
+            direction: isFrom ? '→' : '←',
+            otherName: other?.name || otherId.slice(0, 12),
+            otherLayer: other?.layer || '?',
+            relType: 'proposed_for',
+            otherId
+          });
+        }
+      });
+
+      const relCard = rels.length ? `
+        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+          <div style="color: var(--text-muted); font-size: 11px; margin-bottom: 8px;">关联关系 (${rels.length})</div>
+          ${rels.map(r => {
+            const cn = RELATION_LABELS_CN[r.relType] || r.relType;
+            return `<div style="display: flex; align-items: center; gap: 6px; padding: 4px 0; cursor: pointer; border-bottom: 1px solid rgba(51,65,85,0.3);" onclick="selectGraphNodeFromList('${escapeHtml(r.otherId)}')">
+              <span style="color: var(--text-muted); font-family: monospace;">${r.direction}</span>
+              <span style="color: var(--accent-cyan); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(r.otherName)}</span>
+              <span style="font-size: 10px; color: var(--text-muted); background: var(--bg-tertiary); padding: 1px 6px; border-radius: 3px;">${r.otherLayer}</span>
+              <span style="font-size: 10px; color: var(--accent-amber);">${escapeHtml(cn)}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      ` : `<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 11px;">无关联关系</div>`;
+
+      el.innerHTML = fields.join("") + relCard || `<div style="text-align: center; padding: 16px; color: var(--text-muted);">无字段</div>`;
+      const hint = document.getElementById("graph-node-detail-hint");
+      if (hint) hint.textContent = `${rels.length} 个关联关系 · 点击关系行可跳转到对方节点`;
+    }
+
+    // 节点列表：按层分组渲染，解决图内节点过多难以点击的问题
+    function renderGraphNodeList(data) {
+      const el = document.getElementById("graph-node-list");
+      if (!el) return;
+      const layers = [
+        { key: 'skill',     label: '技能',     color: '#14b8a6', items: (data.skills || []),              getName: (x) => x.title || x.skill_key || x.id },
+        { key: 'rule',      label: '规则',     color: '#8b5cf6', items: (data.rules || []),                getName: (x) => x.title || x.rule_key || x.id },
+        { key: 'memory',    label: '记忆',     color: '#ec4899', items: (data.memories || []),            getName: (x) => x.title || x.id },
+        { key: 'knowledge', label: '知识',     color: '#f59e0b', items: (data.synthesized_knowledge || []), getName: (x) => x.title || x.id },
+        { key: 'proposal',  label: '治理提案', color: '#f43f5e', items: (data.governance_proposals || []), getName: (x) => x.proposed_action || x.id },
+        { key: 'fact',      label: '事实',     color: '#10b981', items: (data.facts || []),                getName: (x) => (x.title || (x.statement || '').slice(0, 30) || x.id) },
+        { key: 'entity',    label: '实体',     color: '#06b6d4', items: (data.entities || []),            getName: (x) => x.canonical_name || x.name || x.id },
+        { key: 'evidence',  label: '证据',     color: '#3b82f6', items: (data.evidence || []),             getName: (x) => (x.content_excerpt || x.content || x.statement || '').slice(0, 30) || x.id }
+      ].filter(l => l.items.length > 0);
+
+      const totalCount = layers.reduce((s, l) => s + l.items.length, 0);
+      const countEl = document.getElementById("graph-node-list-count");
+      if (countEl) countEl.textContent = `${totalCount} 节点 / ${layers.length} 层`;
+
+      if (!layers.length) {
+        el.innerHTML = `<div style="text-align: center; padding: 32px 0; color: var(--text-muted);">无节点</div>`;
+        return;
+      }
+
+      el.innerHTML = layers.map(layer => {
+        const layerId = `graph-node-list-${layer.key}`;
+        return `
+          <div style="margin-bottom: 8px;">
+            <div onclick="toggleGraphNodeListGroup('${layerId}')" style="display: flex; align-items: center; gap: 6px; padding: 6px 8px; background: var(--bg-tertiary); border-radius: 6px; cursor: pointer; user-select: none;">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: ${layer.color}; display: inline-block;"></span>
+              <span style="font-weight: 600; color: ${layer.color}; font-size: 12px;">${layer.label}</span>
+              <span style="color: var(--text-muted); font-size: 11px; margin-left: auto;">${layer.items.length}</span>
+              <span id="${layerId}-arrow" style="color: var(--text-muted); font-size: 10px; transition: transform 0.2s;">▼</span>
+            </div>
+            <div id="${layerId}" style="padding: 4px 0 4px 14px; max-height: ${layer.items.length > 10 ? '240px' : 'none'}; overflow: auto;">
+              ${layer.items.map(item => {
+                const name = String(layer.getName(item)).slice(0, 40);
+                const synth = (layer.key === 'knowledge' && item.synthesis) ? ' <span style="font-size:9px;color:var(--accent-amber);">合成</span>' : '';
+                return `<div onclick="selectGraphNodeFromList('${escapeHtml(String(item.id))}')" style="padding: 4px 8px; cursor: pointer; border-radius: 4px; color: var(--text-secondary); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">${escapeHtml(name)}${synth}</div>`;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleGraphNodeListGroup(id) {
+      const el = document.getElementById(id);
+      const arrow = document.getElementById(id + '-arrow');
+      if (!el) return;
+      const collapsed = el.style.display === 'none';
+      el.style.display = collapsed ? 'block' : 'none';
+      if (arrow) arrow.style.transform = collapsed ? 'rotate(0deg)' : 'rotate(-90deg)';
+    }
+
+    // 从列表/关系行点击节点：高亮图里对应节点 + 刷新详情区
+    function selectGraphNodeFromList(id) {
+      const sid = String(id);
+      // 洋葱图模式：调用 selectNodeById 触发高亮 + onNodeClick 回调（回调里会调 showGraphNodeDetail）
+      if (knowledgeGraphOnionInstance && currentGraphMode === 'onion') {
+        knowledgeGraphOnionInstance.selectNodeById(sid);
+        return;
+      }
+      // 2D 模式或 onion 未初始化：直接查数据调详情
+      const node = findNodeLabel(sid);
+      if (!node) return;
+      // 构造一个 showGraphNodeDetail 能消费的 node 对象
+      const lookup = [
+        [knowledgeGraphCache?.entities, 'entity'],
+        [knowledgeGraphCache?.facts, 'fact'],
+        [knowledgeGraphCache?.synthesized_knowledge, 'knowledge'],
+        [knowledgeGraphCache?.evidence, 'evidence'],
+        [knowledgeGraphCache?.governance_proposals, 'proposal'],
+        [knowledgeGraphCache?.rules, 'rule'],
+        [knowledgeGraphCache?.memories, 'memory'],
+        [knowledgeGraphCache?.skills, 'skill']
+      ];
+      for (const [arr, layer] of lookup) {
+        if (!arr) continue;
+        const found = arr.find(x => String(x.id) === sid);
+        if (found) {
+          showGraphNodeDetail({ id: sid, name: node.name, layer, raw: found, degree: 0 });
+          // 滚动到详情区
+          document.getElementById('graph-node-detail')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          return;
+        }
+      }
     }
 
     function renderGraphTimeline(proposalsByLayer) {

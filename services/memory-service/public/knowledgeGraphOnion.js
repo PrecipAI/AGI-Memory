@@ -27,7 +27,7 @@ const TYPE_COLORS = {
 const TYPE_NAMES = {
   entity: '实体',
   fact: '事实',
-  knowledge: '合成知识',
+  knowledge: '知识',
   evidence: '证据',
   proposal: '治理提案',
   rule: '规则',
@@ -71,13 +71,38 @@ const GOVERNANCE_RELATIONS = new Set([
 ]);
 
 const RELATION_COLORS = {
-  supports:    '#10b981',
-  contradicts: '#ef4444',
-  supersedes:  '#f59e0b',
-  complements: '#3b82f6',
-  refines:     '#8b5cf6',
-  constrains:  '#ec4899',
-  applies_to:  '#14b8a6'
+  supports:         '#10b981',
+  contradicts:      '#ef4444',
+  supersedes:       '#f59e0b',
+  complements:      '#3b82f6',
+  refines:          '#8b5cf6',
+  constrains:       '#ec4899',
+  applies_to:       '#14b8a6',
+  // 补全常用关系色（mock 数据 + 后端默认关系）
+  integrates_with:  '#06b6d4',
+  triggers:         '#f43f5e',
+  describes:        '#94a3b8',
+  synthesized_from: '#f59e0b',
+  evidenced_by:     '#3b82f6',
+  proposed_for:     '#ec4899',
+  iterates_from:    '#a855f7'
+};
+
+const RELATION_LABELS = {
+  integrates_with:  '集成',
+  triggers:         '触发',
+  describes:        '描述',
+  synthesized_from: '合成自',
+  evidenced_by:     '证据',
+  proposed_for:     '提议',
+  iterates_from:    '迭代自',
+  supports:         '支持',
+  contradicts:      '矛盾',
+  supersedes:       '覆写',
+  complements:      '互补',
+  refines:          '细化',
+  constrains:       '约束',
+  applies_to:       '适用'
 };
 
 const MAX_NODES_FULL_QUALITY = 400;
@@ -616,6 +641,9 @@ class KnowledgeGraphOnion {
     const selectedId = this.selectedNode?.id;
     const connectedIds = selectedId ? this._getConnectedIds(selectedId) : null;
 
+    // 收集需要画关系标签的边（选中节点的直连边）
+    const labeledEdges = [];
+
     this.links.forEach(link => {
       const source = typeof link.source === 'object' ? link.source : this.nodes.find(n => n.id === link.source);
       const target = typeof link.target === 'object' ? link.target : this.nodes.find(n => n.id === link.target);
@@ -626,6 +654,7 @@ class KnowledgeGraphOnion {
 
       let alpha = isGov ? 0.35 : 0.12;
       let width = isGov ? 1.5 : 0.6;
+      let isHighlighted = false;
 
       if (searchActive) {
         const sMatch = this._nodeMatchesSearch(source);
@@ -633,13 +662,21 @@ class KnowledgeGraphOnion {
         alpha = sMatch || tMatch ? alpha : alpha * 0.1;
       } else if (connectedIds) {
         const involved = connectedIds.has(source.id) && connectedIds.has(target.id);
-        alpha = involved ? alpha : alpha * 0.1;
+        if (involved) {
+          // 选中节点的直连边：高亮加粗
+          alpha = 0.95;
+          width = Math.max(2.5, width * 3);
+          isHighlighted = true;
+        } else {
+          // 无关边：大幅变暗
+          alpha = alpha * 0.08;
+        }
       }
 
       if (isGov && !this.lodMode) {
         // glow pass
         ctx.strokeStyle = relColor;
-        ctx.globalAlpha = alpha * 0.25;
+        ctx.globalAlpha = isHighlighted ? alpha * 0.5 : alpha * 0.25;
         ctx.lineWidth = width * 4;
         ctx.beginPath();
         ctx.moveTo(source.x, source.y);
@@ -669,7 +706,43 @@ class KnowledgeGraphOnion {
       }
 
       ctx.globalAlpha = 1;
+
+      // 记录高亮边用于标签绘制
+      if (isHighlighted) {
+        labeledEdges.push({ source, target, relColor, rel: link.rel || link.type });
+      }
     });
+
+    // 绘制选中节点直连边的关系标签
+    if (labeledEdges.length) {
+      const invZoom = 1 / Math.max(this.zoom, 0.1); // 抵消 world scale，标签保持固定屏幕大小
+      labeledEdges.forEach(({ source, target, relColor, rel }) => {
+        const midX = (source.x + target.x) / 2;
+        const midY = (source.y + target.y) / 2;
+        const label = RELATION_LABELS[rel] || rel || '';
+        if (!label) return;
+        ctx.save();
+        ctx.translate(midX, midY);
+        ctx.scale(invZoom, invZoom);
+        ctx.font = '600 10px Inter, sans-serif';
+        const w = ctx.measureText(label).width + 10;
+        const h = 16;
+        // 背景
+        ctx.fillStyle = 'rgba(11,17,32,0.92)';
+        ctx.strokeStyle = relColor;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(-w/2, -h/2, w, h, 3);
+        ctx.fill();
+        ctx.stroke();
+        // 文字
+        ctx.fillStyle = relColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, 0, 0);
+        ctx.restore();
+      });
+    }
   }
 
   _drawNodes(ctx) {
@@ -856,6 +929,23 @@ class KnowledgeGraphOnion {
 
   setShowTypes(types) {
     this.showTypes = { ...this.showTypes, ...types };
+  }
+
+  // 从外部选中节点（节点列表点击时调用）
+  selectNodeById(id) {
+    const sid = String(id);
+    const node = this.nodes.find(n => n.id === sid);
+    if (node) {
+      this.selectedNode = node;
+      this.onNodeClick({ id: node.id, name: node.name, type: node.type, raw: node.raw, degree: node.degree });
+    } else {
+      this.selectedNode = null;
+    }
+  }
+
+  // 清除选中
+  clearSelection() {
+    this.selectedNode = null;
   }
 
   clear() {

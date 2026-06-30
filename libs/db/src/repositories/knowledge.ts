@@ -3220,9 +3220,64 @@ export async function getKnowledgeOpsOverview(input: {
           AND status = 'active'
           AND lifecycle_state = 'curated'
           AND recall_state = 'active'
-      ) AS active_derived_knowledge_count
+      ) AS active_derived_knowledge_count,
+      -- 4 层对象规模（用于仪表盘分层 KPI）
+      (SELECT COUNT(*)::int FROM memory WHERE tenant_id = $1 AND scope = $2 AND status = 'active') AS memory_count,
+      (SELECT COUNT(*)::int FROM rule WHERE tenant_id = $1 AND scope = $2 AND status = 'active') AS rule_count,
+      (SELECT COUNT(*)::int FROM skill WHERE tenant_id = $1 AND scope = $2 AND status = 'active') AS skill_count,
+      (SELECT COUNT(*)::int FROM kp_synthesized_knowledge WHERE tenant_id = $1 AND scope = $2 AND status = 'active') AS knowledge_count,
+      -- 治理任务状态分布（governance_change_proposal）
+      (SELECT COUNT(*)::int FROM governance_change_proposal WHERE tenant_id = $1 AND scope = $2 AND status = 'recorded') AS pending_proposal_count,
+      (SELECT COUNT(*)::int FROM governance_change_proposal WHERE tenant_id = $1 AND scope = $2 AND status = 'resolved' AND human_decision = 'approved') AS approved_proposal_count,
+      (SELECT COUNT(*)::int FROM governance_change_proposal WHERE tenant_id = $1 AND scope = $2 AND status = 'resolved' AND human_decision = 'rejected') AS rejected_proposal_count,
+      -- 记忆访问日志近 7 天累计（用作 trace_count 代理指标）
+      (SELECT COUNT(*)::int FROM memory_access_log WHERE tenant_id = $1 AND scope = $2 AND created_at >= now() - '7 days'::interval) AS trace_count,
+      -- 近 7 天累计门控触发次数（resolved proposal 中 rule 类型的近似计数）
+      (SELECT COUNT(*)::int FROM governance_change_proposal WHERE tenant_id = $1 AND scope = $2 AND target_object_type = 'rule' AND created_at >= now() - '7 days'::interval) AS gate_trigger_count,
+      -- 近 7 天累计插件调用次数（skill 调用次数总和近似；skill 表无 call_count 字段，用 success_rate 之和代理）
+      (SELECT COALESCE(SUM(success_rate), 0)::int FROM skill WHERE tenant_id = $1 AND scope = $2 AND status = 'active') AS plugin_call_count,
+      -- 去重合成率（kp_synthesized_knowledge 中 lifecycle_state='curated' 占比）
+      (
+        SELECT CASE WHEN COUNT(*) > 0 THEN ROUND(
+          COUNT(*) FILTER (WHERE lifecycle_state = 'curated') * 100.0 / COUNT(*), 0
+        )::int ELSE 0 END
+        FROM kp_synthesized_knowledge
+        WHERE tenant_id = $1 AND scope = $2 AND status = 'active'
+      ) AS dedup_rate
     `,
     [input.tenantId, input.scope]
   );
   return result.rows[0] ?? {};
+}
+
+/**
+ * 查询近 7 天 governance_job 按天分组的 L2/L3/L4 运行次数。
+ * 用于仪表盘的 7 天治理趋势堆叠图。governance_kind 字段决定层级归属。
+ */
+export async function getDailyGovernanceRuns(input: {
+  tenantId: string;
+  scope: string;
+  days?: number;
+}): Promise<Array<{ date: string; l2: number; l3: number; l4: number }>> {
+  const pool = getPool();
+  const days = input.days ?? 7;
+  const result = await pool.query(
+    `
+    SELECT
+      to_char(d.day, 'MM-DD') AS date,
+      COALESCE(SUM(CASE WHEN gj.governance_level = 'l2' THEN 1 ELSE 0 END), 0)::int AS l2,
+      COALESCE(SUM(CASE WHEN gj.governance_level = 'l3' THEN 1 ELSE 0 END), 0)::int AS l3,
+      COALESCE(SUM(CASE WHEN gj.governance_level = 'l4' THEN 1 ELSE 0 END), 0)::int AS l4
+    FROM generate_series(now() - ($3::int - 1) * '1 day'::interval, now(), '1 day'::interval) AS d(day)
+    LEFT JOIN kp_governance_job gj
+      ON gj.tenant_id = $1
+      AND gj.scope = $2
+      AND gj.created_at >= d.day
+      AND gj.created_at < d.day + '1 day'::interval
+    GROUP BY d.day
+    ORDER BY d.day ASC
+    `,
+    [input.tenantId, input.scope, days]
+  );
+  return result.rows as Array<{ date: string; l2: number; l3: number; l4: number }>;
 }
