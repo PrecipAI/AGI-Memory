@@ -89,6 +89,31 @@ export async function runCognitiveEngine(input: {
     content: string;
   }>;
   sessionSummary?: string;
+  /**
+   * P4 回看全批次：把本次治理批次的候选内容直接传给 L4，让 L4 在生成 synthesized
+   * knowledge 时不必依赖 new*Ids 反查 DB，能看到候选阶段完整内容（包括 layer_links
+   * 派生对的关联信息）。
+   *
+   * 不传时回退到旧行为（仅按 new*Ids 反查 assets）。
+   */
+  batchCandidates?: {
+    rules?: Array<{ id: string; title: string; content: string }>;
+    memories?: Array<{ id: string; title: string; content: string }>;
+    skills?: Array<{ id: string; title: string; content: string }>;
+    knowledge?: Array<{ id: string; title: string; content: string }>;
+    /**
+     * 本批次跨层派生关系（同源 source_timestamp 的 Rule+Memory 对）。
+     * L4 识别"复合信号模式"作为更高阶合成知识候选。
+     */
+    layerLinks?: Array<{
+      sourceId: string;
+      sourceLayer: "rule" | "skill" | "knowledge" | "memory";
+      targetId: string;
+      targetLayer: "rule" | "skill" | "knowledge" | "memory";
+      linkType: "derived_from" | "explains" | "constrains" | "provenance";
+      reason?: string;
+    }>;
+  };
 }): Promise<L4CognitiveOutput> {
   const assets = await collectContextAssets(input);
   // 反馈学习：加载历史被 Reject 的 (synthesis_type, hypothesis_type) 组合
@@ -215,6 +240,20 @@ async function generateHypotheses(
       title: string;
       content: string;
     }>;
+    batchCandidates?: {
+      rules?: Array<{ id: string; title: string; content: string }>;
+      memories?: Array<{ id: string; title: string; content: string }>;
+      skills?: Array<{ id: string; title: string; content: string }>;
+      knowledge?: Array<{ id: string; title: string; content: string }>;
+      layerLinks?: Array<{
+        sourceId: string;
+        sourceLayer: "rule" | "skill" | "knowledge" | "memory";
+        targetId: string;
+        targetLayer: "rule" | "skill" | "knowledge" | "memory";
+        linkType: "derived_from" | "explains" | "constrains" | "provenance";
+        reason?: string;
+      }>;
+    };
   },
   assets: L4ContextAsset[]
 ): Promise<Hypothesis[]> {
@@ -384,6 +423,42 @@ async function generateHypotheses(
           sourceAssetLayers: ["memory"],
         });
     }
+  }
+
+  // ⑤ P4 复合信号模式假设：基于本批次 layer_links 派生关系，识别"复合信号"模式。
+  // 一条复合信号（如 PowerShell UTF-8 乱码）同时派生 Rule（硬门控）+ Memory（事实根因），
+  // L4 把这种结构本身作为一个更高阶的 synthesized knowledge 候选：
+  // "在 X 类场景，事实根因 + 运行时门控必须成对存在，缺失任一会重蹈覆辙"。
+  const layerLinks = input.batchCandidates?.layerLinks ?? [];
+  const batchRules = input.batchCandidates?.rules ?? [];
+  const batchMemories = input.batchCandidates?.memories ?? [];
+  for (const link of layerLinks) {
+    if (link.linkType !== "derived_from") continue;
+    if (link.sourceLayer !== "rule" || link.targetLayer !== "memory") continue;
+    const rule = batchRules.find((r) => r.id === link.sourceId);
+    const memory = batchMemories.find((m) => m.id === link.targetId);
+    if (!rule || !memory) continue;
+    const ruleKeywords = extractKeywords(rule.content);
+    const memKeywords = extractKeywords(memory.content);
+    const overlap = ruleKeywords.filter((k) => memKeywords.includes(k));
+    if (overlap.length < 2) continue;
+    hypotheses.push({
+      id: `hypo-composite-${link.sourceId}-${link.targetId}`,
+      type: "cross_layer_correlation",
+      title: `复合信号模式：${rule.title} 与 ${memory.title} 同源派生`,
+      description: `本批次检测到一条复合信号同时派生为 Rule（运行时门控）和 Memory（事实根因），共享关键词：${overlap.join("、")}。` +
+        `这种"事实根因 + 硬门控"成对存在的模式，是认知沉淀的关键标志：缺失任一会导致同一失败模式重复发生。` +
+        (link.reason ? `派生理由：${link.reason}` : ""),
+      initialConfidence: 0.7,
+      evidence: [],
+      finalConfidence: 0,
+      reasoningChain: [],
+      conclusion: "",
+      layer: "causation",
+      sourceIds: [link.sourceId, link.targetId],
+      sourceLayer: "rule",
+      sourceAssetLayers: ["rule", "memory"],
+    });
   }
 
   return hypotheses;

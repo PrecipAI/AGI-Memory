@@ -1638,6 +1638,45 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       newKnowledgeIds: synthesizedKnowledgeIds,
     });
 
+    // P4 回看全批次：把本批次候选 + layer_links 派生关系直接传给 L4，
+    // 让 L4 能识别"复合信号模式"作为更高阶 synthesized knowledge 候选，
+    // 不必依赖 new*Ids 反查 DB。
+    // batch 阶段候选还没有持久化 id，用 `${source_timestamp}#${title}` 作为临时 key：
+    // - 同源信号共享 source_timestamp，能匹配 layer_links 派生关系
+    // - 加 title 区分同一 timestamp 的多个候选
+    // L4 的复合信号假设生成会用同一 key 在 batchRules/batchMemories 里 find 对应候选。
+    const batchRules = extractionPreview.rule_candidates;
+    const batchMemories = extractionPreview.memory_candidates;
+    const batchSkills = extractionPreview.skill_proposal_candidates;
+    const batchKnowledge = extractionPreview.knowledge_candidates;
+    const candidateKey = (timestamp: string, title: string) => `${timestamp}#${title}`;
+    const resolveCandidateKey = (
+      layer: "rule" | "skill" | "knowledge" | "memory",
+      index: number
+    ): string => {
+      try {
+        if (layer === "rule") {
+          const c = batchRules[index];
+          return c ? candidateKey(c.source_timestamp, c.title) : "";
+        }
+        if (layer === "memory") {
+          const c = batchMemories[index];
+          return c ? candidateKey(c.source_timestamp, c.title) : "";
+        }
+        if (layer === "skill") {
+          const c = batchSkills[index];
+          return c ? candidateKey(c.source_timestamp, c.title) : "";
+        }
+        if (layer === "knowledge") {
+          const c = batchKnowledge[index];
+          return c ? candidateKey(c.source_timestamp, c.title) : "";
+        }
+      } catch {
+        // index 越界返回空串
+      }
+      return "";
+    };
+
     const l4Result = await runCognitiveEngine({
       tenantId: input.tenantId,
       scope: input.scope,
@@ -1654,6 +1693,36 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
         title: s.title,
         content: s.content,
       })),
+      batchCandidates: {
+        rules: batchRules.map((c) => ({
+          id: candidateKey(c.source_timestamp, c.title),
+          title: c.title,
+          content: c.content ?? c.source_excerpt,
+        })),
+        memories: batchMemories.map((c) => ({
+          id: candidateKey(c.source_timestamp, c.title),
+          title: c.title,
+          content: c.content ?? c.source_excerpt,
+        })),
+        skills: batchSkills.map((c) => ({
+          id: candidateKey(c.source_timestamp, c.title),
+          title: c.title,
+          content: c.proposed_text ?? c.source_excerpt,
+        })),
+        knowledge: batchKnowledge.map((c) => ({
+          id: candidateKey(c.source_timestamp, c.title),
+          title: c.title,
+          content: c.content ?? c.source_excerpt,
+        })),
+        layerLinks: (extractionPreview.layer_links ?? []).map((l) => ({
+          sourceId: resolveCandidateKey(l.source_layer, l.source_candidate_index),
+          sourceLayer: l.source_layer,
+          targetId: resolveCandidateKey(l.target_layer, l.target_candidate_index),
+          targetLayer: l.target_layer,
+          linkType: l.link_type,
+          reason: l.reason,
+        })),
+      },
     });
 
     pipelineResult = {

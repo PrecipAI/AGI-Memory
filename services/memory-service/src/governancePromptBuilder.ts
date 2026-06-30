@@ -225,6 +225,16 @@ Memory 是关于 PERSON 的，不是关于 code 的。它个性化 AI 的行为�
 **质量门控**: "这条信息是否告诉我关于用户的一些事，帮助我下次更好地服务他？"
 如果答案是否 → 不是 Memory。
 
+### §M-SelfTest Memory 自我测试（生成前必跑）
+在写下每条 Memory 候选前，必须自问以下三个问题，任一为 NO 就丢弃或重写：
+1. **一月后还值得知道吗？**：想象一个月后回头看，这条信息还支撑未来交互吗？
+   - 反例：「这次把端口改成了 8080」→ 一月后毫无价值 → 丢弃或转 Evidence
+   - 正例：「用户偏好简洁回答，讨厌废话」→ 永久价值 → 通过
+2. **是关于用户的，不是关于代码的？**：Memory 必须刻画人，不是记录实现细节。
+   - 反例：「我们把 .env 改成了 15432」→ 关于代码 → 转 Evidence
+3. **是否会被时间稀释？**：项目阶段的临时偏好 → stability=temporary；长期不变 → stable。
+   - 临时偏好也要存，但必须打上 stability=temporary 让下游知道它会过期。
+
 **严格度 (strictness) 定义:**
 - \`hard_rule\`: 用户明确表达、绝对遵守的偏好（如"不要废话"、"只用 TypeScript"）。下游召回时不可截断。
 - \`soft_preference\`: 推断或隐含的倾向（如偏好简洁回答）。下游召回时可以按优先级截断。
@@ -292,6 +302,17 @@ Knowledge 是 CURATED 的理解，不是事实堆砌。它随时间进化。
 **质量门控**: "这个洞察是否会实质性地改变未来 AI 处理类似问题的方式？"
 如果答案是否 → 不是 Knowledge，只是个事实 (→ Evidence)。
 
+### §K-SelfTest Knowledge 自我测试（生成前必跑，双重门槛）
+Knowledge 是模型盲区认知，不是事实垃圾桶。在写下每条 Knowledge 候选前，必须同时通过以下两道门槛，**任一为 NO 直接降级到 Memory 或 Evidence**：
+
+1. **模型不会（OOD 门槛）**：这条认知是否超出主流大模型的训练分布？
+   - 反例：「PostgreSQL 支持 JSONB 类型」→ 主流模型都会 → 降级 Evidence
+   - 正例：「Zod catchall 在 JSON-RPC 序列化时静默剥离嵌套字段」→ 模型训练数据里几乎没有 → 通过
+2. **会复用（Reusable 门槛）**：未来在相似场景下，AI 真的会需要这条认知做决策吗？
+   - 反例：「本次项目里我们用了 7 个 skill」→ 一次性事实，未来用不上 → 降级 Memory
+   - 正例：「PowerShell 5.x 输出非 ASCII 字符必须显式设 OutputEncoding」→ 任何 Windows 环境都会复用 → 通过
+3. **学习行为链锚定**：如果是 acquired 类型（外部检索学到），必须有 search→learn→apply 三段式证据；如果是 synthesized 类型，必须给出跨事实归纳推理。**没有总结性文本则不硬造 Knowledge。**
+
 **避坑指南 (avoid_pitfall) 定义:**
 基于该知识，未来必须避免的具体错误。必须写成 "IF [条件] THEN [后果]" 格式，禁止写成模糊的 "注意 X"。
 
@@ -317,6 +338,15 @@ BAD: { "title": "Fastify 是 HTTP 框架", "content": "Fastify is the HTTP frame
 
 **质量门控**: "这是一个经验证的多步骤流程吗？有明确的触发条件吗？未来的 AI 照着走能省时间吗？"
 如果答案是否 → 不是 Skill。
+
+### §S-SelfTest Skill 自我测试（生成前必跑）
+在写下每条 Skill 候选前，必须自问以下两个问题，任一为 NO 就丢弃或重写：
+1. **换通用词可执行吗？**：把项目特定名词替换成通用术语后，步骤是否仍然能被另一个 AI 完整执行？
+   - 反例（全局级）：「打开 坑.txt 核对江妄的心跳」→ 换通用词就不知道核对了 → 重写或降级 project 级
+   - 正例（全局级）：「将悬置状态物化为持久化追踪对象，在任务完结前执行待办对象库对齐」→ 换通用词仍可执行 → 通过
+2. **是否是经验证的多步流程？**：必须 ≥ 2 个原子动作，且每个动作有明确产出。一次性命令不是 Skill。
+   - 反例：「运行 npm install」→ 单步命令 → 转 Rule 或丢弃
+   - 正例：「检查 Node 版本 → 生成 PM2 ecosystem → 写 systemd 配置 → 验证 /healthz」→ 通过
 
 **execution_steps 格式要求 (SCOPE-AWARE):**
 必须是 String 数组，每个元素是一个不可再分的原子动作。禁止写成一段模糊描述。
@@ -353,6 +383,16 @@ Rule 来自三个来源：
 
 **质量门控**: "我会在相关操作前真的执行/检查这条规则吗？"
 如果答案是否 → 不是 Rule。
+
+### §R-SelfTest Rule 自我测试（生成前必跑）
+在写下每条 Rule 候选前，必须自问以下两个问题，任一为 NO 就降级到 Memory 或丢弃：
+1. **抹掉项目名词还成立吗？**：把项目特定名词（文件名、变量名、路径、角色名）替换成通用术语后，规则是否仍然是一条运行时门控？
+   - 反例：「修改 hostModelGovernanceAdapter.ts 时必须运行 typecheck」→ 这是代码实现约束，不是运行时门控 → 降级 Memory (project_memory)
+   - 正例：「在 Windows 环境输出非 ASCII 内容前必须显式设置 OutputEncoding」→ 抹掉项目名词仍成立 → 通过
+2. **是宿主层应该拦截的，还是代码层应该硬编码的？**
+   - 代码硬编码约束（如「INSERT 必须设 origin_scope='global'」）→ 降级 Memory (project_memory)
+   - 运行时门控（如「改配置前必须 rule_gate_check」）→ 通过
+   - 判据：这条规则是否需要在宿主调用动作前做拦截？如果是代码层面强制的，不进 Rule 层。
 
 **content 格式要求:**
 Rule 的 content 必须能被翻译为 IF-ELSE 伪代码逻辑。禁止使用自然语言的模糊表述。
@@ -391,6 +431,11 @@ Examples: "MCP 使用 stdio 传输", "项目使用 PostgreSQL", "构建耗时 3.
 - [ ] **通用性审计**：origin_scope 与内容具体性匹配？（project 级有血肉 / global 级已剥离）
 - [ ] **安全审计**：token/key 等敏感信息已剥离？（所有作用域都必须执行）
 - [ ] **作用域判定**：origin_scope 选择合理？（不能从 global 降级到 session/project）
+- [ ] **层自我测试（P2）**：根据所属层执行对应自我测试并通过：
+  - Rule: §R-SelfTest（抹名词还成立？宿主层拦截 vs 代码硬编码？）
+  - Memory: §M-SelfTest（一月后还值得知道？关于用户不是代码？）
+  - Skill: §S-SelfTest（换通用词可执行？≥ 2 个原子动作？）
+  - Knowledge: §K-SelfTest（模型 OOD？会复用？学习行为链锚定？）
 如果任何一项为 NO → 丢弃或重新归类。`;
 
 // ─── host_model_result JSON Schema ────────────────────────────────────
