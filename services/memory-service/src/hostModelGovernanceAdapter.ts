@@ -113,7 +113,9 @@ export function applyHostModelGovernanceResult(input: {
       memory_candidates: validateCandidates("memory_candidate", extraction.memory_candidates),
       skill_proposal_candidates: validateCandidates("skill_proposal_candidate", extraction.skill_proposal_candidates),
       knowledge_candidates: validateCandidates("knowledge_candidate", extraction.knowledge_candidates),
-      governance_evidence_candidates: validateCandidates("governance_evidence_candidate", extraction.governance_evidence_candidates)
+      governance_evidence_candidates: validateCandidates("governance_evidence_candidate", extraction.governance_evidence_candidates),
+      // P1 派生机制：透传跨层派生关系，由 hostCaptureGovernanceBatch 计算 source_timestamp 同源链。
+      layer_links: extraction.layer_links ?? []
     }
   };
   auditCrossLayerBoundaries(adaptedBatch);
@@ -995,19 +997,23 @@ function looksLikeProcedure(value: unknown): boolean {
     return false;
   }
   const normalized = value.toLowerCase();
+  // P1c 原则升级：只拦截"过程性词"（步骤/流程/序号序列/操作手册），
+  // 不再拦截"结果性词"（修复了X、解决了Y、调整了Z）—— 这些是合法的 Memory 摘要。
+  // 历史 bug：曾把 "修复" 当过程性词，导致大量合法的"修复了X"Memory 被误拦为 Skill。
   const procedureSignals = [
     "步骤",
     "流程",
-    "然后",
-    "最后",
-    "失败时",
-    "报错时",
-    "修复",
     "playbook",
     "runbook",
+    "操作手册",
+    "执行步骤",
     /\bstep\s*\d/i,
     /\bstep\s+by\s+step/i,
     /\bworkflow\b/i,
+    // 序列连接词必须组合出现才算过程性："先...然后...最后"
+    /先[^，。；\n]{1,40}然后[^，。；\n]{1,40}最后/,
+    // "1. xxx 2. xxx 3. xxx" 显式编号列表
+    /\d+\.\s+[\u4e00-\u9fa5a-z]{2,}[\s\S]{0,80}\d+\.\s+[\u4e00-\u9fa5a-z]{2,}/i,
   ];
   return procedureSignals.some((signal) => {
     if (signal instanceof RegExp) return signal.test(normalized);

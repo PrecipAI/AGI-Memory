@@ -277,6 +277,59 @@ async function quarantineFallbackOutputs(input: {
   }
 }
 
+// P1b 派生机制：把最终候选数组里的同源复合信号（Rule+Memory）写入 layer_links 表。
+// 复合信号定义：source_timestamp 完全相同 → 同一条 host 信号同时派生为 Rule（硬门控）和 Memory（事实根因）。
+// 单向存储：只写 source=rule → target=memory 一条 derived_from 关系，查询时反查 memory → rule。
+// 幂等：UNIQUE(source_id, target_id, link_type) ON CONFLICT DO NOTHING。
+async function persistLayerLinks(input: {
+  tenantId: string;
+  scope: string;
+  traceId: string;
+  ruleCandidates: ExtractionPreview["rule_candidates"];
+  memoryCandidates: ExtractionPreview["memory_candidates"];
+  ruleIds: string[];
+  memoryIds: string[];
+}): Promise<void> {
+  // 数组 index 必须与 ruleIds/memoryIds 严格对齐（同一 for 循环 push 顺序）。
+  if (input.ruleCandidates.length !== input.ruleIds.length) {
+    return;
+  }
+  if (input.memoryCandidates.length !== input.memoryIds.length) {
+    return;
+  }
+  if (input.ruleIds.length === 0 || input.memoryIds.length === 0) {
+    return;
+  }
+  const pool = getPool();
+  for (let ruleIdx = 0; ruleIdx < input.ruleCandidates.length; ruleIdx += 1) {
+    const rule = input.ruleCandidates[ruleIdx];
+    const ruleId = input.ruleIds[ruleIdx];
+    for (let memIdx = 0; memIdx < input.memoryCandidates.length; memIdx += 1) {
+      const mem = input.memoryCandidates[memIdx];
+      // 同源判定：source_timestamp 完全一致（host_capture 同一条信号的时间戳）
+      if (rule.source_timestamp !== mem.source_timestamp) {
+        continue;
+      }
+      const memId = input.memoryIds[memIdx];
+      try {
+        await pool.query(
+          `
+          INSERT INTO layer_links (
+            tenant_id, scope, status, source_id, source_layer,
+            target_id, target_layer, link_type, confidence, trace_id
+          )
+          VALUES ($1, $2, 'active', $3::uuid, 'rule', $4::uuid, 'memory', 'derived_from', 0.9, $5)
+          ON CONFLICT (source_id, target_id, link_type) DO NOTHING
+          `,
+          [input.tenantId, input.scope, ruleId, memId, input.traceId]
+        );
+      } catch {
+        // 单条 layer_links 写入失败不应阻断整个治理批次；下游 P0.5 验证已覆盖主路径。
+      }
+    }
+  }
+}
+
 export async function runCodexHostGovernance(input: {
   tenantId: string;
   scope: string;
@@ -347,7 +400,7 @@ export async function runCodexHostGovernance(input: {
   let governanceEvidenceBundleId: string | null = null;
 
   for (const candidate of incremental.extraction_preview.rule_candidates) {
-    const canonicalContent = candidate.content ?? candidate.source_excerpt;
+    const canonicalContent = candidate.content ?? candidate.source_excerpt ?? "";
     requirePresentFields("rule_candidate", ruleIds.length, candidate.title, canonicalContent);
     const enforcementLevel = inferRuleEnforcement(canonicalContent);
     const ruleId = await createOrReplaceRule({
@@ -672,8 +725,8 @@ export async function runCodexHostGovernance(input: {
         sourceType: `${preview.host}_session`,
         sourceUri: buildSourceRef(preview.session_file, candidate.source_timestamp, candidate.source_kind),
         rawRef: preview.thread_id,
-        contentExcerpt: candidate.source_excerpt,
-        contentHash: sha256(candidate.source_excerpt),
+        contentExcerpt: candidate.source_excerpt ?? canonicalContent,
+        contentHash: sha256(candidate.source_excerpt ?? canonicalContent ?? ""),
         metadata: {
           title: candidate.title,
           reason: candidate.reason,
@@ -753,6 +806,20 @@ export async function runCodexHostGovernance(input: {
       synthesizedKnowledgeIds
     });
   }
+
+  // P1b 派生机制：基于最终持久化候选（去重/合并后）重算 layer_links。
+  // 因为 incremental 过滤会重排候选数组 index，原 batch 里的 candidate_index 已失效，
+  // 必须在最终 incremental 数组 + ruleIds/memoryIds 同步对齐后重算。
+  // 单向存储原则：constrains 只存 source→target 一条，查询时反查 target→source。
+  await persistLayerLinks({
+    tenantId: input.tenantId,
+    scope: input.scope,
+    traceId: input.traceId,
+    ruleCandidates: incremental.extraction_preview.rule_candidates,
+    memoryCandidates: incremental.extraction_preview.memory_candidates,
+    ruleIds,
+    memoryIds
+  });
 
   const contextBundleId = await createKnowledgeContextBundle({
     tenantId: input.tenantId,
@@ -928,7 +995,8 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
     memory_candidates: input.extraction_preview.memory_candidates ?? [],
     skill_proposal_candidates: input.extraction_preview.skill_proposal_candidates ?? [],
     knowledge_candidates: input.extraction_preview.knowledge_candidates ?? [],
-    governance_evidence_candidates: input.extraction_preview.governance_evidence_candidates ?? []
+    governance_evidence_candidates: input.extraction_preview.governance_evidence_candidates ?? [],
+    layer_links: input.extraction_preview.layer_links ?? []
   };
 
   if (governanceMode === "rules_fallback") {
@@ -1073,7 +1141,7 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
   let governanceEvidenceBundleId: string | null = null;
 
   for (const candidate of extractionPreview.rule_candidates) {
-    const canonicalContent = candidate.content ?? candidate.source_excerpt;
+    const canonicalContent = candidate.content ?? candidate.source_excerpt ?? "";
     const enforcementLevel = inferRuleEnforcement(canonicalContent);
     const ruleId = await createOrReplaceRule({
       tenantId: input.tenantId,
@@ -1395,8 +1463,8 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
         sourceType: `${hostName}_session`,
         sourceUri: buildSourceRef(virtualPreview.session_file, candidate.source_timestamp, candidate.source_kind),
         rawRef: virtualPreview.thread_id,
-        contentExcerpt: candidate.source_excerpt,
-        contentHash: sha256(candidate.source_excerpt),
+        contentExcerpt: candidate.source_excerpt ?? canonicalContent,
+        contentHash: sha256(candidate.source_excerpt ?? canonicalContent ?? ""),
         metadata: {
           title: candidate.title,
           reason: candidate.reason,
@@ -1726,12 +1794,14 @@ async function filterNewGovernanceCandidates(input: {
     memory_candidates: [],
     skill_proposal_candidates: [],
     knowledge_candidates: [],
-    governance_evidence_candidates: []
+    governance_evidence_candidates: [],
+    layer_links: []
   };
   let newCandidateCount = 0;
   let skippedCandidateCount = 0;
 
-  const buckets: Array<keyof ExtractionPreview> = [
+  // P1 派生机制：buckets 只包含候选类型，layer_links 不是候选类型，单独处理。
+  const buckets: Array<keyof Omit<ExtractionPreview, "layer_links">> = [
     "rule_candidates",
     "memory_candidates",
     "skill_proposal_candidates",
@@ -1842,7 +1912,7 @@ async function filterExistingRuleCandidates(input: {
   let skippedExistingRuleCount = 0;
 
   for (const candidate of input.extractionPreview.rule_candidates) {
-    const canonicalContent = candidate.content ?? candidate.source_excerpt;
+    const canonicalContent = candidate.content ?? candidate.source_excerpt ?? "";
     const normalizedStatement = normalizeText(canonicalContent);
     const existing = await pool.query<{ id: string }>(
       `

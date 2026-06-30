@@ -160,6 +160,16 @@ export type GovernanceCandidatePreview = {
   source_excerpt: string;
   reason: string;
   confidence: "high" | "medium" | "low";
+  // P1 派生机制：复合信号同时派生多个层候选时，记录跨层派生关系。
+  // 这是同一批次内的候选 index（按各 candidate_type 数组的 index），
+  // 持久化时由 hostCaptureGovernanceRun 替换为真实 id 写入 layer_links 表。
+  derived_from_links?: Array<{
+    source_layer: "rule" | "skill" | "knowledge" | "memory";
+    source_candidate_index: number;
+    target_layer: "rule" | "skill" | "knowledge" | "memory";
+    target_candidate_index: number;
+    link_type: "derived_from" | "explains" | "constrains" | "provenance";
+  }>;
 };
 
 export type GovernanceBatchPreviewResponse = {
@@ -213,6 +223,18 @@ export type GovernanceBatchPreviewResponse = {
     skill_proposal_candidates: GovernanceCandidatePreview[];
     knowledge_candidates: GovernanceCandidatePreview[];
     governance_evidence_candidates: GovernanceCandidatePreview[];
+    // P1 派生机制：本批次跨层派生关系（按候选数组 index 引用，持久化时替换为真实 id）。
+    // 复合信号（如"PowerShell + UTF-8 乱码"）同时派生 Memory（事实根因）+ Rule（门控）时，
+    // 必须在此记录 derived_from 关系，禁止二选一。
+    layer_links: Array<{
+      source_layer: "rule" | "skill" | "knowledge" | "memory";
+      source_candidate_index: number;
+      target_layer: "rule" | "skill" | "knowledge" | "memory";
+      target_candidate_index: number;
+      link_type: "derived_from" | "explains" | "constrains" | "provenance";
+      confidence: number;
+      reason: string;
+    }>;
   };
 };
 
@@ -314,6 +336,8 @@ export function buildGovernanceBatchPreview(preview: CodexCapturePreviewResponse
   const skillProposalCandidates: GovernanceCandidatePreview[] = [];
   const knowledgeCandidates: GovernanceCandidatePreview[] = [];
   const governanceEvidenceCandidates: GovernanceCandidatePreview[] = [];
+  // P1 派生机制：layer_links 在 return 前由 buildLayerLinksFromFinalCandidates 计算，
+  // 这样 index 指向去重后的最终候选数组，不会被去重/合并打乱。
 
   for (const message of preview.governance_preview.user_messages) {
     const compact = normalizeForMatch(message.text);
@@ -326,6 +350,18 @@ export function buildGovernanceBatchPreview(preview: CodexCapturePreviewResponse
     const hasStableMemoryHint = looksLikeStableFactualMemory(compact);
     const isSkillProposal = hasAny(compact, SKILL_PATTERNS);
 
+    // P1 派生机制：复合信号同时命中 rule + memory 时，两条都派生。
+    // 旧逻辑（错的）：分类单选，复合信号必然撕裂。
+    // 新逻辑（对的）：派生一对多，用 layer_links 连起来。
+    // 派生决策树：
+    //   1. 描述"用户/环境是什么样"的持久事实？→ Memory
+    //   2. 隐含"动手前必须拦"的约束？→ Rule（可与1并存，建 derived_from）
+    //   3. 包含"换项目也能用"的操作流程？→ Skill
+    //   4. 出现"模型盲区→检索→学会"的学习链？→ Knowledge(acquired)
+    //   5. 跨多条事实归纳的新模式？→ Knowledge(synthesized，L4阶段)
+    //   6. 全否，只是流水账 → 丢弃
+    // 注：layer_links 的 index 在 return 前根据最终候选数组计算（见 buildLayerLinksFromFinalCandidates），
+    // 这里只负责把同源 rule+memory 都 push 进候选数组。
     if (isRule) {
       ruleCandidates.push({
         candidate_type: "rule_candidate",
@@ -537,14 +573,60 @@ export function buildGovernanceBatchPreview(preview: CodexCapturePreviewResponse
       tool_calls: preview.governance_preview.tool_calls,
       mcp_calls: preview.governance_preview.mcp_calls
     },
-    extraction_preview: {
-      rule_candidates: consolidateCandidates(dedupeBySource(ruleCandidates)),
-      memory_candidates: dedupeMemoryCandidates(dedupeBySource(memoryCandidates)),
-      skill_proposal_candidates: consolidateSkillProposals(dedupeBySource(skillProposalCandidates)),
-      knowledge_candidates: dedupeKnowledgeCandidates(consolidateCandidates(dedupeBySource(knowledgeCandidates))),
-      governance_evidence_candidates: dedupeBySource(governanceEvidenceCandidates)
-    }
+    extraction_preview: (() => {
+      // P1 派生机制：先去重/合并得到最终候选数组，再根据最终 index 计算 layer_links。
+      // 这样 layer_links 的 index 永远指向返回数组的真实位置，不会被去重打乱。
+      const finalRuleCandidates = consolidateCandidates(dedupeBySource(ruleCandidates));
+      const finalMemoryCandidates = dedupeMemoryCandidates(dedupeBySource(memoryCandidates));
+      const finalSkillProposalCandidates = consolidateSkillProposals(dedupeBySource(skillProposalCandidates));
+      const finalKnowledgeCandidates = dedupeKnowledgeCandidates(consolidateCandidates(dedupeBySource(knowledgeCandidates)));
+      const finalGovernanceEvidenceCandidates = dedupeBySource(governanceEvidenceCandidates);
+      const finalLayerLinks = buildLayerLinksFromFinalCandidates({
+        ruleCandidates: finalRuleCandidates,
+        memoryCandidates: finalMemoryCandidates
+      });
+      return {
+        rule_candidates: finalRuleCandidates,
+        memory_candidates: finalMemoryCandidates,
+        skill_proposal_candidates: finalSkillProposalCandidates,
+        knowledge_candidates: finalKnowledgeCandidates,
+        governance_evidence_candidates: finalGovernanceEvidenceCandidates,
+        layer_links: finalLayerLinks
+      };
+    })()
   };
+}
+
+// P1 派生机制：根据最终候选数组计算跨层派生关系。
+// 复合信号（同 source_timestamp 的 rule + memory）→ Rule derived_from Memory。
+// Rule 是从 Memory 事实根因推导出的门控逻辑——Memory 提供"为什么"，Rule 提供"拦什么"。
+// 两者防的是不同失败模式：只有 Memory 模型会"忘"，只有 Rule 模型不懂"为什么"。
+function buildLayerLinksFromFinalCandidates(input: {
+  ruleCandidates: GovernanceCandidatePreview[];
+  memoryCandidates: GovernanceCandidatePreview[];
+}): GovernanceBatchPreviewResponse["extraction_preview"]["layer_links"] {
+  const links: GovernanceBatchPreviewResponse["extraction_preview"]["layer_links"] = [];
+  // 按 source_timestamp 配对同源的 rule + memory。
+  // 同一条用户消息同时触发 isRule + hasStableMemoryHint 时，会派生出一对 derived_from 关系。
+  for (let ruleIdx = 0; ruleIdx < input.ruleCandidates.length; ruleIdx++) {
+    const rule = input.ruleCandidates[ruleIdx];
+    for (let memIdx = 0; memIdx < input.memoryCandidates.length; memIdx++) {
+      const mem = input.memoryCandidates[memIdx];
+      // 同源判定：source_timestamp 相同（来自同一条用户消息）
+      if (rule.source_timestamp === mem.source_timestamp) {
+        links.push({
+          source_layer: "rule",
+          source_candidate_index: ruleIdx,
+          target_layer: "memory",
+          target_candidate_index: memIdx,
+          link_type: "derived_from",
+          confidence: 0.9,
+          reason: "复合信号：Rule（硬门控）由同源 Memory（事实根因）派生，防不同失败模式"
+        });
+      }
+    }
+  }
+  return links;
 }
 
 function consolidateCandidates(items: GovernanceCandidatePreview[]): GovernanceCandidatePreview[] {
