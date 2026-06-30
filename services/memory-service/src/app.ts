@@ -142,9 +142,12 @@ export function buildMemoryServiceApp() {
 
   const publicDir = path.resolve(import.meta.dirname, "../public");
 
+  // GitHub Pages 兼容：static 挂载到根路径，index.html 用相对路径 ./mock-data.js。
+  // 这样本地 /mock-data.js 和 GitHub Pages /repo/mock-data.js 都能解析到。
+  // fastify 路由优先级高于 static，/internal/* 等 API 路由不受影响。
   app.register(fastifyStatic, {
     root: publicDir,
-    prefix: "/_static/",
+    prefix: "/",
     wildcard: false
   });
 
