@@ -318,6 +318,21 @@
       word-break: break-word;
     }
   </style>
+  <script>
+    // 静态部署兜底：如果检测不到后端（fetch /healthz 失败），自动跳转 ?demo=1
+    (function () {
+      var params = new URLSearchParams(location.search);
+      if (params.get("demo") === "1" || params.get("demo") === "true") return;
+      // 探测后端：超时即视为无后端
+      fetch("/healthz", { method: "GET" }).then(function (r) {
+        if (!r.ok) throw new Error("healthz not ok");
+      }).catch(function () {
+        var url = new URL(location.href);
+        url.searchParams.set("demo", "1");
+        location.replace(url.href);
+      });
+    })();
+  </script>
   <script src="/_static/mock-data.js"></script>
 </head>
 <body>

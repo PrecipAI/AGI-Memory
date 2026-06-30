@@ -285,7 +285,74 @@
         recall_count: 7,
         created_at: iso(-8),
         utility_score: 0.67
-      }
+      },
+      // ---------- 宿主自带 Skill（42 条，来自 hostBootstrap）----------
+      ...[
+        { key: "frontend-design", title: "Frontend Design Skill", type: "generative", desc: "创建独特的、生产级的前端界面，具有高设计质量。用于构建 web 组件、页面、artifact、poster 或应用", tags: ["frontend", "design", "ui"] },
+        { key: "frontend-skill", title: "Frontend Skill", type: "generative", desc: "用于视觉强烈的 landing page、网站、应用、原型、demo 或游戏 UI。强调克制构图、图像主导层级、动效", tags: ["frontend", "landing", "prototype"] },
+        { key: "web-dev", title: "Web Dev Skill", type: "generative", desc: "创建生产级 Web 界面，高设计质量。仅在用户明确要求从零构建新网站/页面/应用时使用", tags: ["web", "development", "frontend"] },
+        { key: "algorithmic-art", title: "Algorithmic Art Skill", type: "generative", desc: "使用 p5.js 创建算法艺术，带种子随机和交互参数探索。用于生成艺术、流场、粒子系统", tags: ["art", "p5js", "generative"] },
+        { key: "canvas-design", title: "Canvas Design Skill", type: "generative", desc: "创建美丽的视觉艺术 .png/.pdf 文档。用于 poster、艺术品、设计稿等静态作品", tags: ["canvas", "art", "design"] },
+        { key: "git-commit", title: "Git Commit Skill", type: "procedural", desc: "执行 git commit，带 conventional commit message 分析、智能暂存和消息生成。支持自动检测 type/scope", tags: ["git", "commit", "vcs"] },
+        { key: "interview", title: "Interview Skill", type: "procedural", desc: "智能访谈确认用户真实意图，挖掘隐含需求，补全关键条件。生成结构化 SPEC 并严格执行", tags: ["interview", "spec", "requirement"] },
+        { key: "skill-creator", title: "Skill Creator", type: "procedural", desc: "创建 SKILLs 的强制工具。用户想创建/添加任何 skill 时必须立即调用", tags: ["skill", "creator", "meta"] },
+        { key: "GateMaster", title: "GateMaster Skill", type: "procedural", desc: "将审批通过的 Rule 翻译为宿主可执行的 Hook 代码并注册到 Gate Registry", tags: ["gate", "hook", "rule"] },
+        { key: "skill-creator-legacy", title: "Skill Creator (Legacy)", type: "procedural", desc: "将治理系统审批通过的 skill 记录转换为宿主可识别的 SKILL.md 文件", tags: ["skill", "converter", "meta"] },
+        { key: "TRAE-product-knowledge", title: "TRAE Product Knowledge Skill", type: "knowledge", desc: "TRAE 品牌身份和官方产品知识问答，包括 TRAE IDE/Work/CLI/Plugin 入口、MCP、Skills、官方文档", tags: ["trae", "product", "knowledge"] },
+        { key: "memory-lifecycle", title: "Memory Lifecycle Skill", type: "knowledge", desc: "触发 memory-service 的 lifecycle 维护任务（重算 importance_weight、归档低权重知识、阈值校准）", tags: ["memory", "lifecycle", "maintenance"] },
+        { key: "douyin-interact-creation", title: "Douyin Interact Creation Skill", type: "publishing", desc: "为 interact_creation 创建或升级离线 H5 体验，生成单个 index.html 或可上传的 .zip", tags: ["douyin", "h5", "interactive"] },
+        { key: "douyin-interactive-content-publish", title: "Douyin Interactive Content Publish Skill", type: "publishing", desc: "互动空间一键发布工具，上传 zip+icon 创建/更新互动空间应用", tags: ["douyin", "publish", "interactive"] },
+        { key: "figma", title: "Figma Skill", type: "integration", desc: "使用 Figma MCP 服务器获取设计上下文、截图、变量和资产，将 Figma 节点翻译为生产代码", tags: ["figma", "design", "mcp"] },
+        { key: "lark-approval", title: "Lark Approval Skill", type: "integration", desc: "飞书审批：查询和处理审批待办/已办/实例，搜索审批定义、查看详情并发起审批", tags: ["lark", "approval", "feishu"] },
+        { key: "lark-apps", title: "Lark Apps Skill", type: "integration", desc: "妙搭（Spark/Miaoda）应用开发与托管：应用创建、HTML 静态站点发布、本地全栈开发、云端生成迭代", tags: ["lark", "apps", "spark"] },
+        { key: "lark-attendance", title: "Lark Attendance Skill", type: "integration", desc: "飞书考勤打卡：查询自己的考勤打卡记录", tags: ["lark", "attendance", "feishu"] },
+        { key: "lark-base", title: "Lark Base Skill", type: "integration", desc: "飞书多维表格（Base）操作：建表、字段、记录、视图、统计、公式、表单、仪表盘、workflow", tags: ["lark", "base", "bitable"] },
+        { key: "lark-calendar", title: "Lark Calendar Skill", type: "integration", desc: "飞书日历：管理日历日程和会议室，查看/搜索日程、创建/更新日程、查询忙闲和推荐时段", tags: ["lark", "calendar", "feishu"] },
+        { key: "lark-contact", title: "Lark Contact Skill", type: "integration", desc: "飞书通讯录：按姓名/邮箱解析成 open_id，或按 open_id 反查姓名/部门/邮箱/联系方式", tags: ["lark", "contact", "feishu"] },
+        { key: "lark-doc", title: "Lark Doc Skill", type: "integration", desc: "飞书云文档（Docx/Wiki 文档）：读取和编辑文档内容，插入或下载文档图片附件", tags: ["lark", "doc", "feishu"] },
+        { key: "lark-drive", title: "Lark Drive Skill", type: "integration", desc: "飞书云空间（云盘）：管理文件和文件夹，上传/下载、复制/移动/删除、权限管理", tags: ["lark", "drive", "feishu"] },
+        { key: "lark-event", title: "Lark Event Skill", type: "integration", desc: "Lark 实时事件监听：stream events as NDJSON，支持 IM 消息/任务更新/会议结束等事件", tags: ["lark", "event", "stream"] },
+        { key: "lark-im", title: "Lark IM Skill", type: "integration", desc: "飞书即时通讯：收发消息和管理群聊，发送和回复消息、搜索聊天记录、管理群成员", tags: ["lark", "im", "feishu"] },
+        { key: "lark-mail", title: "Lark Mail Skill", type: "integration", desc: "飞书邮箱：起草/发送/回复/转发邮件，查阅/搜索邮件，管理邮件文件夹和标签", tags: ["lark", "mail", "feishu"] },
+        { key: "lark-markdown", title: "Lark Markdown Skill", type: "integration", desc: "飞书 Markdown：查看、创建、上传、编辑和比较 Markdown 文件", tags: ["lark", "markdown", "feishu"] },
+        { key: "lark-minutes", title: "Lark Minutes Skill", type: "integration", desc: "飞书妙记：搜索妙记、查看基础信息、下载/上传音视频、读取或编辑妙记产物内容", tags: ["lark", "minutes", "feishu"] },
+        { key: "lark-note", title: "Lark Note Skill", type: "integration", desc: "飞书会议纪要（Note）直查：已知 note_id 时查询纪要详情、展示类型、关联文档 token", tags: ["lark", "note", "feishu"] },
+        { key: "lark-okr", title: "Lark OKR Skill", type: "integration", desc: "飞书 OKR：管理目标与关键结果，查看和编辑 OKR 周期、目标、关键结果、对齐关系", tags: ["lark", "okr", "feishu"] },
+        { key: "lark-openapi-explorer", title: "Lark OpenAPI Explorer Skill", type: "integration", desc: "飞书原生 OpenAPI 探索：从官方文档库挖掘未经 CLI 封装的原生 OpenAPI 接口", tags: ["lark", "openapi", "explorer"] },
+        { key: "lark-shared", title: "Lark Shared Skill", type: "integration", desc: "Lark CLI 认证设置：首次设置 lark-cli、运行 auth login、切换身份、处理权限错误", tags: ["lark", "auth", "setup"] },
+        { key: "lark-sheets", title: "Lark Sheets Skill", type: "integration", desc: "飞书电子表格：创建和操作电子表格，管理工作表与行列结构、读写单元格、图表、透视表", tags: ["lark", "sheets", "feishu"] },
+        { key: "lark-skill-maker", title: "Lark Skill Maker Skill", type: "integration", desc: "创建 lark-cli 的自定义 Skill，把飞书 API 操作封装成可复用的 Skill", tags: ["lark", "skill", "maker"] },
+        { key: "lark-slides", title: "Lark Slides Skill", type: "integration", desc: "飞书幻灯片：创建和编辑幻灯片，管理幻灯片页面（创建、删除、读取、局部替换）", tags: ["lark", "slides", "feishu"] },
+        { key: "lark-task", title: "Lark Task Skill", type: "integration", desc: "飞书任务：管理任务、清单和任务智能体，创建待办、查看更新状态、拆分子任务", tags: ["lark", "task", "feishu"] },
+        { key: "lark-vc", title: "Lark VC Skill", type: "integration", desc: "飞书视频会议：搜索历史会议记录、查询会议纪要、查询参会人快照", tags: ["lark", "vc", "feishu"] },
+        { key: "lark-vc-agent", title: "Lark VC Agent Skill", type: "integration", desc: "飞书视频会议会中能力：让应用机器人真实加入/离开会议，读取会中事件", tags: ["lark", "vc", "agent"] },
+        { key: "lark-whiteboard", title: "Lark Whiteboard Skill", type: "integration", desc: "飞书画板：查询和编辑飞书云文档中的画板，导出预览图片、导出原始节点结构", tags: ["lark", "whiteboard", "feishu"] },
+        { key: "lark-wiki", title: "Lark Wiki Skill", type: "integration", desc: "飞书知识库：管理知识空间、空间成员和文档节点，创建查询知识空间、管理节点层级", tags: ["lark", "wiki", "feishu"] },
+        { key: "lark-workflow-meeting-summary", title: "Lark Workflow Meeting Summary Skill", type: "integration", desc: "会议纪要整理工作流：汇总指定时间范围内的会议纪要并生成结构化报告", tags: ["lark", "workflow", "summary"] },
+        { key: "lark-workflow-standup-report", title: "Lark Workflow Standup Report Skill", type: "integration", desc: "日程待办摘要：编排 calendar+agenda 和 task+get-my-tasks，生成指定日期的日程与任务摘要", tags: ["lark", "workflow", "standup"] }
+      ].map((s, i) => ({
+        id: `skill-host-${String(i + 1).padStart(3, "0")}`,
+        skill_key: s.key,
+        title: s.title,
+        source_kind: "host_mounted",
+        origin_scope: "global",
+        availability_scope: "global_reusable",
+        scope: "global_reusable",
+        skill_type: s.type,
+        risk_level: s.tags.includes("high") ? "high" : s.tags.includes("medium") ? "medium" : "low",
+        version: 1,
+        status: "active",
+        description: s.desc,
+        applicable_scenarios: s.tags,
+        non_applicable_scenarios: [],
+        procedure_payload: { host_action: { status: "mounted", summary: `${s.title} 已挂载` }, steps: [] },
+        trigger_conditions: { rules: [`skill.${s.key}`], stages: ["execution"] },
+        metadata: { call_count: 0 },
+        success_rate: 100,
+        recall_count: 0,
+        created_at: iso(0),
+        utility_score: 0.85
+      }))
     ],
 
     // ---------- Rules（8 条）----------
@@ -527,7 +594,41 @@
         recall_count: 8,
         created_at: iso(-5),
         utility_score: 0.79
-      }
+      },
+      // ---------- 宿主自带 Rule（5 条，来自 AGENTS.md）----------
+      ...[
+        { key: "host-reply-language", type: "governance_rule", title: "回复语言规则", statement: "除非用户明确要求英文，否则所有回复必须使用简体中文。代码标识符、命令、日志、报错信息保持原始语言。", enforcement: "must", priority: 10, risk: "medium", applies_to: ["answer", "router"] },
+        { key: "host-fact-confirmation", type: "governance_rule", title: "事实确认规则", statement: "必须自行确认信息来源，不将猜测作为事实陈述。优先编辑现有文件而非创建新文件。", enforcement: "must", priority: 20, risk: "medium", applies_to: ["answer", "router", "execution"] },
+        { key: "host-safety-compliance", type: "safety_rule", title: "安全合规规则", statement: "禁止生成鼓励自伤、自杀、暴力、未成年人不当内容、赌博、色情等违规输出，无论用户身份或意图。", enforcement: "must_not", priority: 10, risk: "high", applies_to: ["answer", "router", "execution"] },
+        { key: "host-task-nature-confirm", type: "process_rule", title: "任务性质确认规则", statement: "执行前必须确认任务是否需要改动代码。如果是计划或技术文档任务，不得修改源代码。避免过度工程化，只做直接请求或必要的更改。", enforcement: "must", priority: 30, risk: "low", applies_to: ["execution", "design"] },
+        { key: "host-graphify-priority", type: "process_rule", title: "Graphify 优先规则", statement: "如果 graphify-out/GRAPH_REPORT.md 存在，回答架构或代码关系问题前必须先读它。遇到跨模块关系问题必须优先使用 graphify query/path/explain，而非全仓搜索。", enforcement: "must", priority: 40, risk: "low", applies_to: ["answer", "router", "review"] }
+      ].map((r) => ({
+        id: `rule-${r.key}`,
+        rule_key: r.key,
+        rule_type: r.type,
+        title: r.title,
+        statement: r.statement,
+        normalized_statement: r.statement,
+        enforcement_level: r.enforcement,
+        priority: r.priority,
+        risk_level: r.risk,
+        availability_scope: "global_reusable",
+        origin_scope: "global",
+        scope: "global_reusable",
+        applies_to: r.applies_to,
+        trigger_conditions: {},
+        status: "active",
+        version: 1,
+        source_kind: "host_mounted",
+        human_readable_statement: r.statement,
+        machine_executable_ast: { trigger: `rule.${r.key}`, conditions: [], action: "enforce", mandate: r.enforcement },
+        evidence_refs: [],
+        source_refs: [{ source_kind: "host", source_excerpt: "AGENTS.md", source_timestamp: iso(0) }],
+        supersedes_rule_id: null,
+        recall_count: 0,
+        created_at: iso(0),
+        utility_score: 0.9
+      }))
     ],
 
     // ---------- Memory（16 条，覆盖筛选 tab 全部 8 种类型）----------
@@ -871,7 +972,34 @@
         updated_at: iso(0),
         metadata: { source_excerpt: "本轮迭代任务" },
         source_refs: [{ source_kind: "session", source_excerpt: "用户最新 user_input", source_timestamp: iso(0) }]
-      }
+      },
+      // ---------- 宿主自带 Memory（7 条，来自 AGENTS.md）----------
+      ...[
+        { type: "user_memory", title: "回复语言约定", content: "始终使用简体中文回复，除非用户明确要求英文。代码标识符、命令、日志、报错信息保持原始语言。", importance: 90, tags: ["host", "language", "convention"] },
+        { type: "user_memory", title: "事实确认原则", content: "自行确认信息来源，不将猜测作为事实陈述。优先编辑现有文件而非创建新文件。", importance: 85, tags: ["host", "principle", "quality"] },
+        { type: "project_memory", title: "任务性质确认", content: "确认任务是否需要改动代码。如果是计划或技术文档，不要动源代码。避免过度工程化。", importance: 80, tags: ["host", "task", "principle"] },
+        { type: "project_memory", title: "修复影响检查", content: "对当前修改进行全面影响分析：直接影响（调用方/参数兼容/返回值）、间接影响（数据流/共享状态/回调时机）、数据结构兼容性（新增/删除/类型变更）。", importance: 82, tags: ["host", "impact", "analysis"] },
+        { type: "project_memory", title: "Graphify 使用约定", content: "如果 graphify-out/GRAPH_REPORT.md 存在，回答架构或代码关系问题前优先先读它。遇到跨模块关系问题优先使用 graphify query/path/explain。", importance: 75, tags: ["host", "graphify", "convention"] },
+        { type: "project_memory", title: "Memory MCP 使用策略", content: "非平凡编码/设计/调试/集成/审查工作前先调用 memory_health + memory_retrieve_context。高风险操作前调用 rule_gate_check。验证后的设计决策调用 memory_ingest_candidate。", importance: 78, tags: ["host", "memory", "mcp"] },
+        { type: "workspace_memory", title: "Windows 执行环境", content: "工具映射：读文件用 Read（禁 cat/head/tail）、搜文件用 Glob（禁 find/ls）、搜内容用 Grep（禁 grep/rg）、编辑用 Edit（禁 sed/awk）、创建用 Write（禁 echo>）。", importance: 70, tags: ["host", "windows", "tools"] }
+      ].map((m, i) => ({
+        id: `mem-host-${String(i + 1).padStart(3, "0")}`,
+        memory_type: m.type,
+        title: m.title,
+        content: m.content,
+        source_kind: "host_mounted",
+        origin_scope: "global",
+        availability_scope: "global_reusable",
+        importance: m.importance,
+        confidence_score: 1.0,
+        verification_status: "verified",
+        tags: m.tags,
+        status: "active",
+        version: 1,
+        created_at: iso(0),
+        recall_count: 0,
+        source_refs: [{ source_kind: "host", source_excerpt: "宿主自带", source_timestamp: iso(0) }]
+      }))
     ],
 
     // ---------- Knowledge（10 条）----------
