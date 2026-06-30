@@ -1,0 +1,55 @@
+# Render 部署配置：https://render.com/docs/blueprint-spec
+# 通过 GitHub 仓库自动部署
+
+databases:
+  - name: agi-memory-db
+    plan: free
+    # Render 免费 PostgreSQL，90 天后失效（大赛展示期内够用）
+    ipAllowList: []
+
+services:
+  - type: web
+    name: agi-memory
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    # 健康检查走根路径（Fastify 默认返回 200）
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      # 环境标识
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      # 数据库连接（从 agi-memory-db 自动派生）
+      - key: DB_URL
+        fromDatabase:
+          name: agi-memory-db
+          property: connectionString
+      # 租户和 scope（demo 用）
+      - key: DEFAULT_TENANT_ID
+        value: tenant-demo
+      - key: DEFAULT_SCOPE
+        value: demo
+      - key: MEMORY_SINGLE_TENANT_MODE
+        value: "true"
+      - key: DEFAULT_MEMORY_FINGERPRINT
+        value: render-demo-v1
+      # 禁用向量后端（用 local-fallback，只跑 BM25 + 图谱检索）
+      - key: KNOWLEDGE_VECTOR_INDEX_ENABLED
+        value: "0"
+      - key: KNOWLEDGE_VECTOR_RETRIEVAL_ENABLED
+        value: "0"
+      - key: KNOWLEDGE_EMBEDDING_REQUIRED
+        value: "0"
+      # 禁用外部依赖（Milvus / Redis / Embedding HTTP）
+      - key: MILVUS_ADDRESS
+        value: ""
+      - key: REDIS_URL
+        value: ""
+      # 运行时限制
+      - key: RUNTIME_SOFT_LIMIT
+        value: "1200"
+      - key: RUNTIME_HARD_LIMIT
+        value: "1800"

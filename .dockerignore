@@ -1,0 +1,31 @@
+node_modules
+**/node_modules
+dist
+**/dist
+**/*.tsbuildinfo
+
+# 本地环境
+.env
+.env.local
+*.log
+
+# IDE
+.vscode
+.idea
+.qoderworkcn
+.trae
+
+# Git
+.git
+.gitignore
+
+# 测试和报告
+tests
+**/*.test.*
+**/*.spec.*
+coverage
+**/reports/
+
+# 临时
+tmp-*
+*.tmp

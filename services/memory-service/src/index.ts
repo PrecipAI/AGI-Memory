@@ -43,7 +43,8 @@ if (envPath) loadEnv(envPath);
 
 const app = buildMemoryServiceApp();
 const port = Number(process.env.PORT || 3101);
-const host = process.env.HOST || "127.0.0.1";
+// 容器/PaaS 环境需要监听 0.0.0.0；本地开发默认 127.0.0.1
+const host = process.env.HOST || (process.env.PORT ? "0.0.0.0" : "127.0.0.1");
 
 app.listen({ port, host }).catch((error) => {
   console.error(error);
