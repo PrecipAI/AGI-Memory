@@ -6,15 +6,8 @@
   <title>AGI-Memory 控制台</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
-  <script type="module" src="/_static/knowledgeGraph3D.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script type="module" src="/_static/knowledgeGraphOnion.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -904,10 +897,8 @@
             <input type="text" id="graph-search-input" placeholder="搜索节点名称/内容..." oninput="renderKnowledgeGraph()" style="flex: 1; min-width: 200px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; font-size: 13px;">
             <div style="display: flex; gap: 6px; align-items: center;">
               <span style="font-size: 12px; color: var(--text-muted);">视图:</span>
+              <button id="graph-view-onion" class="btn btn-primary" onclick="setGraphMode('onion')" style="padding: 5px 10px; font-size: 12px;">洋葱图</button>
               <button id="graph-view-2d" class="btn btn-ghost" onclick="setGraphMode('2d')" style="padding: 5px 10px; font-size: 12px;">2D</button>
-              <button id="graph-view-terrain" class="btn btn-primary" onclick="setGraphMode('terrain')" style="padding: 5px 10px; font-size: 12px;">3D地形</button>
-              <button id="graph-view-star" class="btn btn-ghost" onclick="setGraphMode('star')" style="padding: 5px 10px; font-size: 12px;">3D星图</button>
-              <button id="graph-view-layer" class="btn btn-ghost" onclick="setGraphMode('layer')" style="padding: 5px 10px; font-size: 12px;">3D层级</button>
             </div>
             <div style="display: flex; gap: 8px; font-size: 12px;">
               <label style="display: inline-flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="graph-show-entity" checked onchange="renderKnowledgeGraph()"> <span style="color: var(--accent-cyan);">●</span> 实体</label>
@@ -928,7 +919,7 @@
               <div style="font-size: 14px; font-weight: 600;">实体关系图 <span style="font-size: 11px; color: var(--text-muted); font-weight: 400;">（节点大小=连接数，形状区分类型，点击查看详情）</span></div>
               <div style="font-size: 11px; color: var(--text-muted);" id="graph-render-info">-</div>
             </div>
-            <div id="knowledge-graph-chart" style="width: 100%; height: 520px;"></div>
+            <div id="knowledge-graph-chart" style="width: 100%; height: 70vh; min-height: 600px;"></div>
           </div>
           <div class="card" style="padding: 12px;">
             <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">节点详情</div>
@@ -2916,8 +2907,8 @@
 
     let knowledgeGraphCache = null;
     let knowledgeGraphChart = null;
-    let knowledgeGraph3DInstance = null;
-    let currentGraphMode = 'terrain'; // '2d' | 'terrain' | 'star' | 'layer'
+    let knowledgeGraphOnionInstance = null;
+    let currentGraphMode = 'onion'; // 'onion' | '2d'
 
     async function loadKnowledgeGraph() {
       try {
@@ -2955,7 +2946,7 @@
 
     function setGraphMode(mode) {
       currentGraphMode = mode;
-      ['2d', 'terrain', 'star', 'layer'].forEach(m => {
+      ['onion', '2d'].forEach(m => {
         const btn = document.getElementById(`graph-view-${m}`);
         if (btn) btn.className = m === mode ? 'btn btn-primary' : 'btn btn-ghost';
       });
@@ -2965,15 +2956,15 @@
     function renderKnowledgeGraph() {
       if (!knowledgeGraphCache) return;
 
-      const has3D = typeof KnowledgeGraph3D !== 'undefined';
-      if (currentGraphMode !== '2d' && has3D) {
-        renderKnowledgeGraph3D();
+      const hasOnion = typeof KnowledgeGraphOnion !== 'undefined' && typeof d3 !== 'undefined';
+      if (currentGraphMode !== '2d' && hasOnion) {
+        renderKnowledgeGraphOnion();
       } else {
         renderKnowledgeGraph2D();
       }
     }
 
-    function renderKnowledgeGraph3D() {
+    function renderKnowledgeGraphOnion() {
       const data = knowledgeGraphCache;
       const showTypes = {
         entity: document.getElementById("graph-show-entity")?.checked ?? true,
@@ -2992,36 +2983,32 @@
         knowledgeGraphChart = null;
       }
 
-      if (!knowledgeGraph3DInstance) {
+      if (!knowledgeGraphOnionInstance) {
         try {
-          knowledgeGraph3DInstance = new KnowledgeGraph3D('knowledge-graph-chart', {
-            mode: currentGraphMode,
+          knowledgeGraphOnionInstance = new KnowledgeGraphOnion('knowledge-graph-chart', {
             showTypes,
             searchTerm,
             onNodeClick: (node) => showGraphNodeDetail(node),
-            onHover: (node) => {
-              // 可选：在 tooltip 里显示，这里先不处理
-            }
+            onHover: (node) => {}
           });
         } catch (e) {
-          console.warn('[renderKnowledgeGraph] 3D init failed, fallback to 2D:', e);
+          console.warn('[renderKnowledgeGraph] onion init failed, fallback to 2D:', e);
           currentGraphMode = '2d';
           renderKnowledgeGraph2D();
           return;
         }
       } else {
-        knowledgeGraph3DInstance.setMode(currentGraphMode);
-        knowledgeGraph3DInstance.setSearch(searchTerm);
-        knowledgeGraph3DInstance.setShowTypes(showTypes);
+        knowledgeGraphOnionInstance.setSearch(searchTerm);
+        knowledgeGraphOnionInstance.setShowTypes(showTypes);
       }
 
       try {
-        knowledgeGraph3DInstance.render(data);
+        knowledgeGraphOnionInstance.render(data);
       } catch (e) {
-        console.warn('[renderKnowledgeGraph] 3D render failed, fallback to 2D:', e);
-        if (knowledgeGraph3DInstance) {
-          try { knowledgeGraph3DInstance.dispose(); } catch (_) {}
-          knowledgeGraph3DInstance = null;
+        console.warn('[renderKnowledgeGraph] onion render failed, fallback to 2D:', e);
+        if (knowledgeGraphOnionInstance) {
+          try { knowledgeGraphOnionInstance.dispose(); } catch (_) {}
+          knowledgeGraphOnionInstance = null;
         }
         currentGraphMode = '2d';
         renderKnowledgeGraph2D();
@@ -3030,9 +3017,9 @@
 
     function renderKnowledgeGraph2D() {
       if (!knowledgeGraphCache) return;
-      if (knowledgeGraph3DInstance) {
-        try { knowledgeGraph3DInstance.dispose(); } catch (_) {}
-        knowledgeGraph3DInstance = null;
+      if (knowledgeGraphOnionInstance) {
+        try { knowledgeGraphOnionInstance.dispose(); } catch (_) {}
+        knowledgeGraphOnionInstance = null;
       }
       const data = knowledgeGraphCache;
 
