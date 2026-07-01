@@ -111,6 +111,101 @@ const DEFAULT_GLOBAL_SKILLS_DIR = path.join(
 );
 const DEFAULT_PROJECT_SKILLS_DIR = path.join(REPO_ROOT, ".trae", "skills");
 
+// 生成 hook 文件所需的共享类型模板。运行时若 .trae/gates/types.ts 不存在则自动创建。
+const GATE_TYPES_TEMPLATE = `/**
+ * GateContext — 门控运行时上下文
+ * 由宿主程序提供，注入到每个 gate / hook 的 run() 函数中。
+ */
+
+export interface GateContext {
+  taskType: string;
+  operation: string;
+  cwd: string;
+  taskRequestId?: string;
+  host?: string;
+  projectRef?: string;
+  sessionId?: string;
+  projectId?: string;
+  getChangedFiles(): Promise<string[]>;
+  searchInDiff(pattern: RegExp | string): Promise<string[]>;
+  readFile(filePath: string): Promise<string>;
+  writeFile?(filePath: string, content: string): Promise<void>;
+  exec(command: string): Promise<{ stdout: string; stderr: string; exitCode: number }>;
+  getGitStatus(): Promise<{ staged: string[]; modified: string[]; untracked: string[] }>;
+  isFileChanged?(filePath: string): Promise<boolean>;
+  searchInFiles?(pattern: RegExp | string, glob?: string): Promise<Array<{ file: string; line: number; text: string }>>;
+}
+
+export interface GateResult {
+  pass: boolean;
+  block?: boolean;
+  rule_id?: string;
+  rule_key?: string;
+  message?: string;
+  suggestion?: string;
+}
+
+export interface GateModule {
+  RULE_ID: string;
+  RULE_KEY: string;
+  shouldRun(context: GateContext): boolean;
+  run(context: GateContext): Promise<GateResult>;
+}
+
+export type HookMountPoint =
+  | "before_tool_call"
+  | "after_tool_call"
+  | "before_generation"
+  | "after_generation"
+  | "before_task_complete"
+  | "before_file_write"
+  | "after_file_write"
+  | "before_command_exec"
+  | "after_command_exec"
+  | "pre_commit";
+
+export interface HookResult {
+  action: "PASS" | "REJECT" | "RETRY" | "INJECT";
+  reason?: string;
+  retry_hint?: string;
+  inject_content?: string;
+  rule_id?: string;
+  rule_key?: string;
+}
+
+export interface RuleHook {
+  id: string;
+  rule_id: string;
+  rule_key: string;
+  mount_points: HookMountPoint[];
+  shouldRun(context: GateContext): boolean;
+  run(context: GateContext): Promise<HookResult>;
+}
+
+export interface HookRegistryEntry {
+  hook_id: string;
+  rule_id: string;
+  rule_key: string;
+  scope: "global" | "project" | "user" | "workspace" | "session";
+  project_id: string | null;
+  mount_points: HookMountPoint[];
+  file: string;
+  enabled: boolean;
+  generated_at: string;
+}
+
+export interface GateRegistryEntry {
+  rule_id: string;
+  rule_key: string;
+  file: string;
+  checkpoint: "pre_action" | "post_action" | "on_file_change" | "pre_commit";
+  task_type: string;
+  operation: string;
+  enabled: boolean;
+  generated_at: string;
+}
+`;
+
 function isGlobalSkill(record: Record<string, unknown>): boolean {
   return (
     ["global", "team"].includes(String(record.origin_scope ?? "")) &&
@@ -230,11 +325,19 @@ ${record.description ?? ""}
   return body;
 }
 
+async function ensureGateTypesFile(gatesDir: string): Promise<void> {
+  const typesPath = path.join(gatesDir, "types.ts");
+  if (!existsSync(typesPath)) {
+    await writeFile(typesPath, GATE_TYPES_TEMPLATE, "utf8");
+  }
+}
+
 async function processRule(item: HostActionItem, gatesDir: string): Promise<{ outputPath: string }> {
   const payload = item.invoke_skill?.payload ?? {};
   const ruleKey = String(item.key || payload.rule_key || "unknown");
   const filePath = path.join(gatesDir, `${ruleKey}.hook.ts`);
   await mkdir(gatesDir, { recursive: true });
+  await ensureGateTypesFile(gatesDir);
   await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, buildHookFile(payload), "utf8");
 
