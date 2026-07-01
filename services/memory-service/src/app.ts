@@ -820,6 +820,7 @@ export function buildMemoryServiceApp() {
       limit?: number | string;
       action_type?: string;
       evolution_signal?: string;
+      human_decision?: string;
     };
     const limit = typeof query.limit === "string" ? Number(query.limit) : query.limit;
     const items = await listGovernanceChangeProposals({
@@ -828,7 +829,8 @@ export function buildMemoryServiceApp() {
       status: query.status ?? "recorded",
       limit: Number.isFinite(limit) ? Number(limit) : 50,
       proposedActionType: query.action_type ?? null,
-      evolutionSignal: query.evolution_signal ?? null
+      evolutionSignal: query.evolution_signal ?? null,
+      humanDecision: query.human_decision ?? null
     });
     return {
       tenant_id: context.tenantId,

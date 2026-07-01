@@ -421,6 +421,7 @@ export async function listGovernanceChangeProposals(input: {
   limit?: number;
   proposedActionType?: string | null;
   evolutionSignal?: string | null;
+  humanDecision?: string | null;
 }): Promise<Record<string, unknown>[]> {
   const pool = getPool();
   const result = await pool.query(
@@ -432,6 +433,7 @@ export async function listGovernanceChangeProposals(input: {
       AND ($3::record_status IS NULL OR status = $3::record_status)
       AND ($5::text IS NULL OR proposed_action_type = $5)
       AND ($6::text IS NULL OR evolution_signal = $6)
+      AND ($7::text IS NULL OR human_decision = $7)
     ORDER BY created_at DESC
     LIMIT $4
     `,
@@ -441,7 +443,8 @@ export async function listGovernanceChangeProposals(input: {
       input.status ?? "recorded",
       input.limit ?? 50,
       input.proposedActionType ?? null,
-      input.evolutionSignal ?? null
+      input.evolutionSignal ?? null,
+      input.humanDecision ?? null
     ]
   );
   return result.rows;

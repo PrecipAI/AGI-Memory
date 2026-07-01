@@ -124,6 +124,7 @@ export function invalidateL2ThresholdCache(tenantId?: string, scope?: string): v
 }
 
 export async function detectConflicts(input: L2ConflictInput): Promise<L2ConflictOutput> {
+  const pool = getPool();
   const existing = await queryPotentialConflicts(input);
   if (existing.length === 0) {
     return { conflicts: [], blockingAction: null, mergedContent: null };
@@ -199,12 +200,34 @@ export async function detectConflicts(input: L2ConflictInput): Promise<L2Conflic
     : null;
 
   for (const conflict of conflicts) {
+    const proposedAction = `l2_conflict_${conflict.proposedAction.toLowerCase()}`;
+
+    // 幂等：相同目标 + 相同动作 + 相同候选内容的 L2 proposal 已存在则跳过，避免审批历史重复。
+    const existingL2 = await pool.query<{ id: string }>(
+      `
+      SELECT id
+      FROM governance_change_proposal
+      WHERE tenant_id = $1
+        AND scope = $2
+        AND target_object_type = $3
+        AND target_object_id = $4
+        AND proposed_action = $5
+        AND status = 'recorded'
+        AND proposed_payload ->> 'candidate_content' = $6
+      LIMIT 1
+      `,
+      [input.tenantId, input.scope, input.layer, conflict.existingId, proposedAction, input.candidateContent]
+    );
+    if (existingL2.rowCount && existingL2.rows[0]) {
+      continue;
+    }
+
     await createGovernanceChangeProposal({
       tenantId: input.tenantId,
       scope: input.scope,
       targetObjectType: input.layer,
       targetObjectId: conflict.existingId,
-      proposedAction: `l2_conflict_${conflict.proposedAction.toLowerCase()}`,
+      proposedAction,
       proposedPayload: {
         candidate_id: input.candidateId,
         candidate_title: input.candidateTitle,

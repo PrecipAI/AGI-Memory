@@ -13,9 +13,69 @@
  * 执行后调 POST /internal/host-actions/{type}/{id}/status 更新状态为 generated / failed。
  */
 
-import { mkdir, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fetchPendingHostActions, markHostActionStatus, type HostActionItem } from "./hostAction.js";
+
+interface RegistryEntry {
+  id: string;
+  rule_id: string;
+  rule_key: string;
+  file: string;
+  mount_points: string[];
+}
+
+interface RegistryFile {
+  gates: RegistryEntry[];
+}
+
+async function readRegistry(gatesDir: string): Promise<RegistryFile> {
+  const registryPath = path.join(gatesDir, "registry.json");
+  if (!existsSync(registryPath)) {
+    return { gates: [] };
+  }
+  try {
+    const raw = await readFile(registryPath, "utf8");
+    const parsed = JSON.parse(raw) as RegistryFile;
+    return { gates: Array.isArray(parsed.gates) ? parsed.gates : [] };
+  } catch {
+    return { gates: [] };
+  }
+}
+
+async function writeRegistry(gatesDir: string, registry: RegistryFile): Promise<void> {
+  const registryPath = path.join(gatesDir, "registry.json");
+  await writeFile(registryPath, `${JSON.stringify(registry, null, 2)}\n`, "utf8");
+}
+
+async function upsertRegistryEntry(
+  gatesDir: string,
+  entry: RegistryEntry
+): Promise<void> {
+  const registry = await readRegistry(gatesDir);
+  const existingIndex = registry.gates.findIndex((g) => g.rule_key === entry.rule_key);
+  if (existingIndex >= 0) {
+    registry.gates[existingIndex] = entry;
+  } else {
+    registry.gates.push(entry);
+  }
+  await writeRegistry(gatesDir, registry);
+}
+
+function findRepoRoot(): string {
+  const envRoot = process.env.REPO_ROOT;
+  if (envRoot) return path.resolve(envRoot);
+
+  let current = path.resolve(import.meta.dirname ?? process.cwd());
+  while (current !== path.dirname(current)) {
+    if (existsSync(path.join(current, "package.json")) && existsSync(path.join(current, ".git"))) {
+      return current;
+    }
+    current = path.dirname(current);
+  }
+  return process.cwd();
+}
 
 export interface ExecuteHostActionsInput {
   tenantId: string;
@@ -42,13 +102,14 @@ export interface ExecuteHostActionsResult {
   }>;
 }
 
-const DEFAULT_GATES_DIR = path.join(process.cwd(), ".trae", "gates");
+const REPO_ROOT = findRepoRoot();
+const DEFAULT_GATES_DIR = path.join(REPO_ROOT, ".trae", "gates");
 const DEFAULT_GLOBAL_SKILLS_DIR = path.join(
   process.env.USERPROFILE || process.env.HOME || process.cwd(),
   ".trae-cn",
   "skills"
 );
-const DEFAULT_PROJECT_SKILLS_DIR = path.join(process.cwd(), ".trae", "skills");
+const DEFAULT_PROJECT_SKILLS_DIR = path.join(REPO_ROOT, ".trae", "skills");
 
 function isGlobalSkill(record: Record<string, unknown>): boolean {
   return (
@@ -176,6 +237,18 @@ async function processRule(item: HostActionItem, gatesDir: string): Promise<{ ou
   await mkdir(gatesDir, { recursive: true });
   await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, buildHookFile(payload), "utf8");
+
+  const mountPoints = Array.isArray((payload.trigger_conditions as Record<string, unknown> | undefined)?.mount_points)
+    ? ((payload.trigger_conditions as Record<string, unknown>).mount_points as string[])
+    : ["before_task_complete"];
+  await upsertRegistryEntry(gatesDir, {
+    id: `hook_${ruleKey.toLowerCase().replace(/[^a-z0-9_]/g, "_")}`,
+    rule_id: String(payload.rule_id ?? item.id ?? ""),
+    rule_key: ruleKey,
+    file: path.basename(filePath),
+    mount_points: mountPoints
+  });
+
   return { outputPath: filePath };
 }
 

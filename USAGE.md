@@ -497,6 +497,102 @@ npm run memory-mcp:start
 | 执行器 | [hostActionExecutor.ts](services/memory-service/src/hostActionExecutor.ts) |
 | 可选参数 | gates_dir / global_skills_dir / project_skills_dir / project_id / limit |
 
+### 10.4 触发硬编码的四种使用方式
+
+审批通过后，系统会把 Rule / Skill 候选放进 `host-actions/pending` 队列。真正生成文件需要调用 `POST /internal/host-actions/execute`。下面给出四种符合用户习惯的触发路径，全部已在 `scripts/test-host-action-approval-flow.mjs` 中跑通。
+
+#### 方式 1：Governance Console 视觉流程
+
+适合想点按钮的用户。
+
+```text
+1. 打开 http://127.0.0.1:3101/（Governance Console）
+2. 在 Pending 列表看到 create_rule 提案
+3. 点击 Approve
+4. 切到 History 确认已审批、无重复
+5. 点“生成硬编码”或手动调 POST /internal/host-actions/execute
+6. 检查 .trae/gates/{rule_key}.hook.ts 与 registry.json
+```
+
+#### 方式 2：API 直接审批流程
+
+适合想把治理集成到自己工作流的用户。
+
+```powershell
+# 1. 创建 rule candidate（host_model 模式会生成 pending proposal）
+curl -X POST http://127.0.0.1:3101/internal/governance/run-from-extraction `
+  -H "Content-Type: application/json" `
+  -H "x-tenant-id: tenant-local" `
+  -H "x-scope: memory.validation" `
+  -d '{"extraction_preview":{"rule_candidates":[{"candidate_type":"rule_candidate","title":"禁止日志打印敏感信息","statement":"禁止在日志中打印用户密码或 token，必须对敏感字段脱敏，违反将被阻断提交","rule_key":"host-rule-direct-1","rule_domain":"execution","rule_scope":"project","enforcement_level":"must","violation_behavior":"block","applies_to_phase":["coding"],"risk_level":"medium","promotion_status":"needs_review","origin_scope":"project","availability_scope":"project_reusable","governance_level":"shared","source_kind":"host_capture","source_timestamp":"'$(Get-Date -Format o)'","metadata":{"human_readable_statement":"日志中禁止打印用户密码或 token","classification_rationale":"约束性规则：IF 输出日志 THEN 必须脱敏"}}]},"governance_mode":"host_model","host":"codex"}'
+
+# 2. 查 pending proposal 拿到 id
+$pending = (curl http://127.0.0.1:3101/internal/governance/change-proposals?status=recorded).Content | ConvertFrom-Json
+$id = $pending.items[0].id
+
+# 3. Approve
+curl -X POST http://127.0.0.1:3101/internal/governance/change-proposals/$id/actions `
+  -H "Content-Type: application/json" `
+  -H "x-tenant-id: tenant-local" `
+  -H "x-scope: memory.validation" `
+  -d '{"action":"approve"}'
+
+# 4. 执行落地
+curl -X POST http://127.0.0.1:3101/internal/host-actions/execute `
+  -H "Content-Type: application/json" `
+  -H "x-tenant-id: tenant-local" `
+  -H "x-scope: memory.validation" `
+  -d '{"limit":100}'
+```
+
+#### 方式 3：自动 skill 触发
+
+适合宿主 agent 已经接入了 memory-host-action-execute skill 的场景。
+
+```text
+1. 用户对话触发 memory-governance-run → 生成 change proposal
+2. 用户在 Governance Console 点 Approve（或 API approve）
+3. 宿主 agent 检测到 memory-host-action-execute skill 触发条件（审批通过且 host-actions 队列非空）
+4. skill 自动调 POST /internal/host-actions/execute
+5. 生成 .hook.ts / SKILL.md
+```
+
+#### 方式 4：批量审批后单次 execute
+
+适合一次性审多条规则再统一生成的用户。
+
+```powershell
+# 依次 approve N 条 rule proposal
+$ids = @("id-1", "id-2")
+foreach ($id in $ids) {
+  curl -X POST http://127.0.0.1:3101/internal/governance/change-proposals/$id/actions `
+    -H "Content-Type: application/json" `
+    -H "x-tenant-id: tenant-local" `
+    -H "x-scope: memory.validation" `
+    -d '{"action":"approve"}'
+}
+
+# 单次 execute 全部落地
+curl -X POST http://127.0.0.1:3101/internal/host-actions/execute `
+  -H "Content-Type: application/json" `
+  -H "x-tenant-id: tenant-local" `
+  -H "x-scope: memory.validation" `
+  -d '{"limit":100}'
+```
+
+#### 验证是否生成
+
+```powershell
+# 查看生成的 hook 文件
+Get-ChildItem .trae/gates/*.hook.ts
+
+# 查看 registry.json
+cat .trae/gates/registry.json | ConvertFrom-Json
+
+# 跑完整链路测试
+node scripts/test-host-action-approval-flow.mjs
+```
+
 ## 11. 部署方式选择
 
 | 方式 | 适用 | 数据库 | 难度 |
@@ -560,8 +656,8 @@ node scripts/verify-p05-powershell.mjs    # PowerShell 复合信号全链路
 
 ### 误区 6：审批通过后没看到 .hook.ts / SKILL.md 文件
 
-**原因**：审批通过后需要触发 `memory-host-action-execute` skill 调 `POST /internal/host-actions/execute`，才会生成文件。
-**解法**：手动调 `curl -X POST http://127.0.0.1:3101/internal/host-actions/execute`，或确认宿主侧 skill 触发条件已配置。
+**原因**：审批通过后只是把候选推进 `host-actions/pending` 队列，需要调 `POST /internal/host-actions/execute` 才会生成文件。
+**解法**：参考第 10.4 节的四种触发方式（Governance Console、API、skill 自动、批量审批），选一种适合你的流程。
 
 ### 误区 7：doctor 报 memory-service 不可达
 

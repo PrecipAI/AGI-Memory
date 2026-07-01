@@ -1034,6 +1034,26 @@ export async function createOrReplaceRule(input: {
 
   // 新增规则若要求人工审批，不能直接落表为 active，必须先创建 change proposal
   if (input.promotionStatus === "needs_review") {
+    // 幂等：相同 rule_key 的 pending proposal 已存在则直接复用，避免审批历史重复。
+    const existingPending = await pool.query<{ id: string }>(
+      `
+      SELECT id
+      FROM governance_change_proposal
+      WHERE tenant_id = $1
+        AND scope = $2
+        AND target_object_type = 'rule'
+        AND proposed_action = 'create_rule'
+        AND status = 'recorded'
+        AND proposed_payload ->> 'rule_key' = $3
+      ORDER BY created_at DESC
+      LIMIT 1
+      `,
+      [input.tenantId, input.scope, proposedPayload.rule_key]
+    );
+    if (existingPending.rowCount && existingPending.rows[0]) {
+      return existingPending.rows[0].id;
+    }
+
     const proposal = await pool.query<{ id: string }>(
       `
       INSERT INTO governance_change_proposal (

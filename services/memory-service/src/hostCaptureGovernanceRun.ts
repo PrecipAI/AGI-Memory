@@ -1999,6 +1999,27 @@ async function filterExistingRuleCandidates(input: {
       skippedExistingRuleCount += 1;
       continue;
     }
+
+    // 同时检查 pending 的 create_rule proposal，避免同一内容生成多条待审批记录。
+    const existingPending = await pool.query<{ id: string }>(
+      `
+      SELECT id
+      FROM governance_change_proposal
+      WHERE tenant_id = $1
+        AND scope = $2
+        AND target_object_type = 'rule'
+        AND proposed_action = 'create_rule'
+        AND status = 'recorded'
+        AND proposed_payload ->> 'normalized_statement' = $3
+      LIMIT 1
+      `,
+      [input.tenantId, input.scope, normalizedStatement]
+    );
+    if (existingPending.rowCount && existingPending.rows[0]) {
+      skippedExistingRuleCount += 1;
+      continue;
+    }
+
     ruleCandidates.push(candidate);
   }
 
