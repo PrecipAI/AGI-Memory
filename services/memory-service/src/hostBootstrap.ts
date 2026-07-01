@@ -8,7 +8,7 @@
  */
 
 // ============================================================================
-// Skills：宿主自带的 42 个 skill
+// Skills：宿主自带的 50 个 skill
 // 按 skill_type 分组：generative / procedural / integration / knowledge / publishing
 // ============================================================================
 
@@ -110,6 +110,22 @@ export const HOST_BOOTSTRAP_SKILLS = [
     risk_level: "low",
     tags: ["memory", "recall", "context", "assembly"],
   },
+  {
+    skill_key: "memory-governance-review",
+    title: "Memory Governance Review Skill",
+    description: "查询待审批的治理候选并通知用户。调用 GET /internal/governance/change-proposals?status=recorded，返回待审批的 L2/L3/L4 候选列表。治理运行完成后自动触发，告知用户有 N 条候选待审批，用户回复 approve/reject 后调用 POST /internal/governance/change-proposals/{id}/actions。",
+    skill_type: "procedural",
+    risk_level: "low",
+    tags: ["memory", "governance", "review", "approval"],
+  },
+  {
+    skill_key: "memory-host-action-execute",
+    title: "Memory Host Action Execute Skill",
+    description: "消费 host-actions 队列，把审批通过的 Rule 落地为 .trae/gates/*.hook.ts（调 GateMaster 逻辑），把审批通过的 Skill 落地为 .trae/skills/*/SKILL.md（调 Skill Creator 逻辑）。调用 GET /internal/host-actions/pending 拉取队列，逐条处理，处理后调 POST /internal/host-actions/{type}/{id}/status 更新状态。审批通过后自动触发，无需用户手动介入。",
+    skill_type: "procedural",
+    risk_level: "medium",
+    tags: ["memory", "host-action", "execute", "landing"],
+  },
 
   // ── 知识型：记忆治理知识 ──────────────────────────────────────────
   {
@@ -134,7 +150,7 @@ export const HOST_BOOTSTRAP_MEMORIES = [
   { memory_type: "project_memory", title: "Graphify 使用约定", content: "如果 graphify-out/GRAPH_REPORT.md 存在，回答架构或代码关系问题前优先先读它。遇到跨模块关系问题优先使用 graphify query/path/explain。", importance: 75, tags: ["host", "graphify", "convention"] },
   { memory_type: "project_memory", title: "Memory MCP 使用策略", content: "非平凡编码/设计/调试/集成/审查工作前先调用 memory_health + memory_retrieve_context。高风险操作前调用 rule_gate_check。验证后的设计决策调用 memory_ingest_candidate。", importance: 78, tags: ["host", "memory", "mcp"] },
   { memory_type: "workspace_memory", title: "Windows 执行环境", content: "工具映射：读文件用 Read（禁 cat/head/tail）、搜文件用 Glob（禁 find/ls）、搜内容用 Grep（禁 grep/rg）、编辑用 Edit（禁 sed/awk）、创建用 Write（禁 echo>）。", importance: 70, tags: ["host", "windows", "tools"] },
-  { memory_type: "project_memory", title: "Memory 治理触发时机", content: "记忆抽取/治理流程的触发时机：(1) 用户完成一段有价值工作（修复 bug、新功能上线、解决一个棘手问题）后触发 memory-governance-run；(2) 用户问『你学到了什么/总结一下』触发 memory-extract-preview 先看候选；(3) 用户问『为什么这条规则存在/这条记忆的根因』触发 memory-layer-links-query；(4) 用户跨多工具检索后应用结论时触发 memory-learning-chain-detect 验证学习链完整；(5) 复杂问题回答前自动触发 memory-recall-assemble。普通对话不触发，避免误抽取。", importance: 88, tags: ["host", "memory", "trigger", "convention"] },
+  { memory_type: "project_memory", title: "Memory 治理触发时机", content: "记忆抽取/治理流程的触发时机：\n(1) 显式记忆信号——用户说『记住 XX』『记下来』『以后别再犯』『这个经验要存』『记一下这个坑』等明确要求记忆的表述，触发 memory-extract-preview 看候选；\n(2) 隐式记忆信号——用户完成一段有价值工作（修复 bug、新功能上线、解决棘手问题）后，或长对话末尾自然总结点，触发 memory-extract-preview 看候选；\n(3) 用户问『你学到了什么 / 总结一下 / 这次有啥收获』触发 memory-extract-preview；\n(4) 用户确认候选后说『存下来 / 治理一下 / 持久化』触发 memory-governance-run 写库；\n(5) 治理运行完成后自动触发 memory-governance-review 通知用户审批候选；\n(6) 用户问『为什么这条规则存在 / 这条记忆的根因』触发 memory-layer-links-query；\n(7) 用户跨多工具检索后应用结论时触发 memory-learning-chain-detect 验证学习链完整；\n(8) 复杂问题回答前自动触发 memory-recall-assemble 装配上下文；\n(9) 审批通过后自动触发 memory-host-action-execute 消费 host-actions 队列，调用 GateMaster / Skill Creator 落地。普通对话不触发，避免误抽取。", importance: 88, tags: ["host", "memory", "trigger", "convention"] },
 ] as const;
 
 // ============================================================================

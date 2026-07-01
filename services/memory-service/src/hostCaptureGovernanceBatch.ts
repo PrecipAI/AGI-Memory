@@ -991,6 +991,14 @@ function distillMemoryContent(title: string, text: string): string {
   if (title === "Project path context" || title === "Workspace path context" || title === "Workspace context") {
     return extractWindowsPath(text) ?? summarize(text, 120);
   }
+
+  // 通用逻辑：提取 "学到的:" 后的技术内容作为 memory content
+  // TRAE 摘要格式："intent\n学到的: learned_content"
+  const learnedMatch = text.match(/学到的[:：]\s*([\s\S]+)/);
+  if (learnedMatch) {
+    return summarize(learnedMatch[1].trim(), 200);
+  }
+
   return summarize(text, 120);
 }
 
@@ -1200,6 +1208,26 @@ function inferMemoryTitle(text: string): string {
   if (text.includes("workspace") || text.includes("工作空间") || text.includes("工作区")) {
     return "工作空间上下文";
   }
+
+  // 通用逻辑：根据 "学到的:" 后的技术内容推断标题
+  const learnedMatch = text.match(/学到的[:：]\s*([\s\S]+)/);
+  if (learnedMatch) {
+    const content = learnedMatch[1].trim();
+    if (/部署|发布|deploy|publish|netlify|render|github\s+pages/i.test(content)) {
+      return "部署配置事实";
+    }
+    if (/配置|设置|toml|yaml|json|config/i.test(content)) {
+      return "项目配置事实";
+    }
+    if (/目录|路径|path|directory/i.test(content)) {
+      return "路径配置事实";
+    }
+    if (/集成|接入|mcp|api|sdk|工具/i.test(content)) {
+      return "集成配置事实";
+    }
+    return summarize(content.split(/[，。；\n]/)[0], 60);
+  }
+
   return "长期事实上下文候选";
 }
 
@@ -1278,22 +1306,66 @@ function looksLikeStableFactualMemory(text: string): boolean {
   if (isLowValueTransientUtterance(text)) {
     return false;
   }
+
+  // 原有逻辑：Windows 路径相关的事实（保留向后兼容 codex 会话）
   const path = extractWindowsPath(text);
-  if (!path) {
+  if (path) {
+    if (!(path.toLowerCase().startsWith("c:\\workspace") && !text.includes("改成") && !text.includes("自定义"))) {
+      if (
+        text.includes("项目路径") ||
+        text.includes("workspace 目录") ||
+        text.includes("workspace目录") ||
+        text.includes("工作目录") ||
+        text.includes("默认到") ||
+        text.includes("本机") ||
+        text.includes("这台机器")
+      ) {
+        return true;
+      }
+    }
+  }
+
+  // 通用逻辑：识别 TRAE 摘要 "学到的:" 后的技术事实（无路径也能识别）
+  return isTechnicalFactualStatement(text);
+}
+
+// 通用技术事实识别：用于 TRAE 等宿主的会话摘要
+// TRAE session_memory 每行是摘要：{intent, learned, outcome}
+// traeCaptureAdapter 把 intent + "学到的: learned" 拼成 user_message
+// learned 字段通常含技术配置/部署细节，是稳定事实候选
+function isTechnicalFactualStatement(text: string): boolean {
+  // 提取 "学到的:" 后的内容；如果没有则用全文
+  const learnedMatch = text.match(/学到的[:：]\s*([\s\S]+)/);
+  const content = learnedMatch ? learnedMatch[1].trim() : text;
+
+  // 排除太短的（纯意图，如"确认是否可以推送代码"）
+  if (content.length < 25) {
     return false;
   }
-  if (path.toLowerCase().startsWith("c:\\workspace") && !text.includes("改成") && !text.includes("自定义")) {
+
+  // 排除纯统计数字（"10个文件变更，325 insertions / 141 deletions"）
+  if (/^[\d\s,，insertionsdeletions个张条/+_-]+$/.test(content)) {
     return false;
   }
-  return (
-    text.includes("项目路径") ||
-    text.includes("workspace 目录") ||
-    text.includes("workspace目录") ||
-    text.includes("工作目录") ||
-    text.includes("默认到") ||
-    text.includes("本机") ||
-    text.includes("这台机器")
-  );
+
+  // 技术信号：至少命中 2 个才认为是稳定技术事实
+  const techSignals: RegExp[] = [
+    /配置/, /目录/, /路径/, /使用/, /采用/, /基于/, /加载/, /触发/, /启用/, /模式/,
+    /部署/, /发布/, /编译/, /运行/, /启动/, /注册/, /生成/, /修复/, /集成/, /接入/,
+    /更新/, /修改/, /实现/, /迁移/, /回退/, /降级/, /升格/, /拦截/, /校验/,
+    /fallback/i, /publish/i, /auto/i, /mock/i, /workflow/i, /deploy/i, /pages/i,
+    /\.(toml|yaml|yml|json|html|js|ts|py|md)\b/i,
+    /(?:netlify|github|docker|fastapi|node|npm|python|render|powershell|typescript)\b/i,
+  ];
+
+  let signalCount = 0;
+  for (const signal of techSignals) {
+    if (signal.test(content)) {
+      signalCount++;
+    }
+  }
+
+  return signalCount >= 2;
 }
 
 function hasGovernanceDecisionVerb(text: string): boolean {

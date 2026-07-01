@@ -101,6 +101,9 @@ export class MemoryEngineAdapter {
     const defaults = this.getDefaults();
     const traceId = `trace-memory-mcp-${Date.now()}-${randomUUID()}`;
     const idempotencyKey = `memory-mcp:${url}:${randomUUID()}`;
+    if (process.env.MCP_DEBUG_PAYLOAD) {
+      console.error(`[MCP DEBUG] ${url} payload keys: ${Object.keys(payload ?? {}).join(",")} fingerprint=${(payload as Record<string, unknown>)?.fingerprint ?? "MISSING"}`);
+    }
     const response = await fetch(new URL(url, this.config.memoryServiceUrl), {
       method: "POST",
       headers: {

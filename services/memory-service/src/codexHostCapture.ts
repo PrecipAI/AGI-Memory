@@ -50,7 +50,8 @@ type CaptureSignal = {
   matched_rules: string[];
 };
 
-export type HostCaptureName = "codex" | "claude-code" | "openclaw" | "opencode";
+// 已知专属宿主名通过自动补全提示，但实际接受任意 string（cursor/windsurf/continue 等未知宿主也能通过类型检查）
+export type HostCaptureName = ("codex" | "claude-code" | "openclaw" | "opencode" | "trae" | "qoder") | (string & {});
 
 export type CodexCapturePreviewRequest = {
   codex_home?: string | null;

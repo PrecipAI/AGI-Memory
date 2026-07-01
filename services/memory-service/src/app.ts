@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import Fastify from "fastify";
 import fastifyStatic from "@fastify/static";
@@ -83,11 +84,13 @@ import { ResidentMemoryBuilder } from "./residentMemoryBuilder.js";
 import { RetrievalGate } from "./retrievalGate.js";
 import { buildRetrieveBundle } from "./retrieveBundle.js";
 import { fetchPendingHostActions, markHostActionStatus } from "./hostAction.js";
+import { executeHostActions } from "./hostActionExecutor.js";
 import { handleRuleGateCheck } from "./ruleGateCheck.js";
 import { RuleBuilder } from "./ruleBuilder.js";
 import { SkillBuilder } from "./skillBuilder.js";
 import { SummaryGenerator } from "./summaryGenerator.js";
 import { registerHostBootstrap } from "./hostBootstrap.js";
+import { detectLearningChains, type LearningChainEvent } from "./governance/learningChainDetector.js";
 
 export function buildMemoryServiceApp() {
   const app = Fastify({ logger: false });
@@ -140,7 +143,13 @@ export function buildMemoryServiceApp() {
     reply.status(frozen.statusCode).send(frozen.body);
   });
 
-  const publicDir = path.resolve(import.meta.dirname, "../public");
+  // public 目录位于 services/memory-service/public。
+  // - 源码运行 (tsx dev)：import.meta.dirname = .../services/memory-service/src → ../public 正确
+  // - 编译后运行 (dist)：import.meta.dirname = .../dist/services/memory-service/src → ../public 不存在，
+  //   需要回溯到仓库根再进 services/memory-service/public
+  const devPublicDir = path.resolve(import.meta.dirname, "../public");
+  const distPublicDir = path.resolve(import.meta.dirname, "../../../../public");
+  const publicDir = existsSync(devPublicDir) ? devPublicDir : distPublicDir;
 
   // GitHub Pages 兼容：static 挂载到根路径，index.html 用相对路径 ./mock-data.js。
   // 这样本地 /mock-data.js 和 GitHub Pages /repo/mock-data.js 都能解析到。
@@ -148,7 +157,8 @@ export function buildMemoryServiceApp() {
   app.register(fastifyStatic, {
     root: publicDir,
     prefix: "/",
-    wildcard: false
+    wildcard: false,
+    index: false
   });
 
   app.get("/", async (request, reply) => reply.sendFile("index.html", publicDir));
@@ -1473,12 +1483,25 @@ export function buildMemoryServiceApp() {
       skills?: Array<Record<string, unknown>>;
       memories?: Array<Record<string, unknown>>;
       rules?: Array<Record<string, unknown>>;
+      host_info?: {
+        host_kind?: string;
+        host_version?: string;
+        host_home?: string;
+        workspace_path?: string;
+        agent_runtime?: string;
+      } | null;
     };
     const traceId = `host-mount-${Date.now()}`;
     const result = {
       skills: { created: 0, updated: 0, skipped: 0, errors: [] as string[] },
       memories: { created: 0, skipped: 0, errors: [] as string[] },
-      rules: { created: 0, updated: 0, skipped: 0, errors: [] as string[] }
+      rules: { created: 0, updated: 0, skipped: 0, errors: [] as string[] },
+      host_info: null as null | {
+        host_kind: string;
+        host_home: string;
+        sessions_found: number;
+        latest_session: string | null;
+      }
     };
 
     // 注册 skill
@@ -1572,6 +1595,37 @@ export function buildMemoryServiceApp() {
       }
     }
 
+    // 如果请求中带 host_info，自动触发会话发现（best-effort，失败不阻断挂载）
+    if (body.host_info?.host_kind) {
+      try {
+        const host = normalizeHost(body.host_info.host_kind);
+        const sessions = await listHostSessions({
+          host,
+          host_home: body.host_info.host_home ?? null,
+          limit: 5
+        });
+        result.host_info = {
+          host_kind: host,
+          host_home: sessions.host_home,
+          sessions_found: sessions.items.length,
+          latest_session: sessions.items[0]?.thread_name ?? null
+        };
+      } catch (e) {
+        // best-effort：会话发现失败不影响挂载主流程，但把错误信息附到返回里
+        result.host_info = {
+          host_kind: normalizeHost(body.host_info.host_kind),
+          host_home: body.host_info.host_home ?? "",
+          sessions_found: 0,
+          latest_session: null
+        };
+        // 错误信息只打到日志，不暴露给客户端
+        console.warn(
+          `[host-mount] 会话发现失败 host=${body.host_info.host_kind}:`,
+          (e as Error).message
+        );
+      }
+    }
+
     return {
       tenant_id: context.tenantId,
       scope: context.scope,
@@ -1580,12 +1634,122 @@ export function buildMemoryServiceApp() {
         skills: { ...result.skills, total: body.skills?.length ?? 0 },
         memories: { ...result.memories, total: body.memories?.length ?? 0 },
         rules: { ...result.rules, total: body.rules?.length ?? 0 }
-      }
+      },
+      host_info: result.host_info
     };
   });
 
+  // ─── P1b 查询：layer_links 跨层派生关系 ──────────────────────────
+  // 支持 source_id / target_id / link_type 过滤，单向存储反查即可覆盖双向需求。
+  app.get("/internal/layer-links", async (request) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "layer-links-query");
+    const query = (request.query ?? {}) as {
+      source_id?: string;
+      target_id?: string;
+      source_layer?: string;
+      target_layer?: string;
+      link_type?: string;
+      limit?: number | string;
+    };
+    const limit = typeof query.limit === "string" ? Number(query.limit) : query.limit;
+    const pool = getPool();
+    const conditions: string[] = ["tenant_id = $1", "scope = $2", "status = 'active'"];
+    const params: unknown[] = [context.tenantId, context.scope];
+    let paramIdx = 3;
+    if (query.source_id) {
+      conditions.push(`source_id = $${paramIdx}::uuid`);
+      params.push(query.source_id);
+      paramIdx++;
+    }
+    if (query.target_id) {
+      conditions.push(`target_id = $${paramIdx}::uuid`);
+      params.push(query.target_id);
+      paramIdx++;
+    }
+    if (query.source_layer) {
+      conditions.push(`source_layer = $${paramIdx}`);
+      params.push(query.source_layer);
+      paramIdx++;
+    }
+    if (query.target_layer) {
+      conditions.push(`target_layer = $${paramIdx}`);
+      params.push(query.target_layer);
+      paramIdx++;
+    }
+    if (query.link_type) {
+      conditions.push(`link_type = $${paramIdx}`);
+      params.push(query.link_type);
+      paramIdx++;
+    }
+    const sql = `
+      SELECT id, source_id, source_layer, target_id, target_layer, link_type, confidence, trace_id, created_at
+      FROM layer_links
+      WHERE ${conditions.join(" AND ")}
+      ORDER BY created_at DESC
+      LIMIT $${paramIdx}
+    `;
+    params.push(Number.isFinite(limit) ? Number(limit) : 50);
+    const result = await pool.query(sql, params);
+    return {
+      tenant_id: context.tenantId,
+      scope: context.scope,
+      items: result.rows,
+      count: result.rows.length
+    };
+  });
+
+  // ─── P3 学习行为链检测 ──────────────────────────────────────────
+  // 接收事件序列，返回检测到的学习链（含 isComplete 判定）。
+  // 防御原则：isComplete=false 的链不硬造 Knowledge，下游自行决定降级。
+  app.post("/internal/learning-chain/detect", async (request) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "learning-chain-detect");
+    const body = (request.body ?? {}) as { events?: LearningChainEvent[] };
+    if (!Array.isArray(body.events)) {
+      return {
+        error_code: "INVALID_EVENTS",
+        message: "events must be an array of { timestamp, kind, payload, status? }",
+        trace_id: context.traceId,
+        chains: []
+      };
+    }
+    const chains = detectLearningChains({ events: body.events });
+    return {
+      tenant_id: context.tenantId,
+      scope: context.scope,
+      total_chains: chains.length,
+      complete_chains: chains.filter((c) => c.isComplete).length,
+      incomplete_chains: chains.filter((c) => !c.isComplete).length,
+      chains
+    };
+  });
+
+  // ─── 审批后落地执行：消费 host-actions 队列 ──────────────────────
+  // 拉取 pending 的 host-actions，逐条执行落地（生成 .hook.ts / SKILL.md），更新状态。
+  // 由 memory-host-action-execute skill 触发，也可手动 POST 触发。
+  app.post("/internal/host-actions/execute", async (request) => {
+    const context = resolveRequestContext(request.headers as Record<string, unknown>, "host-action-execute");
+    const body = (request.body ?? {}) as {
+      gates_dir?: string;
+      global_skills_dir?: string;
+      project_skills_dir?: string;
+      project_id?: string;
+      limit?: number;
+    };
+    const result = await executeHostActions({
+      tenantId: context.tenantId,
+      scope: context.scope,
+      traceId: context.traceId,
+      gatesDir: body.gates_dir,
+      globalSkillsDir: body.global_skills_dir,
+      projectSkillsDir: body.project_skills_dir,
+      projectId: body.project_id,
+      limit: body.limit
+    });
+    return result;
+  });
+
   // ─── 宿主挂载就绪提示 + 自动注册宿主自带 skill/memory/rule ──────────
-  // 服务启动后自动注册内置的宿主 bootstrap 数据（42 skills + 7 memories + 5 rules），
+  // 服务启动后自动注册内置的宿主 bootstrap 数据（50 skills + 8 memories + 5 rules），
   // 确保仪表盘一打开就能看到宿主全部能力。幂等：重复启动不会产生重复数据。
   app.addHook("onReady", async () => {
     console.log("[host-mount] memory-service 已就绪，开始自动注册宿主自带数据...");

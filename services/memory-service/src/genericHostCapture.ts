@@ -5,8 +5,7 @@ import type {
   CodexCapturePreviewRequest,
   CodexCapturePreviewResponse,
   CodexHostSessionListRequest,
-  CodexHostSessionListResponse,
-  HostCaptureName
+  CodexHostSessionListResponse
 } from "./codexHostCapture.js";
 
 type GenericSessionEntry = {
@@ -23,7 +22,7 @@ type GenericMessage = {
 };
 
 export async function previewGenericHostCapture(input: CodexCapturePreviewRequest & {
-  host: Exclude<HostCaptureName, "codex">;
+  host: string;
 }): Promise<CodexCapturePreviewResponse> {
   const hostHome = resolveGenericHostHome(input.host, input.host_home ?? input.codex_home ?? null);
   const sessions = await listGenericSessionEntries(input.host, hostHome, normalizeMaxItems(1000));
@@ -147,7 +146,7 @@ export async function previewGenericHostCapture(input: CodexCapturePreviewReques
 }
 
 export async function listGenericHostSessions(input: CodexHostSessionListRequest & {
-  host: Exclude<HostCaptureName, "codex">;
+  host: string;
 }): Promise<CodexHostSessionListResponse> {
   const hostHome = resolveGenericHostHome(input.host, input.host_home ?? input.codex_home ?? null);
   const limit = normalizeMaxItems(input.limit);
@@ -165,7 +164,7 @@ export async function listGenericHostSessions(input: CodexHostSessionListRequest
   };
 }
 
-function resolveGenericHostHome(host: Exclude<HostCaptureName, "codex">, customHostHome: string | null): string {
+function resolveGenericHostHome(host: string, customHostHome: string | null): string {
   if (customHostHome?.trim()) {
     return customHostHome.trim();
   }
@@ -174,7 +173,7 @@ function resolveGenericHostHome(host: Exclude<HostCaptureName, "codex">, customH
 }
 
 async function listGenericSessionEntries(
-  host: Exclude<HostCaptureName, "codex">,
+  host: string,
   hostHome: string,
   limit: number
 ): Promise<GenericSessionEntry[]> {

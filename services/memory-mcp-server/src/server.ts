@@ -379,40 +379,31 @@ Procedural memory retrieval requires fingerprint_status=matched. Use matched_or_
       title: "Memory Retrieve Context",
       description:
         "Assemble runtime summary, conversation summary, resident snapshot, and gated factual/procedural memory. Procedural memory requires fingerprint_status=matched.",
-      inputSchema: z.object({
-        task_request_id: z.string().uuid(),
-        query: z.string().min(1),
-        runtime_summary: looseObjectSchema.optional(),
-        fingerprint: z.string().optional(),
-        fingerprint_status: fingerprintStatusSchema.optional(),
-        include_procedural: z.boolean().optional(),
-        include_factual: z.boolean().optional(),
-        limit: z.number().int().min(1).max(50).optional(),
-        task_type: z
-          .enum(["design", "execution", "debugging", "governance", "review", "ingestion", "integration", "answer"])
-          .optional(),
-        host: z.string().optional(),
-        project_ref: z.string().optional(),
-        operation_intent: z.string().optional(),
-        context_budget_tokens: z.number().int().min(256).max(200000).optional(),
-        existing_bundle_id: z.string().uuid().optional(),
-        existing_query_hash: z.string().optional(),
-        layer_versions: looseObjectSchema.optional(),
-        required_layers: z.array(z.string()).optional(),
-        forbidden_layers: z.array(z.string()).optional(),
-        compression_mode: z.enum(["none", "light", "aggressive", "evidence_only"]).optional(),
-        attention_layout: z.string().optional()
-      })
+      inputSchema: looseObjectSchema
     },
     async (args) => {
-      const result = await adapter.retrieve({
-        ...args,
-        fingerprint_status: requireToolArgument(
-          args.fingerprint_status,
-          "fingerprint_status",
-          "FINGERPRINT_STATUS_REQUIRED"
-        )
-      });
+      const raw = (args ?? {}) as Record<string, unknown>;
+      if (process.env.MCP_DEBUG_PAYLOAD) {
+        console.error(`[MCP DEBUG] retrieve handler args keys: ${Object.keys(raw).join(",")} fingerprint=${raw.fingerprint ?? "MISSING"} include_procedural=${raw.include_procedural ?? "MISSING"}`);
+      }
+      if (!raw.task_request_id || typeof raw.task_request_id !== "string") {
+        throw new Error("task_request_id is required (uuid)");
+      }
+      if (!raw.query || typeof raw.query !== "string") {
+        throw new Error("query is required (non-empty)");
+      }
+      // Workaround: MCP SDK 的 zod/v4-mini safeParse 会随机剔除部分 optional 字段
+      // （fingerprint/include_procedural 等），在未升级 SDK 前显式补齐默认值避免后端 400
+      const retrieveBody: Record<string, unknown> = { ...raw };
+      if (retrieveBody.include_procedural === undefined) {
+        retrieveBody.include_procedural = false;
+      }
+      retrieveBody.fingerprint_status = requireToolArgument(
+        raw.fingerprint_status as string | undefined,
+        "fingerprint_status",
+        "FINGERPRINT_STATUS_REQUIRED"
+      );
+      const result = await adapter.retrieve(retrieveBody as Parameters<typeof adapter.retrieve>[0]);
       return {
         content: [
           {
