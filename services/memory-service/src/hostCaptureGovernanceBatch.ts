@@ -300,6 +300,23 @@ const PROJECT_DECISION_PATTERNS = [
   "不污染"
 ];
 
+// 显式强制记忆信号：用户明确表达"要记住/不准再犯/存起来"等意图。
+// 命中时无论内容是否像稳定事实，都应抽取 memory_candidate（具体落哪层由内容决定）。
+const EXPLICIT_MEMORY_SIGNALS = [
+  "记住",
+  "请记住",
+  "记下来",
+  "记一下",
+  "不准再犯",
+  "以后别再",
+  "这个要存",
+  "这个经验要存",
+  "存起来",
+  "别忘了",
+  "必须记住",
+  "给我记住"
+];
+
 const SKILL_PATTERNS = [
   "应该",
   "需要",
@@ -396,6 +413,8 @@ export function buildGovernanceBatchPreview(preview: CodexCapturePreviewResponse
       });
     }
 
+    const hasExplicitMemorySignalFlag = hasExplicitMemorySignal(compact);
+
     const skillChangeProposal = isSkillProposal
       ? buildSkillChangeProposal(compact)
       : null;
@@ -444,6 +463,26 @@ export function buildGovernanceBatchPreview(preview: CodexCapturePreviewResponse
         source_excerpt: excerpt,
         reason: "User message describes a project-internal governance or layering decision that should guide the system as long-term design memory instead of agent rule activation.",
         confidence: "medium"
+      });
+    }
+
+    // 修复：用户显式要求记住（"请记住..."/"不准再犯..."/"存起来"）但内容尚未被识别为
+    // memory 时，强制兜底抽取为 memory_candidate。若内容同时被识别为 rule/skill，
+    // 则形成复合信号，由 buildLayerLinksFromFinalCandidates 建立 derived_from 关系。
+    if (hasExplicitMemorySignalFlag && !hasStableMemoryHint && !isProjectDecision) {
+      const explicitMemoryTitle = inferMemoryTitle(compact);
+      memoryCandidates.push({
+        candidate_type: "memory_candidate",
+        title: explicitMemoryTitle,
+        ...inferGovernanceScope("memory_candidate", compact),
+        memory_type: inferMemoryType(explicitMemoryTitle, compact),
+        stability: "long_lived",
+        source_kind: "user_message",
+        source_timestamp: message.timestamp,
+        content: distillMemoryContent(explicitMemoryTitle, compact),
+        source_excerpt: excerpt,
+        reason: "User explicitly requested to remember this information.",
+        confidence: "high"
       });
     }
 
@@ -975,13 +1014,52 @@ function distillRuleStatement(text: string): string | null {
   if (text.includes("smoke") || text.includes("完整验证") || text.includes("真实调用验证")) {
     return "执行接入验证时，必须走真实完整验证链路，不能只做最小 smoke。";
   }
-  if (text.includes("先确认") || text.includes("interview")) {
+  if ((text.includes("先确认") || text.includes("interview")) && (text.includes("设计边界") || text.includes("需求覆盖"))) {
     return "当设计边界或需求覆盖不足时，必须先补访谈和确认，再继续执行。";
   }
   if (text.includes("不要猜") || text.includes("不能假设")) {
     return "遇到关键决策缺口时，不得靠猜测补空白。";
   }
+
+  // 通用规则提取：用户显式要求记住的内容若含约束性表述，应优先识别为 Rule。
+  // 例如 "请记住，每次做完代码变更都要跑完整测试" → IF 做完代码变更 THEN 必须跑完整测试。
+  if (hasExplicitMemorySignal(text)) {
+    const core = removeExplicitMemorySignalPrefix(text);
+    if (core.length >= 8 && looksLikeConstraint(core)) {
+      return convertToRuleStatement(core);
+    }
+  }
+
   return null;
+}
+
+function removeExplicitMemorySignalPrefix(text: string): string {
+  return text
+    .replace(/^[^\u4e00-\u9fa5]*(?:请记住|记住|记下来|记一下|不准再犯|以后别再|这个要存|这个经验要存|存起来|别忘了|必须记住|给我记住)[,:：，\s]*/i, "")
+    .trim();
+}
+
+function looksLikeConstraint(text: string): boolean {
+  const constraintPatterns = /(?:必须|要|禁止|不准|务必|不得|不允许|不能|需要|应该|应当|应|得|须|别|不要|别再|不再|严禁)/;
+  return constraintPatterns.test(text);
+}
+
+function convertToRuleStatement(core: string): string {
+  // 尝试识别 "每次/当/在...时/之前/之后...必须/要/禁止..." 结构
+  const ifThenMatch = core.match(
+    /(?:每次|当|在|如果)?\s*([^，,。]+?)(?:时|的时候|之前|之后|中|后|前)?\s*[，,]?\s*(必须|要|禁止|不准|务必|不得|不允许|不能|需要|应该|应当|应|得|须|别|不要|别再|不再|严禁)\s*(.+)/
+  );
+  if (ifThenMatch) {
+    const [, condition, verb, action] = ifThenMatch;
+    const cleanCondition = condition.trim().replace(/[都也还]$/, "");
+    const cleanAction = action.trim().replace(/[。！]?$/, "");
+    if (cleanCondition.length >= 3 && cleanAction.length >= 3) {
+      return `IF ${cleanCondition} THEN ${verb}${cleanAction}。`;
+    }
+  }
+
+  // 兜底：句子本身已是约束
+  return core.endsWith("。") ? core : `${core}。`;
 }
 
 function distillMemoryContent(title: string, text: string): string {
@@ -997,6 +1075,14 @@ function distillMemoryContent(title: string, text: string): string {
   const learnedMatch = text.match(/学到的[:：]\s*([\s\S]+)/);
   if (learnedMatch) {
     return summarize(learnedMatch[1].trim(), 200);
+  }
+
+  // 显式记忆信号：去掉"请记住/记住/记下来"等前缀，保留实质内容
+  if (hasExplicitMemorySignal(text)) {
+    const withoutPrefix = removeExplicitMemorySignalPrefix(text);
+    if (withoutPrefix.length >= 10) {
+      return summarize(withoutPrefix, 200);
+    }
   }
 
   return summarize(text, 120);
@@ -1228,6 +1314,16 @@ function inferMemoryTitle(text: string): string {
     return summarize(content.split(/[，。；\n]/)[0], 60);
   }
 
+  // 显式记忆信号：用户说"请记住..."等，取信号后的内容总结作为标题
+  if (hasExplicitMemorySignal(text)) {
+    const withoutPrefix = removeExplicitMemorySignalPrefix(text);
+    const titleBase = withoutPrefix.split(/[，。；\n]/)[0];
+    if (titleBase.length >= 4) {
+      return `用户强制记忆：${summarize(titleBase, 50)}`;
+    }
+    return "用户强制记忆要求";
+  }
+
   return "长期事实上下文候选";
 }
 
@@ -1286,6 +1382,10 @@ function inferSkillTitle(text: string): string {
 
 function hasAny(text: string, patterns: string[]): boolean {
   return patterns.some((pattern) => text.includes(pattern));
+}
+
+function hasExplicitMemorySignal(text: string): boolean {
+  return hasAny(text, EXPLICIT_MEMORY_SIGNALS);
 }
 
 function looksLikeAgentBehaviorRule(text: string): boolean {
