@@ -38,3 +38,6 @@ start-memory-service.ps1
 /tmp-*.mjs
 /tmp-*/
 
+# 自动生成的 gate hook 文件（由 host-actions/execute 运行时生成）
+.trae/gates/*.hook.ts
+
