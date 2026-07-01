@@ -66,6 +66,60 @@ export const HOST_BOOTSTRAP_SKILLS = [
   { skill_key: "lark-wiki", title: "Lark Wiki Skill", description: "飞书知识库：管理知识空间、空间成员和文档节点，创建查询知识空间、管理节点层级", skill_type: "integration", risk_level: "low", tags: ["lark", "wiki", "feishu"] },
   { skill_key: "lark-workflow-meeting-summary", title: "Lark Workflow Meeting Summary Skill", description: "会议纪要整理工作流：汇总指定时间范围内的会议纪要并生成结构化报告", skill_type: "integration", risk_level: "low", tags: ["lark", "workflow", "summary"] },
   { skill_key: "lark-workflow-standup-report", title: "Lark Workflow Standup Report Skill", description: "日程待办摘要：编排 calendar+agenda 和 task+get-my-tasks，生成指定日期的日程与任务摘要", skill_type: "integration", risk_level: "low", tags: ["lark", "workflow", "standup"] },
+
+  // ── 流程式：记忆治理系列 skill（用户在合适场景下手动或自动触发） ───────
+  // 设计动机：抽取/治理/L2-L4/Lifecycle 这些流程必须显式调用，避免在普通对话里误触发。
+  // 每条 skill 都封装一个 memory-service HTTP 端点调用，宿主侧只需声明何时触发即可。
+  {
+    skill_key: "memory-extract-preview",
+    title: "Memory Extract Preview Skill",
+    description: "从当前会话历史抽取记忆候选预览（不写库）。调用 POST /internal/host-capture/{host}/governance-batch-preview，返回 rule/memory/skill/knowledge 候选 + layer_links 派生关系。用于在持久化前先看抽取结果是否合理。",
+    skill_type: "procedural",
+    risk_level: "low",
+    tags: ["memory", "governance", "extraction", "preview"],
+  },
+  {
+    skill_key: "memory-governance-run",
+    title: "Memory Governance Run Skill",
+    description: "执行完整治理运行并持久化（写库）。调用 POST /internal/host-capture/{host}/governance-run，包含 L2 冲突检测、L3 演进扫描、L4 认知合成、layer_links 跨层派生写入。用户完成一段有价值工作后触发。",
+    skill_type: "procedural",
+    risk_level: "medium",
+    tags: ["memory", "governance", "run", "persistence"],
+  },
+  {
+    skill_key: "memory-layer-links-query",
+    title: "Memory Layer Links Query Skill",
+    description: "查询跨层派生关系。传入 source_id 或 target_id，返回 derived_from/explains/constrains/provenance 关联记录。用于回溯一条 Rule 的事实根因 Memory，或反查一条 Memory 对应的硬门控 Rule。",
+    skill_type: "procedural",
+    risk_level: "low",
+    tags: ["memory", "layer_links", "query", "derivation"],
+  },
+  {
+    skill_key: "memory-learning-chain-detect",
+    title: "Memory Learning Chain Detect Skill",
+    description: "扫描 tool_call + message 序列，识别 search→learn→apply→summary 学习行为链。仅当 isComplete=true 时才允许合成 Knowledge 候选；序列后无总结性文本则不硬造 Knowledge（防御原则）。",
+    skill_type: "procedural",
+    risk_level: "low",
+    tags: ["memory", "learning", "chain", "knowledge"],
+  },
+  {
+    skill_key: "memory-recall-assemble",
+    title: "Memory Recall Assemble Skill",
+    description: "按层装配上下文用于回答前注入。调用 memory_retrieve_context MCP 工具，按 rule/memory/skill/knowledge 顺序返回匹配项，带规则约束。复杂问题回答前自动触发。",
+    skill_type: "procedural",
+    risk_level: "low",
+    tags: ["memory", "recall", "context", "assembly"],
+  },
+
+  // ── 知识型：记忆治理知识 ──────────────────────────────────────────
+  {
+    skill_key: "memory-governance-knowledge",
+    title: "Memory Governance Knowledge Skill",
+    description: "记忆治理体系知识：四层派生机制（Memory 事实/Rule 门控/Skill 流程/Knowledge 认知）、复合信号拆分（PowerShell 案例）、Knowledge 双重门槛（OOD + Reusable）、学习行为链判定。用于回答治理机制相关问题。",
+    skill_type: "knowledge",
+    risk_level: "low",
+    tags: ["memory", "governance", "knowledge", "architecture"],
+  },
 ] as const;
 
 // ============================================================================
@@ -80,6 +134,7 @@ export const HOST_BOOTSTRAP_MEMORIES = [
   { memory_type: "project_memory", title: "Graphify 使用约定", content: "如果 graphify-out/GRAPH_REPORT.md 存在，回答架构或代码关系问题前优先先读它。遇到跨模块关系问题优先使用 graphify query/path/explain。", importance: 75, tags: ["host", "graphify", "convention"] },
   { memory_type: "project_memory", title: "Memory MCP 使用策略", content: "非平凡编码/设计/调试/集成/审查工作前先调用 memory_health + memory_retrieve_context。高风险操作前调用 rule_gate_check。验证后的设计决策调用 memory_ingest_candidate。", importance: 78, tags: ["host", "memory", "mcp"] },
   { memory_type: "workspace_memory", title: "Windows 执行环境", content: "工具映射：读文件用 Read（禁 cat/head/tail）、搜文件用 Glob（禁 find/ls）、搜内容用 Grep（禁 grep/rg）、编辑用 Edit（禁 sed/awk）、创建用 Write（禁 echo>）。", importance: 70, tags: ["host", "windows", "tools"] },
+  { memory_type: "project_memory", title: "Memory 治理触发时机", content: "记忆抽取/治理流程的触发时机：(1) 用户完成一段有价值工作（修复 bug、新功能上线、解决一个棘手问题）后触发 memory-governance-run；(2) 用户问『你学到了什么/总结一下』触发 memory-extract-preview 先看候选；(3) 用户问『为什么这条规则存在/这条记忆的根因』触发 memory-layer-links-query；(4) 用户跨多工具检索后应用结论时触发 memory-learning-chain-detect 验证学习链完整；(5) 复杂问题回答前自动触发 memory-recall-assemble。普通对话不触发，避免误抽取。", importance: 88, tags: ["host", "memory", "trigger", "convention"] },
 ] as const;
 
 // ============================================================================
