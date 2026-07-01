@@ -5,7 +5,8 @@
 [![License](https://img.shields.io/badge/license-private-orange)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D20-43853d)](#环境准备)
 [![MCP](https://img.shields.io/badge/protocol-MCP-111111)](#mcp-工具一览)
-[![Demo](https://img.shields.io/badge/demo-GitHub%20Pages-blue)](https://precipai.github.io/AGI-Memory/)
+[![Demo](https://img.shields.io/badge/demo-Netlify-brightgreen)](https://agi-memory.netlify.app/?demo=1)
+[![Forum](https://img.shields.io/badge/forum-Trae%20Forum-orange)](https://forum.trae.cn/t/topic/51738)
 
 ## 这是什么
 
@@ -16,7 +17,11 @@ AGI-Memory 把「长期记忆 + 知识治理 + 跨层派生 + MCP 协议接入 +
 - 治理流水线 L2→L3→L4 让知识越用越干净，垃圾自动隔离归档
 - 前端洋葱图把整个认知架构可视化，节点可点击回溯跨层派生关系
 
-**在线 Demo**（GitHub Pages，免部署）：<https://precipai.github.io/AGI-Memory/>
+**在线 Demo**（Netlify，国内可访问）：<https://agi-memory.netlify.app/?demo=1>
+
+**项目仓库**：<https://github.com/PrecipAI/AGI-Memory>
+
+**初赛帖子**：<https://forum.trae.cn/t/topic/51738>
 
 ## 解决什么痛点
 
