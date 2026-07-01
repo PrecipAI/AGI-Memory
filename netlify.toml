@@ -1,0 +1,33 @@
+# Netlify 部署配置
+# 纯静态站点，无需 build
+[build]
+  publish = "services/memory-service/public"
+  command = ""
+
+# 默认入口
+[[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200
+
+# /dashboard / /governance-console 都返回 index.html（SPA 行为）
+[[redirects]]
+  from = "/dashboard"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/governance-console"
+  to = "/index.html"
+  status = 200
+
+# 静态资源缓存
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
