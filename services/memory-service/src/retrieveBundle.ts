@@ -20,6 +20,7 @@ import { createFrozenHttpError } from "./errors.js";
 import { buildMetacognitionMissionBrief } from "./knowledgeModelWorker.js";
 import type { RetrievalGate } from "./retrievalGate.js";
 import { applyRetrievalHook } from "./retrievalHook.js";
+import { semanticRerank } from "./semanticReranker.js";
 
 type LayerAccessLoggerInput = {
   tenantId: string;
@@ -705,7 +706,8 @@ export async function buildRetrieveBundle(input: {
           tenantId: input.tenantId,
           scope: input.scope,
           query: input.body.query,
-          limit: input.body.limit ?? 10
+          // 放大 3 倍候选给语义重排，重排后截断到原始 limit
+          limit: (input.body.limit ?? 10) * 3
         })
       : Promise.resolve([]),
     requestedLayers.has("procedural_memory") && gates.procedural.allowed
@@ -714,7 +716,8 @@ export async function buildRetrieveBundle(input: {
           scope: input.scope,
           fingerprint: input.body.fingerprint ?? null,
           projectRef: typeof bodyRecord.project_ref === "string" ? bodyRecord.project_ref : null,
-          limit: input.body.limit ?? 10
+          query: input.body.query ?? null,
+          limit: (input.body.limit ?? 10) * 3
         })
       : Promise.resolve([]),
     requestedLayers.has("synthesized_knowledge")
@@ -722,7 +725,7 @@ export async function buildRetrieveBundle(input: {
           tenantId: input.tenantId,
           scope: input.scope,
           query: input.body.query,
-          limit: input.body.limit ?? 10
+          limit: (input.body.limit ?? 10) * 3
         })
       : Promise.resolve([])
   ]);
@@ -750,14 +753,6 @@ export async function buildRetrieveBundle(input: {
     failure_behavior: checkpoint.failure_behavior,
     verifier_ref: checkpoint.verifier_ref
   }));
-  const evidenceIndex =
-    requestedLayers.has("evidence_index") && synthesizedKnowledge.length > 0
-      ? await queryDerivedKnowledgeEvidence({
-          tenantId: input.tenantId,
-          scope: input.scope,
-          synthesizedKnowledgeIds: synthesizedKnowledge.map((item) => String(item.id))
-        })
-      : [];
   const compressionMode =
     typeof bodyRecord.compression_mode === "string"
       ? bodyRecord.compression_mode
@@ -766,13 +761,57 @@ export async function buildRetrieveBundle(input: {
         : "none";
   const contextBudgetTokens = Number(bodyRecord.context_budget_tokens ?? 8000);
 
+  // ─── 语义重排：embedding 余弦相似度混合排序 ───
+  // DB 层 ILIKE 拿到 3×候选后，用 embedding 做二次重排，截断到原始 limit。
+  // embedding 服务不可用时降级跳过（semanticRerank 内部 catch 返回原列表）。
+  const queryText = typeof input.body.query === "string" ? input.body.query : "";
+  const userLimit = input.body.limit ?? 10;
+  const [factualMemoryFinal, proceduralMemoryFinal, synthesizedKnowledgeFinal] = await Promise.all([
+    factualMemory.length > 0
+      ? semanticRerank({
+          query: queryText,
+          items: factualMemory,
+          contentField: "content",
+          matchCountField: "memory_match_count",
+          limit: userLimit
+        })
+      : Promise.resolve(factualMemory),
+    proceduralMemory.length > 0
+      ? semanticRerank({
+          query: queryText,
+          items: proceduralMemory,
+          contentField: "description",
+          matchCountField: "skill_match_count",
+          limit: userLimit
+        })
+      : Promise.resolve(proceduralMemory),
+    synthesizedKnowledge.length > 0
+      ? semanticRerank({
+          query: queryText,
+          items: synthesizedKnowledge,
+          contentField: "content",
+          matchCountField: "derived_match_count",
+          limit: userLimit
+        })
+      : Promise.resolve(synthesizedKnowledge)
+  ]);
+
+  const evidenceIndex =
+    requestedLayers.has("evidence_index") && synthesizedKnowledgeFinal.length > 0
+      ? await queryDerivedKnowledgeEvidence({
+          tenantId: input.tenantId,
+          scope: input.scope,
+          synthesizedKnowledgeIds: synthesizedKnowledgeFinal.map((item) => String(item.id))
+        })
+      : [];
+
   // ─── P1-3: utility_score 驱动 ranking ───
   // 收集 factual/procedural/synthesized 的 id，查 utility_score 后按高效用重排
   // rules 不参与（保持 task_binding 优先语义）；NULL 排最后不影响冷启动
   const rankingIds = [
-    ...factualMemory.map((m) => String(m.id ?? "")),
-    ...proceduralMemory.map((s) => String(s.id ?? "")),
-    ...synthesizedKnowledge.map((k) => String(k.id ?? ""))
+    ...factualMemoryFinal.map((m) => String(m.id ?? "")),
+    ...proceduralMemoryFinal.map((s) => String(s.id ?? "")),
+    ...synthesizedKnowledgeFinal.map((k) => String(k.id ?? ""))
   ].filter(Boolean);
   const utilityMap = rankingIds.length > 0
     ? await getKnowledgeUtility({
@@ -781,11 +820,11 @@ export async function buildRetrieveBundle(input: {
         entryIds: rankingIds
       })
     : new Map();
-  const rankedFactualMemory = applyUtilityRanking(factualMemory, utilityMap);
-  const rankedProceduralMemory = applyUtilityRanking(proceduralMemory, utilityMap);
+  const rankedFactualMemory = applyUtilityRanking(factualMemoryFinal, utilityMap);
+  const rankedProceduralMemory = applyUtilityRanking(proceduralMemoryFinal, utilityMap);
   // fix-8-3: synthesized_knowledge 用 importance_weight 排序（三因子加权衰减）
   // factual/procedural 暂不动，只管 synthesized_knowledge（按 SPEC 范围）
-  const rankedSynthesizedKnowledge = applyImportanceRanking(synthesizedKnowledge, utilityMap);
+  const rankedSynthesizedKnowledge = applyImportanceRanking(synthesizedKnowledgeFinal, utilityMap);
 
   // 遗忘机制：更新被召回的合成知识的 last_recalled_at
   // 90 天没被召回的会被 archiveStaleSynthesizedKnowledge 归档
@@ -848,9 +887,9 @@ export async function buildRetrieveBundle(input: {
       rule_count: sortedRules.length,
       task_binding_count: taskBindings.length,
       rule_checkpoint_count: ruleCheckpoints.length,
-      factual_count: factualMemory.length,
-      procedural_count: proceduralMemory.length,
-      synthesized_knowledge_count: synthesizedKnowledge.length,
+      factual_count: factualMemoryFinal.length,
+      procedural_count: proceduralMemoryFinal.length,
+      synthesized_knowledge_count: synthesizedKnowledgeFinal.length,
       evidence_index_count: evidenceIndex.length,
       layer_versions: currentLayerVersions,
       compression: contextPackage.compression,

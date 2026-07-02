@@ -144,25 +144,28 @@ export async function detectConflicts(input: L2ConflictInput): Promise<L2Conflic
     embeddingAvailable = false;
   }
 
-  for (const entry of existing) {
+  // 批量计算所有 existing 候选的 embedding（一次 HTTP round trip 替代 N 次逐条调用）
+  let existingEmbeddings: (number[] | null)[] = [];
+  if (embeddingAvailable) {
+    try {
+      const vectors = await embedKnowledgePassages(existing.map((e) => e.content));
+      existingEmbeddings = vectors.map((v) => v ?? null);
+    } catch {
+      // 批量 embedding 失败，逐条降级为 Jaccard
+      existingEmbeddings = existing.map(() => null);
+    }
+  } else {
+    existingEmbeddings = existing.map(() => null);
+  }
+
+  for (let i = 0; i < existing.length; i++) {
+    const entry = existing[i];
     let similarity: number;
     let usedJaccard = false;
 
-    if (embeddingAvailable) {
-      let existingEmbedding: number[] | null = null;
-      try {
-        const [vec] = await embedKnowledgePassages([entry.content]);
-        existingEmbedding = vec ?? null;
-      } catch {
-        existingEmbedding = null;
-      }
-
-      if (existingEmbedding) {
-        similarity = cosineSimilarity(candidateEmbedding!, existingEmbedding);
-      } else {
-        similarity = jaccardSimilarity(input.candidateContent, entry.content);
-        usedJaccard = true;
-      }
+    const existingEmbedding = existingEmbeddings[i];
+    if (embeddingAvailable && existingEmbedding) {
+      similarity = cosineSimilarity(candidateEmbedding!, existingEmbedding);
     } else {
       similarity = jaccardSimilarity(input.candidateContent, entry.content);
       usedJaccard = true;

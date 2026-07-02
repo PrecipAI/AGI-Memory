@@ -192,13 +192,74 @@ export async function queryProceduralMemory(input: {
   scope: string;
   fingerprint?: string | null;
   projectRef?: string | null;
+  /** 用户当前查询，用于按 title/description/tags 做 ILIKE 关键词匹配。
+   *  不传则退化为原逻辑（按 scope+success_rate 排序，不看 query）。 */
+  query?: string | null;
   limit?: number;
 }): Promise<Record<string, unknown>[]> {
   const pool = getPool();
   const projectId = input.projectRef ?? input.scope;
+  const terms = extractMemorySearchTerms(input.query);
+
+  // 没有查询词时走原逻辑（无 query 过滤），避免空 terms 导致漏召回
+  if (terms.length === 0) {
+    const result = await pool.query(
+      `
+      SELECT *,
+        0 AS skill_match_count
+      FROM skill
+      WHERE tenant_id = $1
+        AND status = 'active'
+        AND (
+          fingerprint_requirement IS NULL
+          OR fingerprint_requirement = $3
+        )
+        AND (
+          availability_scope IN ('global_reusable', 'team_reusable', 'user_reusable', 'workspace_reusable')
+          OR (
+            availability_scope = 'project_reusable'
+            AND origin_scope = 'project'
+            AND ($4::text IS NOT NULL AND scope = $4)
+          )
+          OR (
+            availability_scope = 'session_only'
+            AND scope = $2
+          )
+        )
+      ORDER BY
+        CASE availability_scope
+          WHEN 'project_reusable' THEN 1
+          WHEN 'workspace_reusable' THEN 2
+          WHEN 'user_reusable' THEN 3
+          WHEN 'team_reusable' THEN 4
+          WHEN 'global_reusable' THEN 5
+          ELSE 6
+        END,
+        success_rate DESC NULLS LAST,
+        created_at DESC
+      LIMIT $5
+      `,
+      [input.tenantId, input.scope, input.fingerprint ?? null, projectId, input.limit ?? 10]
+    );
+    return result.rows;
+  }
+
+  // 有查询词时：ILIKE 关键词匹配 + 混合排序（词法命中数 > availability_scope > success_rate）
+  // 这是语义检索接入前的兜底方案，至少让 skill 召回能按用户意图过滤
+  const minMatch = terms.length >= 8 ? 3 : terms.length >= 4 ? 2 : 1;
   const result = await pool.query(
     `
-    SELECT *
+    SELECT *,
+      CASE
+        WHEN $6::text[] IS NULL THEN 0
+        ELSE (
+          SELECT COUNT(*)
+          FROM unnest($6::text[]) AS term
+          WHERE title ILIKE '%' || term || '%'
+             OR description ILIKE '%' || term || '%'
+             OR COALESCE(array_to_string(tags, ' '), '') ILIKE '%' || term || '%'
+        )
+      END AS skill_match_count
     FROM skill
     WHERE tenant_id = $1
       AND status = 'active'
@@ -207,21 +268,29 @@ export async function queryProceduralMemory(input: {
         OR fingerprint_requirement = $3
       )
       AND (
-        -- global/team/user/workspace level skills are visible across all scopes
         availability_scope IN ('global_reusable', 'team_reusable', 'user_reusable', 'workspace_reusable')
         OR (
-          -- project level skills only visible when project_ref matches
           availability_scope = 'project_reusable'
           AND origin_scope = 'project'
           AND ($4::text IS NOT NULL AND scope = $4)
         )
         OR (
-          -- session level skills only visible within the same session scope
           availability_scope = 'session_only'
           AND scope = $2
         )
       )
+      AND (
+        $6::text[] IS NULL
+        OR (
+          SELECT COUNT(*)
+          FROM unnest($6::text[]) AS term
+          WHERE title ILIKE '%' || term || '%'
+             OR description ILIKE '%' || term || '%'
+             OR COALESCE(array_to_string(tags, ' '), '') ILIKE '%' || term || '%'
+        ) >= $7::int
+      )
     ORDER BY
+      skill_match_count DESC,
       CASE availability_scope
         WHEN 'project_reusable' THEN 1
         WHEN 'workspace_reusable' THEN 2
@@ -234,7 +303,15 @@ export async function queryProceduralMemory(input: {
       created_at DESC
     LIMIT $5
     `,
-    [input.tenantId, input.scope, input.fingerprint ?? null, projectId, input.limit ?? 10]
+    [
+      input.tenantId,
+      input.scope,
+      input.fingerprint ?? null,
+      projectId,
+      input.limit ?? 10,
+      terms,
+      minMatch,
+    ]
   );
   return result.rows;
 }
