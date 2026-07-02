@@ -1,4 +1,5 @@
 import { createOrReplaceSkill } from "@super-agent/db";
+import { executeHostActions } from "./hostActionExecutor.js";
 import type { NormalizedCandidate } from "./types.js";
 
 function slugify(value: string): string {
@@ -21,7 +22,7 @@ export class SkillBuilder {
         ? String(input.candidate.candidate_payload.skill_key)
         : `${slugify(input.candidate.artifact_tag)}-${input.candidate.task_step_id.slice(0, 8)}`;
 
-    return createOrReplaceSkill({
+    const skillId = await createOrReplaceSkill({
       tenantId: input.tenantId,
       scope: input.scope,
       skillKey,
@@ -52,5 +53,22 @@ export class SkillBuilder {
       traceId: input.traceId,
       sourceKind: "l1_extracted"
     });
+
+    // 新建 skill 立刻落地到宿主文件系统，生成 .trae/skills/{key}/SKILL.md。
+    // 更新分支走 governance_change_proposal 审批队列，不会走到这里（candidateIngress 的 !created.existed 已挡住）。
+    // 失败不阻塞主流程：skill 已进库，SKILL.md 生成失败可靠 POST /internal/host-actions/execute 补跑。
+    // 注意：executeHostActions 会 drain 当前所有 pending 的 rule+skill，不止刚建的这条——
+    // 语义上没问题（每条处理完标记 generated，不会重复），只是会顺手把积压的 rule hook 也生成了。
+    try {
+      await executeHostActions({
+        tenantId: input.tenantId,
+        scope: input.scope,
+        traceId: input.traceId
+      });
+    } catch (err) {
+      console.error(`[skillBuilder] executeHostActions failed for skill ${skillId} (${skillKey}):`, err);
+    }
+
+    return skillId;
   }
 }

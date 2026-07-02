@@ -72,6 +72,23 @@ interface L4ContextAsset {
   availabilityScope: string;
 }
 
+/**
+ * UUID 格式守卫：batch 阶段的临时 key（`${source_timestamp}#${title}`）不是有效 UUID，
+ * 不能直接传给需要 UUID 列的 SQL 查询（如 kp_relation.from_object_id）。
+ * 在所有涉及 UUID 列查询前必须先检查。
+ */
+function isValidUUID(id: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+}
+
+/**
+ * 从 sourceIds 中过滤出有效 UUID（用于 DB 查询）。
+ * 临时 key（batch 阶段的 `${timestamp}#${title}`）会被排除。
+ */
+function filterValidUUIDs(ids: string[]): string[] {
+  return ids.filter(isValidUUID);
+}
+
 export async function runCognitiveEngine(input: {
   tenantId: string;
   scope: string;
@@ -478,7 +495,8 @@ async function validateHypothesis(
   // 从 L3 信号中找支持证据
   if (hypothesis.type === "recall_anomaly") {
     const targetId = hypothesis.sourceIds[0];
-    if (targetId) {
+    // 守卫：临时 key（非 UUID）不能传给 memory_access_log 的 UUID 查询
+    if (targetId && isValidUUID(targetId)) {
       const counts = await countAccessByObjectRef({
         tenantId: input.tenantId,
         scope: input.scope,
@@ -531,22 +549,25 @@ async function validateHypothesis(
         });
       }
       // 检查是否有门禁审计记录显示冲突（只取最近 60 天，避免历史噪声）
-      const auditCount = await getPool().query(
-        `SELECT COUNT(*) AS cnt FROM rule_gate_audit
-         WHERE tenant_id = $1 AND scope = $2 AND rule_id IN ($3, $4)
-         AND decision = 'blocked'
-         AND created_at >= NOW() - INTERVAL '60 days'`,
-        [input.tenantId, input.scope, ruleA.id, ruleB.id]
-      );
-      const blockedCount = Number(auditCount.rows[0]?.cnt ?? 0);
-      if (blockedCount > 0) {
-        evidence.push({
-          source: "rule_gate_audit",
-          sourceId: ruleA.id,
-          content: `这两条规则共有${blockedCount}次被门禁拦截的记录，说明确实存在执行冲突`,
-          stance: "supports",
-          weight: 0.4,
-        });
+      // 守卫：ruleA.id / ruleB.id 来自 assets（DB 真实 UUID），但仍做格式检查防止意外
+      if (isValidUUID(ruleA.id) && isValidUUID(ruleB.id)) {
+        const auditCount = await getPool().query(
+          `SELECT COUNT(*) AS cnt FROM rule_gate_audit
+           WHERE tenant_id = $1 AND scope = $2 AND rule_id IN ($3, $4)
+           AND decision = 'blocked'
+           AND created_at >= NOW() - INTERVAL '60 days'`,
+          [input.tenantId, input.scope, ruleA.id, ruleB.id]
+        );
+        const blockedCount = Number(auditCount.rows[0]?.cnt ?? 0);
+        if (blockedCount > 0) {
+          evidence.push({
+            source: "rule_gate_audit",
+            sourceId: ruleA.id,
+            content: `这两条规则共有${blockedCount}次被门禁拦截的记录，说明确实存在执行冲突`,
+            stance: "supports",
+            weight: 0.4,
+          });
+        }
       }
     }
   }
@@ -619,7 +640,8 @@ async function validateHypothesis(
   if (hypothesis.type === "cross_layer_correlation") {
     const ruleId = hypothesis.sourceIds[0];
     const otherId = hypothesis.sourceIds[1];
-    if (ruleId && otherId) {
+    // 守卫：临时 key（非 UUID）不能传给 kp_relation 的 UUID 列查询
+    if (ruleId && otherId && isValidUUID(ruleId) && isValidUUID(otherId)) {
       const relationExists = await getPool().query(
         `SELECT 1 FROM kp_relation
          WHERE tenant_id = $1 AND scope = $2
@@ -708,8 +730,10 @@ async function persistSynthesizedKnowledge(
       reasoningSummary,
       confidenceScore,
       riskLevel,
-      // source_object_ids 存真正的对象 ID，供 L3 遗忘机制反查依赖是否还 active
-      sourceObjectIds: hypothesis.sourceIds,
+      // source_object_ids 存真正的对象 UUID，供 L3 遗忘机制反查依赖是否还 active。
+      // 临时 key（batch 阶段的 `${timestamp}#${title}`）不是有效 UUID，不能写入，
+      // 否则 L3 反查时 `WHERE id = ANY($1)` 会报 invalid input syntax for type uuid。
+      sourceObjectIds: filterValidUUIDs(hypothesis.sourceIds),
       // evidence_ids 在下方通过 kp_synthesized_knowledge_evidence 关联表建立，
       // 这里先留空数组，避免在 createSynthesizedKnowledge 阶段做 N+1 写入
       evidenceIds: [],
