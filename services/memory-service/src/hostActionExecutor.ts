@@ -460,7 +460,7 @@ function inferMountPoints(category: RuleCategory | "generic", explicitMountPoint
     case "code_format": return ["pre_commit"];
     case "sensitive_info": return ["before_file_write", "pre_commit"];
     case "dependency_license": return ["pre_commit"];
-    case "env_check": return ["before_command_exec", "pre_commit"];
+    case "env_check": return ["before_command_exec"];
     default: return ["before_task_complete"];
   }
 }
@@ -587,9 +587,12 @@ async function processRule(item: HostActionItem, gatesDir: string): Promise<{ ou
   await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, buildHookFile(payload), "utf8");
 
-  const mountPoints = Array.isArray((payload.trigger_conditions as Record<string, unknown> | undefined)?.mount_points)
-    ? ((payload.trigger_conditions as Record<string, unknown>).mount_points as string[])
-    : ["before_task_complete"];
+  // 必须与 buildHookFile 内部 inferMountPoints 保持一致，否则 registry 和 .hook.ts 文件 mount_points 不一致
+  const triggerConditions = (payload.trigger_conditions as Record<string, unknown> | undefined) ?? {};
+  const explicitMountPoints = Array.isArray(triggerConditions.mount_points)
+    ? (triggerConditions.mount_points as string[])
+    : undefined;
+  const mountPoints = inferMountPoints(detectRuleCategory(payload), explicitMountPoints);
   await upsertRegistryEntry(gatesDir, {
     id: `hook_${ruleKey.toLowerCase().replace(/[^a-z0-9_]/g, "_")}`,
     rule_id: String(payload.rule_id ?? item.id ?? ""),
