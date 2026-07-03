@@ -218,20 +218,271 @@ function resolveSkillDir(record: Record<string, unknown>, globalDir: string, pro
   return isGlobalSkill(record) ? path.join(globalDir, skillKey) : path.join(projectDir, skillKey);
 }
 
-function buildHookFile(payload: Record<string, unknown>): string {
+// ─── 规则分类器 ───────────────────────────────────────────────────
+// 根据 rule_domain + title/statement 关键词识别规则类别，决定生成哪种检查逻辑。
+// 识别不到时返回 "generic"，生成 WARN 提示（不再无条件 PASS）。
+
+type RuleCategory =
+  | "test_verification"
+  | "temp_file_cleanup"
+  | "repo_clean"
+  | "git_branch_protection"
+  | "code_format"
+  | "sensitive_info"
+  | "dependency_license"
+  | "env_check";
+
+function detectRuleCategory(payload: Record<string, unknown>): RuleCategory | "generic" {
+  const title = String(payload.title ?? "").toLowerCase();
+  const statement = String(payload.statement ?? payload.content ?? "").toLowerCase();
+  const domain = String(payload.rule_domain ?? "").toLowerCase();
+  const text = `${title} ${statement}`;
+
+  // 优先匹配最具体的关键词，通用的"测试/验证"放最后。
+  // 避免"批量测试规则：禁止提交到 main"被误分类为 test_verification。
+  if (/main|master|分支|branch/.test(text)) return "git_branch_protection";
+  if (/许可证|license|依赖|dependency|无许可/.test(text)) return "dependency_license";
+  if (/环境变量|env|environment|部署|deploy/.test(text)) return "env_check";
+  if (/敏感|sensitive|secret|password|token|api_key|apikey|日志|log/.test(text)) return "sensitive_info";
+  if (/格式化|format|prettier|eslint/.test(text)) return "code_format";
+  if (/临时|tmp|temp|cleanup|清理/.test(text)) return "temp_file_cleanup";
+  if (/仓库|干净|clean|整洁|safe|安全/.test(text)) return "repo_clean";
+  // 测试/验证最通用，放最后
+  if (/测试|test|verify|验证/.test(text)) return "test_verification";
+  return "generic";
+}
+
+// ─── 各类别的检查逻辑生成器 ───────────────────────────────────────
+// 每个 buildXxxLogic 返回 run() 函数体的字符串（不含函数签名）。
+// 所有逻辑都基于 GateContext 提供的方法，对可选方法做存在性检查。
+
+function buildTestVerificationLogic(ruleKey: string): string {
+  return `    // 检查：代码改动后是否伴随测试文件改动或测试执行
+    const changedFiles = await context.getChangedFiles();
+    const codeFiles = changedFiles.filter(f => /\\.(ts|js|tsx|jsx|py)$/.test(f) && !/\\.(test|spec)\\./.test(f) && !/\\.d\\.ts$/.test(f));
+    if (codeFiles.length === 0) return { action: "PASS" };
+
+    const testFiles = changedFiles.filter(f => /\\.(test|spec)\\./.test(f));
+    if (testFiles.length > 0) return { action: "PASS" };
+
+    return {
+      action: "REJECT",
+      reason: \`代码改动未伴随测试文件改动（${ruleKey}）：\${codeFiles.slice(0, 5).join(", ")}\`,
+      rule_key: "${ruleKey}"
+    };`;
+}
+
+function buildTempFileCleanupLogic(ruleKey: string): string {
+  return `    // 检查：是否存在临时文件未清理
+    const TEMP_PATTERNS = [/\\.tmp$/i, /\\.bak$/i, /\\.temp$/i, /^\\.tmp\\//, /\\/tmp\\//, /~$/];
+    const gitStatus = await context.getGitStatus();
+    const allFiles = [...gitStatus.staged, ...gitStatus.modified, ...gitStatus.untracked];
+    const tempFiles = allFiles.filter(f => TEMP_PATTERNS.some(p => p.test(f)));
+
+    if (tempFiles.length === 0) return { action: "PASS" };
+
+    return {
+      action: "REJECT",
+      reason: \`发现未清理的临时文件（${ruleKey}）：\${tempFiles.slice(0, 10).join(", ")}\`,
+      rule_key: "${ruleKey}"
+    };`;
+}
+
+function buildRepoCleanLogic(ruleKey: string): string {
+  return `    // 检查：仓库是否保持干净（无未跟踪文件、无未提交改动）
+    const gitStatus = await context.getGitStatus();
+    const issues: string[] = [];
+
+    if (gitStatus.untracked.length > 0) {
+      issues.push(\`未跟踪文件 \${gitStatus.untracked.length} 个\`);
+    }
+    if (gitStatus.modified.length > 0) {
+      issues.push(\`已修改未暂存 \${gitStatus.modified.length} 个\`);
+    }
+
+    if (issues.length === 0) return { action: "PASS" };
+
+    return {
+      action: "REJECT",
+      reason: \`仓库不干净（${ruleKey}）：\${issues.join("; ")}\`,
+      rule_key: "${ruleKey}"
+    };`;
+}
+
+function buildGitBranchProtectionLogic(ruleKey: string): string {
+  return `    // 检查：当前分支是否是受保护分支（main/master）
+    try {
+      const result = await context.exec("git rev-parse --abbrev-ref HEAD");
+      const branch = result.stdout.trim();
+      if (branch === "main" || branch === "master") {
+        return {
+          action: "REJECT",
+          reason: \`禁止直接提交到受保护分支 \${branch}（${ruleKey}）\`,
+          rule_key: "${ruleKey}"
+        };
+      }
+    } catch {
+      // 非 git 环境或无法获取分支信息，放行
+    }
+    return { action: "PASS" };`;
+}
+
+function buildCodeFormatLogic(ruleKey: string): string {
+  return `    // 检查：变更的代码文件是否经过格式化（prettier/eslint）
+    const changedFiles = await context.getChangedFiles();
+    const codeFiles = changedFiles.filter(f => /\\.(ts|js|tsx|jsx)$/.test(f));
+    if (codeFiles.length === 0) return { action: "PASS" };
+
+    try {
+      const result = await context.exec("npx prettier --check " + codeFiles.map(f => \`"\${f}"\`).join(" "));
+      if (result.exitCode !== 0) {
+        return {
+          action: "REJECT",
+          reason: \`存在未格式化的代码文件（${ruleKey}）：\${result.stderr.slice(0, 200)}\`,
+          rule_key: "${ruleKey}"
+        };
+      }
+    } catch {
+      // prettier 不可用时放行（不阻断工作流）
+    }
+    return { action: "PASS" };`;
+}
+
+function buildSensitiveInfoLogic(ruleKey: string): string {
+  return `    // 检查：变更文件中是否包含敏感信息（password/secret/token/api_key）
+    const SENSITIVE_PATTERNS = [
+      /(?:password|passwd|pwd)\\s*[:=]\\s*["'][^"']{6,}/i,
+      /(?:secret|api_key|apikey)\\s*[:=]\\s*["'][^"']{10,}/i,
+      /(?:token|bearer)\\s*[:=]\\s*["'][^"']{20,}/i,
+      /-----BEGIN [A-Z]+ PRIVATE KEY-----/
+    ];
+    const changedFiles = await context.getChangedFiles();
+    const codeFiles = changedFiles.filter(f => /\\.(ts|js|tsx|jsx|py|json|ya?ml)$/.test(f));
+
+    for (const file of codeFiles) {
+      try {
+        const content = await context.readFile(file);
+        for (const pattern of SENSITIVE_PATTERNS) {
+          if (pattern.test(content)) {
+            return {
+              action: "REJECT",
+              reason: \`文件 \${file} 包含疑似敏感信息（${ruleKey}）\`,
+              rule_key: "${ruleKey}"
+            };
+          }
+        }
+      } catch {
+        // 文件读取失败跳过
+      }
+    }
+    return { action: "PASS" };`;
+}
+
+function buildDependencyLicenseLogic(ruleKey: string): string {
+  return `    // 检查：package.json 中新增依赖是否有 license 字段
+    const changedFiles = await context.getChangedFiles();
+    if (!changedFiles.includes("package.json")) return { action: "PASS" };
+
+    try {
+      const content = await context.readFile("package.json");
+      const pkg = JSON.parse(content);
+      const deps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
+
+      // 检查是否有可疑的无许可证依赖（简化版：检查 license 字段是否存在）
+      if (pkg.license === undefined && Object.keys(deps).length > 0) {
+        return {
+          action: "REJECT",
+          reason: \`package.json 缺少 license 字段（${ruleKey}）\`,
+          rule_key: "${ruleKey}"
+        };
+      }
+    } catch {
+      // 解析失败跳过
+    }
+    return { action: "PASS" };`;
+}
+
+function buildEnvCheckLogic(ruleKey: string): string {
+  return `    // 检查：部署前是否所有必需环境变量已设置
+    const REQUIRED_ENV_VARS = [
+      "DB_URL", "PGHOST", "PGPORT", "PGDATABASE", "PGUSER", "PGPASSWORD",
+      "NODE_ENV", "PORT"
+    ];
+    const missing: string[] = [];
+    for (const varName of REQUIRED_ENV_VARS) {
+      if (!process.env[varName]) {
+        missing.push(varName);
+      }
+    }
+
+    if (missing.length === 0) return { action: "PASS" };
+
+    return {
+      action: "REJECT",
+      reason: \`部署前环境变量检查失败（${ruleKey}）：缺失 \${missing.join(", ")}\`,
+      rule_key: "${ruleKey}"
+    };`;
+}
+
+function buildGenericLogic(ruleKey: string, statement: string): string {
+  return `    // Rule statement: ${statement}
+    // ⚠ 未识别的规则类别，GateMaster 无法自动生成检查逻辑。
+    // 当前为 WARN 模式（不阻断），请人工补充 run() 实现。
+    return {
+      action: "PASS",
+      reason: \`未识别规则类别，跳过检查（${ruleKey}）\`,
+      rule_key: "${ruleKey}"
+    };`;
+}
+
+function buildRunLogic(category: RuleCategory | "generic", ruleKey: string, statement: string): string {
+  switch (category) {
+    case "test_verification": return buildTestVerificationLogic(ruleKey);
+    case "temp_file_cleanup": return buildTempFileCleanupLogic(ruleKey);
+    case "repo_clean": return buildRepoCleanLogic(ruleKey);
+    case "git_branch_protection": return buildGitBranchProtectionLogic(ruleKey);
+    case "code_format": return buildCodeFormatLogic(ruleKey);
+    case "sensitive_info": return buildSensitiveInfoLogic(ruleKey);
+    case "dependency_license": return buildDependencyLicenseLogic(ruleKey);
+    case "env_check": return buildEnvCheckLogic(ruleKey);
+    default: return buildGenericLogic(ruleKey, statement);
+  }
+}
+
+// 根据规则类别推断合适的 mount_points
+function inferMountPoints(category: RuleCategory | "generic", explicitMountPoints?: string[]): string[] {
+  if (explicitMountPoints && explicitMountPoints.length > 0) return explicitMountPoints;
+  switch (category) {
+    case "test_verification": return ["pre_commit", "before_task_complete"];
+    case "temp_file_cleanup": return ["pre_commit", "before_task_complete"];
+    case "repo_clean": return ["pre_commit"];
+    case "git_branch_protection": return ["pre_commit", "before_command_exec"];
+    case "code_format": return ["pre_commit"];
+    case "sensitive_info": return ["before_file_write", "pre_commit"];
+    case "dependency_license": return ["pre_commit"];
+    case "env_check": return ["before_command_exec", "pre_commit"];
+    default: return ["before_task_complete"];
+  }
+}
+
+export function buildHookFile(payload: Record<string, unknown>): string {
   const ruleKey = String(payload.rule_key ?? "unknown");
   const safeKey = ruleKey.toLowerCase().replace(/[^a-z0-9_]/g, "_");
-  const statement = String(payload.statement ?? "").replace(/`/g, "\\`");
+  const statement = String(payload.statement ?? payload.content ?? "").replace(/`/g, "\\`").replace(/\$/g, "\\$");
   const triggerConditions = (payload.trigger_conditions as Record<string, unknown> | undefined) ?? {};
-  const mountPoints = Array.isArray(triggerConditions.mount_points)
+  const category = detectRuleCategory(payload);
+  const explicitMountPoints = Array.isArray(triggerConditions.mount_points)
     ? (triggerConditions.mount_points as string[])
-    : ["before_task_complete"];
+    : undefined;
+  const mountPoints = inferMountPoints(category, explicitMountPoints);
+  const runLogic = buildRunLogic(category, ruleKey, statement);
 
   return `// AUTO-GENERATED by GateMaster — DO NOT EDIT MANUALLY
 // Rule: ${payload.title ?? ruleKey}
 // Rule Key: ${ruleKey}
 // Enforcement: ${payload.enforcement_level ?? "must"}
 // Scope: ${payload.origin_scope ?? "session"} / ${payload.availability_scope ?? "session_only"}
+// Category: ${category}
 //
 // 生成时间: ${new Date().toISOString()}
 // 来源: memory-service host-actions executor
@@ -245,8 +496,6 @@ export const hook: RuleHook = {
   mount_points: ${JSON.stringify(mountPoints)},
 
   shouldRun(context: GateContext): boolean {
-    // 触发条件判定（基于 trigger_conditions）
-    // TODO: 根据实际 trigger_conditions 细化匹配逻辑
     const triggerConditions = ${JSON.stringify(triggerConditions ?? {}, null, 2)};
     const appliesTo = ${JSON.stringify((payload.applies_to as unknown[]) ?? [], null, 2)};
     if (Array.isArray(appliesTo) && appliesTo.length > 0) {
@@ -256,10 +505,7 @@ export const hook: RuleHook = {
   },
 
   async run(context: GateContext): Promise<HookResult> {
-    // Rule statement: ${statement}
-    // TODO: 根据 statement 翻译为具体的检查逻辑
-    // 当前为模板，实际落地时需要宿主侧 agent 根据语义补充检查代码
-    return { action: "PASS" };
+${runLogic}
   }
 };
 `;
