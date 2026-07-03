@@ -17,6 +17,7 @@ import type { CodexCapturePreviewRequest, HostCaptureName } from "./codexHostCap
 import { previewHostCapture } from "./hostCapture.js";
 import { buildGovernanceBatchPreview, VALID_KNOWLEDGE_TYPES, type GovernanceBatchPreviewResponse, type GovernanceKnowledgeType } from "./hostCaptureGovernanceBatch.js";
 import { applyHostModelGovernanceResult } from "./hostModelGovernanceAdapter.js";
+import { validatePreviewToken, consumePreviewToken } from "./previewTokenStore.js";
 import { detectConflicts } from "./governance/L2ConflictDetector.js";
 import { scanEvolution } from "./governance/L3EvolutionScanner.js";
 import { runCognitiveEngine } from "./governance/L4CognitiveEngine.js";
@@ -43,6 +44,8 @@ type HostGovernanceRunRequest = CodexCapturePreviewRequest & {
     generated_at?: string | null;
     extraction_preview?: Partial<GovernanceBatchPreviewResponse["extraction_preview"]> | null;
   } | null;
+  // Two-Step MCP Dance: host_model 模式下必须带 preview_token
+  preview_token?: string | null;
 };
 
 export type HostGovernanceRunResponse = {
@@ -340,6 +343,42 @@ export async function runCodexHostGovernance(input: {
   const fallbackBatch = buildGovernanceBatchPreview(preview);
   // P0-c: do not silently default to rules_fallback. Force explicit opt-in.
   const governanceMode = input.body.governance_mode ?? "host_model";
+
+  // Two-Step MCP Dance 硬约束：host_model 模式必须带有效 preview_token
+  // 这一步把"模型自称走了 host_model 但实际跳过 Step 1"从软约束升级成硬拦截
+  let validatedTokenId: string | null = null;
+  if (governanceMode === "host_model") {
+    if (!input.body.preview_token) {
+      throw new Error(
+        "PREVIEW_TOKEN_MISSING: governance_mode='host_model' requires preview_token. " +
+        "Call memory_preview_host_governance first to get a token, then pass its token_id in preview_token."
+      );
+    }
+    // host_model 模式还必须带 host_model_result.extraction_preview
+    // MCP schema 层有 superRefine 校验，但 HTTP 端没有，这里补一道硬校验
+    if (!input.body.host_model_result?.extraction_preview) {
+      throw new Error(
+        "HOST_MODEL_RESULT_MISSING: governance_mode='host_model' requires host_model_result.extraction_preview. " +
+        "YOU are the extraction engine — fill the typed candidate arrays per the Four-Layer Extraction Protocol."
+      );
+    }
+    const tokenResult = validatePreviewToken({
+      token_id: input.body.preview_token,
+      tenant_id: input.tenantId,
+      scope: input.scope,
+      host: preview.host,
+      thread_id: preview.thread_id,
+      session_file: preview.session_file,
+      user_messages: preview.governance_preview.user_messages
+    });
+    if (!tokenResult.valid) {
+      throw new Error(`${tokenResult.error_code}: ${tokenResult.message}`);
+    }
+    // 校验通过，消费 token 防止重放
+    consumePreviewToken(input.body.preview_token);
+    validatedTokenId = input.body.preview_token;
+  }
+
   const { batch, modelAdapter } = applyHostModelGovernanceResult({
     batch: fallbackBatch,
     governanceMode,
@@ -362,7 +401,13 @@ export async function runCodexHostGovernance(input: {
     scope: input.scope,
     traceId: input.traceId,
     preview,
-    batch
+    batch,
+    governanceMode,
+    modelAdapterMode: modelAdapter.mode,
+    modelRef: modelAdapter.model_ref,
+    accepted: modelAdapter.accepted,
+    warning: modelAdapter.warning,
+    previewTokenId: validatedTokenId
   });
   const existingMemoryFilter = await filterExistingFactualMemoryCandidates({
     tenantId: input.tenantId,
@@ -1852,6 +1897,13 @@ async function filterNewGovernanceCandidates(input: {
     session_file: string;
   };
   batch: GovernanceBatchPreviewResponse;
+  // 审计字段：写入 host_governance_event 的新列，让 L1 抽取主路径可观测
+  governanceMode: string;
+  modelAdapterMode: string;
+  modelRef: string | null;
+  accepted: boolean;
+  warning: string | null;
+  previewTokenId: string | null;
 }): Promise<{
   extraction_preview: ExtractionPreview;
   newCandidateCount: number;
@@ -1885,12 +1937,14 @@ async function filterNewGovernanceCandidates(input: {
         INSERT INTO host_governance_event (
           tenant_id, scope, host, thread_id, session_file, source_kind,
           source_timestamp, candidate_type, event_hash, origin_scope,
-          governance_level, availability_scope, promotion_status, metadata, trace_id
+          governance_level, availability_scope, promotion_status, metadata, trace_id,
+          governance_mode, model_adapter_mode, model_ref, accepted, warning, preview_token_id
         )
         VALUES (
           $1, $2, $3, $4, $5, $6,
           $7::timestamptz, $8, $9, $10,
-          $11, $12, $13, $14::jsonb, $15
+          $11, $12, $13, $14::jsonb, $15,
+          $16, $17, $18, $19, $20, $21::uuid
         )
         ON CONFLICT (tenant_id, scope, host, event_hash) DO NOTHING
         RETURNING id
@@ -1916,7 +1970,13 @@ async function filterNewGovernanceCandidates(input: {
             rule_domain: candidate.rule_domain ?? null,
             rule_scope: candidate.rule_scope ?? null
           }),
-          input.traceId
+          input.traceId,
+          input.governanceMode,
+          input.modelAdapterMode,
+          input.modelRef,
+          input.accepted,
+          input.warning,
+          input.previewTokenId
         ]
       );
       if (result.rowCount === 0) {

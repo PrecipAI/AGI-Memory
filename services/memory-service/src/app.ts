@@ -47,6 +47,7 @@ import { handleCandidateIngress } from "./candidateIngress.js";
 import { listCodexHostSessions, previewCodexHostCapture } from "./codexHostCapture.js";
 import { formatFrozenErrorResponse } from "./errors.js";
 import { listHostSessions, normalizeHost, previewHostCapture } from "./hostCapture.js";
+import { issuePreviewToken, validatePreviewToken, consumePreviewToken } from "./previewTokenStore.js";
 import { buildGovernanceBatchPreview } from "./hostCaptureGovernanceBatch.js";
 import { summarizeSession } from "./sessionSummarizer.js";
 import { buildMissionBrief } from "./governancePromptBuilder.js";
@@ -575,7 +576,18 @@ export function buildMemoryServiceApp() {
         // Mission brief is best-effort; batch preview still valid without it
       }
 
-      return { ...batch, mission_brief };
+      // 发行 preview_token：Step 2 (governance-run) 必须带回 token_id 才能走 host_model 路径
+      const preview_token = issuePreviewToken({
+        tenant_id: context.tenantId,
+        scope: context.scope,
+        trace_id: context.traceId,
+        host: preview.host,
+        thread_id: preview.thread_id,
+        session_file: preview.session_file,
+        user_messages: preview.governance_preview.user_messages
+      });
+
+      return { ...batch, mission_brief, preview_token };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       reply.status(400);
@@ -622,7 +634,18 @@ export function buildMemoryServiceApp() {
         // Mission brief is best-effort; batch preview still valid without it
       }
 
-      return { ...batch, mission_brief };
+      // 发行 preview_token：Step 2 (governance-run) 必须带回 token_id 才能走 host_model 路径
+      const preview_token = issuePreviewToken({
+        tenant_id: context.tenantId,
+        scope: context.scope,
+        trace_id: context.traceId,
+        host: preview.host,
+        thread_id: preview.thread_id,
+        session_file: preview.session_file,
+        user_messages: preview.governance_preview.user_messages
+      });
+
+      return { ...batch, mission_brief, preview_token };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       reply.status(400);
@@ -650,6 +673,7 @@ export function buildMemoryServiceApp() {
       fingerprint?: string | null;
       governance_mode?: "rules_fallback" | "host_model" | null;
       host_model_result?: Record<string, unknown> | null;
+      preview_token?: string | null;
     };
 
     try {
@@ -687,6 +711,7 @@ export function buildMemoryServiceApp() {
       fingerprint?: string | null;
       governance_mode?: "rules_fallback" | "host_model" | null;
       host_model_result?: Record<string, unknown> | null;
+      preview_token?: string | null;
     };
     const host = normalizeHost(params.host);
 

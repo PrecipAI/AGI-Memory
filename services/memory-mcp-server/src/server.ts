@@ -156,7 +156,15 @@ const codexHostGovernanceInputSchema = z.object({
   fingerprint: z.string().optional(),
   governance_mode: z.enum(["rules_fallback", "host_model"]).optional(),
   host_model_result: hostModelResultSchema.optional(),
-  post_mortem: postMortemSchema.optional()
+  post_mortem: postMortemSchema.optional(),
+  // Two-Step MCP Dance 硬约束：governance_mode='host_model' 时必填，
+  // 必须是 memory_preview_host_governance 返回的 preview_token.token_id。
+  // 服务端校验 token 有效 + 未过期 + 前缀匹配（Step 2 session 必须是 Step 1 的超集）。
+  preview_token: z.string().uuid().optional().describe(
+    "REQUIRED when governance_mode='host_model'. Must be the preview_token.token_id returned by memory_preview_host_governance. " +
+    "Proves that Step 1 was actually called before Step 2, and that the session context hasn't been swapped. " +
+    "Expires after 10 minutes. If missing or invalid, the request is rejected with PREVIEW_TOKEN_* error codes."
+  )
 });
 const codexFullGovernanceInputSchema = codexHostGovernanceInputSchema.extend({
   refresh_memory: z.boolean().optional(),
@@ -164,6 +172,31 @@ const codexFullGovernanceInputSchema = codexHostGovernanceInputSchema.extend({
   sync_index: z.boolean().optional(),
   run_lifecycle: z.boolean().optional(),
   post_mortem: postMortemSchema.optional()
+}).superRefine((val, ctx) => {
+  // 硬约束：host_model 模式必须带 preview_token 和 host_model_result
+  // 这两条之前只在 description 里写"REQUIRED"，但 schema 没强制，模型可以漏传。
+  // 现在用 superRefine 做服务端硬校验，缺任一字段直接拒绝。
+  const mode = val.governance_mode ?? "host_model"; // 服务端默认 host_model
+  if (mode === "host_model") {
+    if (!val.preview_token) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["preview_token"],
+        message:
+          "preview_token is REQUIRED when governance_mode='host_model'. " +
+          "Call memory_preview_host_governance first to get a token, then pass its token_id here."
+      });
+    }
+    if (!val.host_model_result?.extraction_preview) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["host_model_result", "extraction_preview"],
+        message:
+          "host_model_result.extraction_preview is REQUIRED when governance_mode='host_model'. " +
+          "YOU are the extraction engine — fill the typed candidate arrays per the Four-Layer Extraction Protocol."
+      });
+    }
+  }
 });
 
 function jsonText(value: unknown): string {
