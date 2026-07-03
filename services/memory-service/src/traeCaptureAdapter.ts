@@ -43,45 +43,56 @@ export async function previewTraeHostCapture(
   const records = await readTraeRecords(target.session_file);
   const maxItems = normalizeMaxItems(input.max_items);
 
-  // TRAE 的 session_memory 每行是摘要不是对话
-  // 把 intent + learned 拼接作为 user_message（learned 含技术细节，能触发治理抽取）
-  // outcome 作为 assistant_message
+  // TRAE 的 session_memory 每行是摘要不是原始对话。
+  // 设计原则：绝不虚构原始对话——trae 宿主的对话原文存在加密 SQLCipher DB 中无法读取，
+  // 只能拿到 memory 系统自动生成的摘要（intent/actions/outcome/learned）。
+  // 因此所有摘要都标记为 commentary 角色，并在 text 前加 [摘要] 前缀，
+  // 下游治理抽取器据此知道这是摘要而非用户原话，不会误以为是真实对话。
   const messages: TraeMessage[] = [];
   for (const record of records) {
     const timestamp = extractTraeTimestamp(record);
     const intent = extractString(record.intent);
     const outcome = extractString(record.outcome);
     const learned = extractString(record.learned);
-    // 拼接 intent + learned 作为 user_message（learned 含技术细节如"netlify.toml 配置 publish 目录"）
-    const userText = [intent, learned ? `学到的: ${learned}` : ""].filter(Boolean).join("\n");
-    if (userText) {
-      messages.push({ timestamp, role: "user", text: userText });
+    const actions = extractString(record.actions);
+
+    // intent 是用户意图摘要，标注为 commentary 而非 user（不是用户原话）
+    if (intent) {
+      messages.push({ timestamp, role: "commentary", text: `[摘要·用户意图] ${intent}` });
     }
+    // actions 是执行动作摘要
+    if (actions) {
+      messages.push({ timestamp, role: "commentary", text: `[摘要·执行动作] ${actions}` });
+    }
+    // outcome 是结果摘要，标注为 commentary 而非 assistant（不是助手原话）
     if (outcome) {
-      messages.push({ timestamp, role: "assistant", text: outcome });
+      messages.push({ timestamp, role: "commentary", text: `[摘要·执行结果] ${outcome}` });
+    }
+    // learned 是学到的知识摘要
+    if (learned) {
+      messages.push({ timestamp, role: "commentary", text: `[摘要·学到知识] ${learned}` });
     }
   }
 
-  const userMessages = messages.filter((m) => m.role === "user");
-  const assistantMessages = messages.filter((m) => m.role === "assistant");
-  const corrections = extractSignals(userMessages, CORRECTION_PATTERNS, "correction", maxItems);
-  const preferences = extractSignals(userMessages, PREFERENCE_PATTERNS, "preference", maxItems);
-  const decisions = extractDecisionSignals(userMessages, maxItems);
+  // trae 摘要模式下没有真正的 user/assistant 消息
+  const userMessages: TraeMessage[] = [];
+  const assistantMessages: TraeMessage[] = [];
+  const commentaryMessages = messages.filter((m) => m.role === "commentary");
 
-  const warnings: string[] = [];
-  if (userMessages.length === 0) {
-    warnings.push("No intent summaries found in the selected TRAE session_memory file.");
-  }
-  if (assistantMessages.length === 0) {
-    warnings.push("No outcome summaries found in the selected TRAE session_memory file.");
+  // 不从摘要里提取 corrections/preferences/decisions 信号——
+  // 摘要里的"应该""必须"是描述性词汇，不是用户真实说的，提取出来是虚构信号。
+  // 信号提取留给宿主模型在 host_model 模式下基于摘要内容自行判断。
+
+  const warnings: string[] = [
+    "TRAE 宿主仅提供会话摘要，非原始对话（trae 对话原文存于加密 DB 无法读取）。",
+    "所有消息标记为 commentary 角色，治理抽取器应基于摘要内容判断而非当作原话。",
+    "corrections/preferences/decisions 信号未提取（避免从摘要描述性词汇虚构信号）。"
+  ];
+  if (commentaryMessages.length === 0) {
+    warnings.push("No summary records found in the selected TRAE session_memory file.");
   }
 
-  const quality =
-    userMessages.length > 0 && assistantMessages.length > 0
-      ? "high"
-      : userMessages.length > 0 || assistantMessages.length > 0
-        ? "medium"
-        : "low";
+  const quality = commentaryMessages.length > 0 ? "medium" : "low";
 
   return {
     host: "trae",
@@ -94,27 +105,27 @@ export async function previewTraeHostCapture(
     totals: {
       raw_event_count: records.length,
       message_count: messages.length,
-      user_message_count: userMessages.length,
-      assistant_message_count: assistantMessages.length,
-      commentary_count: messages.filter((m) => m.role === "commentary").length,
+      user_message_count: 0,
+      assistant_message_count: 0,
+      commentary_count: commentaryMessages.length,
       command_event_count: 0,
       tool_call_count: 0,
       mcp_call_count: 0
     },
     governance_preview: {
-      user_messages: userMessages.slice(-maxItems),
-      corrections,
-      preferences,
-      decisions,
+      user_messages: commentaryMessages.slice(-maxItems),
+      corrections: [],
+      preferences: [],
+      decisions: [],
       commands: [],
       tool_calls: [],
       mcp_calls: [],
       workspace_paths: [],
       readiness: {
-        has_user_intent: userMessages.length > 0,
+        has_user_intent: commentaryMessages.length > 0,
         has_execution_trace: false,
         has_tool_trace: false,
-        has_corrections: corrections.length > 0,
+        has_corrections: false,
         quality,
         warnings
       }
@@ -285,84 +296,10 @@ function extractString(value: unknown): string {
   return "";
 }
 
-// ─── 信号提取（与 codexHostCapture 风格保持一致） ──────────────────
-
-const CORRECTION_PATTERNS = [
-  "不是",
-  "不对",
-  "理解有问题",
-  "我的意思",
-  "应该",
-  "重新",
-  "先别",
-  "先不用"
-];
-
-const PREFERENCE_PATTERNS = [
-  "不要",
-  "不需要",
-  "必须",
-  "默认",
-  "只能",
-  "优先",
-  "不允许",
-  "must",
-  "must not"
-];
-
-const DECISION_PATTERNS = [
-  "可以",
-  "好的",
-  "是的",
-  "确认",
-  "按这个",
-  "就这样",
-  "继续",
-  "ok"
-];
-
-function extractSignals(
-  messages: TraeMessage[],
-  patterns: string[],
-  signalType: "correction" | "preference",
-  maxItems: number
-): CodexCapturePreviewResponse["governance_preview"]["corrections"] {
-  const items: CodexCapturePreviewResponse["governance_preview"]["corrections"] = [];
-  for (const message of messages) {
-    const matched = patterns.filter((pattern) => message.text.includes(pattern));
-    if (matched.length === 0) {
-      continue;
-    }
-    items.push({
-      timestamp: message.timestamp,
-      text: summarize(message.text, 280),
-      signal_type: signalType,
-      matched_rules: matched
-    });
-  }
-  return items.slice(-maxItems);
-}
-
-function extractDecisionSignals(
-  messages: TraeMessage[],
-  maxItems: number
-): CodexCapturePreviewResponse["governance_preview"]["decisions"] {
-  const items: CodexCapturePreviewResponse["governance_preview"]["decisions"] = [];
-  for (const message of messages) {
-    const matched = DECISION_PATTERNS.filter((pattern) => message.text.includes(pattern));
-    const isShortDecision = message.text.replace(/\s+/g, " ").trim().length <= 80 && matched.length > 0;
-    if (!isShortDecision) {
-      continue;
-    }
-    items.push({
-      timestamp: message.timestamp,
-      text: summarize(message.text.replace(/\s+/g, " ").trim(), 200),
-      signal_type: "decision",
-      matched_rules: matched
-    });
-  }
-  return items.slice(-maxItems);
-}
+// ─── 信号提取 ─────────────────────────────────────────────────────
+// 注意：trae 摘要模式下不再提取 corrections/preferences/decisions 信号。
+// 这些信号必须来自真实用户原话，从摘要描述性词汇里提取会虚构信号。
+// 信号提取留给宿主模型在 host_model 模式下基于摘要内容自行判断。
 
 function summarize(text: string, limit: number): string {
   if (text.length <= limit) {
