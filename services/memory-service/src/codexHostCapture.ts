@@ -98,6 +98,10 @@ export type CodexCapturePreviewResponse = {
   };
   governance_preview: {
     user_messages: CaptureMessage[];
+    // commentary_messages：宿主摘要（非用户原话）。
+    // codex 路径不产生 commentary，恒为空数组；trae 路径把会话摘要放这里。
+    // 下游治理抽取器据此区分"真实用户指令"与"宿主生成的摘要"，避免从摘要里虚构信号。
+    commentary_messages: CaptureMessage[];
     corrections: CaptureSignal[];
     preferences: CaptureSignal[];
     decisions: CaptureSignal[];
@@ -402,6 +406,8 @@ export async function previewCodexHostCapture(input: CodexCapturePreviewRequest)
     },
     governance_preview: {
       user_messages: userMessages.slice(-maxItems),
+      // codex 路径不产生 commentary 摘要；保留 filter 是为了语义一致，未来若引入也不会漏。
+      commentary_messages: messages.filter((item) => item.role === "commentary").slice(-maxItems),
       corrections,
       preferences,
       decisions,

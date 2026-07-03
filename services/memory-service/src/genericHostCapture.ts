@@ -126,6 +126,7 @@ export async function previewGenericHostCapture(input: CodexCapturePreviewReques
     },
     governance_preview: {
       user_messages: userMessages.slice(-maxItems),
+      commentary_messages: messages.filter((item) => item.role === "commentary").slice(-maxItems),
       corrections,
       preferences,
       decisions,

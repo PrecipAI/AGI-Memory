@@ -91,10 +91,13 @@ export type GovernanceCandidatePreview = {
   availability_scope: GovernanceAvailabilityScope;
   governance_level: GovernanceLevel;
   promotion_status: GovernancePromotionStatus;
-  rule_domain?: "design" | "execution" | "governance" | "memory" | "skill" | "tooling" | "reporting" | "safety" | "integration";
+  rule_domain?: "design" | "execution" | "governance" | "memory" | "skill" | "tooling" | "reporting" | "safety" | "integration" | "reporting";
   rule_scope?: GovernanceOriginScope;
   applies_to_phase?: GovernancePhase[];
   violation_behavior?: "block" | "ask_user" | "warn" | "record";
+  // trigger_conditions：规则触发条件快照，由 hostCaptureGovernanceRun 在写库时填充。
+  // 类型上保留可选，运行时若未提供则由 ?? 默认值兜底。
+  trigger_conditions?: Record<string, unknown>;
   memory_type?:
     | "user_memory"
     | "project_memory"
@@ -602,12 +605,19 @@ export function buildGovernanceBatchPreview(preview: CodexCapturePreviewResponse
         timestamp: item.timestamp,
         text: item.text
       })),
-      commentary_messages: preview.governance_preview.corrections
-        .concat(preview.governance_preview.preferences)
-        .map((item) => ({
-          timestamp: item.timestamp,
-          text: item.text
-        })),
+      // commentary_messages 合并三路来源：
+      //   1. governance_preview.commentary_messages（trae 摘要走这里）
+      //   2. corrections（codex 路径的纠正信号）
+      //   3. preferences（codex 路径的偏好信号）
+      // trae 场景下只有第 1 路有数据；codex 场景下只有 2/3 路有数据。
+      // 这样 host_model LLM 能在 commentary_messages 里看到所有"非原话"的辅助信号。
+      commentary_messages: (preview.governance_preview.commentary_messages ?? [])
+        .map((item) => ({ timestamp: item.timestamp, text: item.text }))
+        .concat(
+          preview.governance_preview.corrections
+            .concat(preview.governance_preview.preferences)
+            .map((item) => ({ timestamp: item.timestamp, text: item.text }))
+        ),
       commands: preview.governance_preview.commands,
       tool_calls: preview.governance_preview.tool_calls,
       mcp_calls: preview.governance_preview.mcp_calls

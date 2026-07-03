@@ -113,7 +113,13 @@ export async function previewTraeHostCapture(
       mcp_call_count: 0
     },
     governance_preview: {
-      user_messages: commentaryMessages.slice(-maxItems),
+      // 关键修正：trae 摘要走 commentary_messages 而非 user_messages。
+      // 这样下游 buildGovernanceBatchPreview 的启发式抽取循环（line 359/491）不会执行
+      // （因为它迭代 user_messages，user_messages 为空时跳过），
+      // sessionSummarizer 也不会把摘要错误计入 signal_stats.user_directives。
+      // 候选抽取完全交给 host_model LLM 基于 commentary_messages 做判断。
+      user_messages: [],
+      commentary_messages: commentaryMessages.slice(-maxItems),
       corrections: [],
       preferences: [],
       decisions: [],

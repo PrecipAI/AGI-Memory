@@ -102,6 +102,7 @@ export async function previewQoderHostCapture(
     },
     governance_preview: {
       user_messages: userMessages.slice(-maxItems),
+      commentary_messages: messages.filter((m) => m.role === "commentary").slice(-maxItems),
       corrections,
       preferences,
       decisions,
