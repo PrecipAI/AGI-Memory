@@ -581,13 +581,15 @@ export async function applyGovernanceChangeProposal(input: {
           tenant_id, scope, status, version, rule_key, rule_type, title, statement,
           normalized_statement, applies_to, trigger_conditions, enforcement_level,
           priority, risk_level, verification_status, source_refs, evidence_refs,
-          supersedes_rule_id, metadata, trace_id
+          supersedes_rule_id, metadata, trace_id,
+          origin_scope, availability_scope, governance_level, promotion_status, rule_domain, rule_scope
         )
         VALUES (
           $1, $2, 'active', $3, $4, $5, $6, $7,
           $8, $9::jsonb, $10::jsonb, $11,
           $12, $13::risk_level, $14, $15::jsonb, $16::jsonb,
-          $17, $18::jsonb, $19
+          $17, $18::jsonb, $19,
+          $20, $21, $22, $23, $24, $25
         )
         RETURNING id
         `,
@@ -618,7 +620,13 @@ export async function applyGovernanceChangeProposal(input: {
               trace_id: input.traceId
             }
           }),
-          input.traceId
+          input.traceId,
+          String(payload.origin_scope ?? "session"),
+          String(payload.availability_scope ?? "session_only"),
+          String(payload.governance_level ?? "session"),
+          String(payload.promotion_status ?? "active"),
+          String(payload.rule_domain ?? "execution"),
+          String(payload.rule_scope ?? payload.origin_scope ?? "session")
         ]
       );
       appliedObjectId = inserted.rows[0].id;
@@ -630,13 +638,15 @@ export async function applyGovernanceChangeProposal(input: {
           tenant_id, scope, status, version, rule_key, rule_type, title, statement,
           normalized_statement, applies_to, trigger_conditions, enforcement_level,
           priority, risk_level, verification_status, source_refs, evidence_refs,
-          supersedes_rule_id, metadata, trace_id
+          supersedes_rule_id, metadata, trace_id,
+          origin_scope, availability_scope, governance_level, promotion_status, rule_domain, rule_scope
         )
         VALUES (
           $1, $2, 'active', $3, $4, $5, $6, $7,
           $8, $9::jsonb, $10::jsonb, $11,
           $12, $13::risk_level, $14, $15::jsonb, $16::jsonb,
-          NULL, $17::jsonb, $18
+          NULL, $17::jsonb, $18,
+          $19, $20, $21, $22, $23, $24
         )
         RETURNING id
         `,
@@ -666,7 +676,13 @@ export async function applyGovernanceChangeProposal(input: {
               trace_id: input.traceId
             }
           }),
-          input.traceId
+          input.traceId,
+          String(payload.origin_scope ?? "session"),
+          String(payload.availability_scope ?? "session_only"),
+          String(payload.governance_level ?? "session"),
+          String(payload.promotion_status ?? "active"),
+          String(payload.rule_domain ?? "execution"),
+          String(payload.rule_scope ?? payload.origin_scope ?? "session")
         ]
       );
       appliedObjectId = inserted.rows[0].id;

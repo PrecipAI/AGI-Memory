@@ -457,7 +457,7 @@ export async function runCodexHostGovernance(input: {
       statement: canonicalContent,
       normalizedStatement: normalizeText(canonicalContent),
       appliesTo: candidate.applies_to_phase ?? ["governance", "integration", "execution"],
-      triggerConditions: {
+      triggerConditions: candidate.trigger_conditions ?? {
         host: preview.host,
         source: "host_capture",
         thread_id: preview.thread_id,
@@ -474,7 +474,9 @@ export async function runCodexHostGovernance(input: {
       priority: enforcementLevel === "must_not" ? 95 : 90,
       riskLevel: "medium",
       verificationStatus: "verified",
-      sourceRefs: [buildSourceRef(preview.session_file, candidate.source_timestamp, candidate.source_kind)],
+      sourceRefs: (Array.isArray(candidate.source_refs) && candidate.source_refs.length > 0)
+        ? candidate.source_refs
+        : [buildSourceRef(preview.session_file, candidate.source_timestamp, candidate.source_kind)],
       evidenceRefs: [],
       originScope: candidate.origin_scope,
       governanceLevel: candidate.governance_level,
@@ -1197,7 +1199,7 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       statement: canonicalContent,
       normalizedStatement: normalizeText(canonicalContent),
       appliesTo: candidate.applies_to_phase ?? ["governance", "integration", "execution"],
-      triggerConditions: {
+      triggerConditions: candidate.trigger_conditions ?? {
         host: hostName,
         source: "host_capture",
         thread_id: virtualPreview.thread_id,
@@ -1214,7 +1216,9 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       priority: enforcementLevel === "must_not" ? 95 : 90,
       riskLevel: "medium",
       verificationStatus: "verified",
-      sourceRefs: [buildSourceRef(virtualPreview.session_file, candidate.source_timestamp, candidate.source_kind)],
+      sourceRefs: (Array.isArray(candidate.source_refs) && candidate.source_refs.length > 0)
+        ? candidate.source_refs
+        : [buildSourceRef(virtualPreview.session_file, candidate.source_timestamp, candidate.source_kind)],
       evidenceRefs: [],
       originScope: candidate.origin_scope,
       governanceLevel: candidate.governance_level,
