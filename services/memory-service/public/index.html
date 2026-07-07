@@ -2731,6 +2731,19 @@
           >
             <div class="section-header" style="margin-bottom: 0">图谱概览</div>
             <div style="display: flex; gap: 8px; align-items: center">
+              <select
+                id="graph-scope-filter"
+                class="form-control"
+                style="width: auto; min-width: 140px"
+                onchange="loadKnowledgeGraph()"
+                title="按作用域筛选图谱数据"
+              >
+                <option value="">全部作用域</option>
+                <option value="memory.validation">memory.validation</option>
+                <option value="global">global</option>
+                <option value="session">session</option>
+                <option value="project">project</option>
+              </select>
               <button class="btn btn-primary" onclick="loadKnowledgeGraph()">
                 刷新
               </button>
@@ -6339,8 +6352,13 @@
 
       async function loadKnowledgeGraph() {
         try {
+          const scopeFilter =
+            document.getElementById("graph-scope-filter")?.value || "";
+          const scopeParam = scopeFilter
+            ? `&scope=${encodeURIComponent(scopeFilter)}`
+            : "";
           const data = await apiGet(
-            "/internal/knowledge/graph/overview?limit=100",
+            `/internal/knowledge/graph/overview?limit=100${scopeParam}`,
           );
           knowledgeGraphCache = data;
           const stats = data.stats || {};
@@ -6653,7 +6671,13 @@
           (data.governance_proposals || []).forEach((p) =>
             pushNode(
               String(p.id),
-              String(p.proposed_action || "proposal").slice(0, 40),
+              String(
+                (p.proposed_payload &&
+                  (p.proposed_payload.title ||
+                    p.proposed_payload.skill_name)) ||
+                  p.proposed_action ||
+                  "proposal",
+              ).slice(0, 40),
               4,
               p,
               "proposal",
@@ -6762,6 +6786,9 @@
                 const title =
                   d.canonical_name ||
                   d.title ||
+                  (d.proposed_payload &&
+                    (d.proposed_payload.title ||
+                      d.proposed_payload.skill_name)) ||
                   d.proposed_action ||
                   d.statement ||
                   d.content ||
@@ -6853,7 +6880,11 @@
           [
             "proposal",
             knowledgeGraphCache.governance_proposals,
-            (x) => x.proposed_action || x.id,
+            (x) =>
+              (x.proposed_payload &&
+                (x.proposed_payload.title || x.proposed_payload.skill_name)) ||
+              x.proposed_action ||
+              x.id,
           ],
           ["rule", knowledgeGraphCache.rules, (x) => x.title || x.rule_key],
           ["memory", knowledgeGraphCache.memories, (x) => x.title],

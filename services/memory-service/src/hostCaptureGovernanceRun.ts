@@ -557,6 +557,8 @@ export async function runCodexHostGovernance(input: {
   const existingMemoryFilter = await filterExistingFactualMemoryCandidates({
     tenantId: input.tenantId,
     scope: input.scope,
+    traceId: input.traceId,
+    sessionFile: preview.session_file,
     extractionPreview: incremental.extraction_preview,
   });
   incremental.extraction_preview.memory_candidates =
@@ -566,6 +568,8 @@ export async function runCodexHostGovernance(input: {
   const existingRuleFilter = await filterExistingRuleCandidates({
     tenantId: input.tenantId,
     scope: input.scope,
+    traceId: input.traceId,
+    sessionFile: preview.session_file,
     extractionPreview: incremental.extraction_preview,
   });
   incremental.extraction_preview.rule_candidates =
@@ -576,6 +580,8 @@ export async function runCodexHostGovernance(input: {
     await filterExistingSkillProposalCandidates({
       tenantId: input.tenantId,
       scope: input.scope,
+      traceId: input.traceId,
+      sessionFile: preview.session_file,
       extractionPreview: incremental.extraction_preview,
     });
   incremental.extraction_preview.skill_proposal_candidates =
@@ -1449,6 +1455,8 @@ export async function runGovernanceFromExtraction(
   const existingMemoryFilter = await filterExistingFactualMemoryCandidates({
     tenantId: input.tenantId,
     scope: input.scope,
+    traceId: input.traceId,
+    sessionFile: preview.session_file,
     extractionPreview,
   });
   extractionPreview.memory_candidates = existingMemoryFilter.memoryCandidates;
@@ -1456,6 +1464,8 @@ export async function runGovernanceFromExtraction(
   const existingRuleFilter = await filterExistingRuleCandidates({
     tenantId: input.tenantId,
     scope: input.scope,
+    traceId: input.traceId,
+    sessionFile: preview.session_file,
     extractionPreview,
   });
   extractionPreview.rule_candidates = existingRuleFilter.ruleCandidates;
@@ -1464,6 +1474,8 @@ export async function runGovernanceFromExtraction(
     await filterExistingSkillProposalCandidates({
       tenantId: input.tenantId,
       scope: input.scope,
+      traceId: input.traceId,
+      sessionFile: preview.session_file,
       extractionPreview,
     });
   extractionPreview.skill_proposal_candidates =
@@ -2606,6 +2618,8 @@ async function filterNewGovernanceCandidates(input: {
 async function filterExistingFactualMemoryCandidates(input: {
   tenantId: string;
   scope: string;
+  traceId: string;
+  sessionFile: string;
   extractionPreview: ExtractionPreview;
 }): Promise<{
   memoryCandidates: ExtractionPreview["memory_candidates"];
@@ -2641,6 +2655,19 @@ async function filterExistingFactualMemoryCandidates(input: {
     );
     if (existing.rowCount && existing.rows[0]) {
       skippedExistingMemoryCount += 1;
+      // P1 修复:DUPLICATE 不再静默丢弃,把这次的 source_ref 作为追加证据挂到已存在的 memory 上。
+      // 这样 Skill/Memory 被多次抽取命中时,会积累多条证据,而不是只剩第一次的。
+      await attachProvenanceForCandidate({
+        tenantId: input.tenantId,
+        scope: input.scope,
+        traceId: input.traceId,
+        targetType: "memory",
+        targetId: existing.rows[0].id,
+        candidate,
+        artifactTag: "memory_candidate",
+        sessionFile: input.sessionFile,
+        sourceTimestamp: candidate.source_timestamp,
+      });
       continue;
     }
     memoryCandidates.push(candidate);
@@ -2652,6 +2679,8 @@ async function filterExistingFactualMemoryCandidates(input: {
 async function filterExistingRuleCandidates(input: {
   tenantId: string;
   scope: string;
+  traceId: string;
+  sessionFile: string;
   extractionPreview: ExtractionPreview;
 }): Promise<{
   ruleCandidates: ExtractionPreview["rule_candidates"];
@@ -2679,6 +2708,18 @@ async function filterExistingRuleCandidates(input: {
     );
     if (existing.rowCount && existing.rows[0]) {
       skippedExistingRuleCount += 1;
+      // P1 修复:DUPLICATE 时追加证据到已存在的 rule
+      await attachProvenanceForCandidate({
+        tenantId: input.tenantId,
+        scope: input.scope,
+        traceId: input.traceId,
+        targetType: "rule",
+        targetId: existing.rows[0].id,
+        candidate,
+        artifactTag: "rule_candidate",
+        sessionFile: input.sessionFile,
+        sourceTimestamp: candidate.source_timestamp,
+      });
       continue;
     }
 
@@ -2699,6 +2740,8 @@ async function filterExistingRuleCandidates(input: {
     );
     if (existingPending.rowCount && existingPending.rows[0]) {
       skippedExistingRuleCount += 1;
+      // pending proposal 阶段没有 rule 实体可挂,跳过证据追加
+      // (proposal 审批通过后会创建 rule,届时新一次治理运行会走到 existing 分支补证据)
       continue;
     }
 
@@ -2711,6 +2754,8 @@ async function filterExistingRuleCandidates(input: {
 async function filterExistingSkillProposalCandidates(input: {
   tenantId: string;
   scope: string;
+  traceId: string;
+  sessionFile: string;
   extractionPreview: ExtractionPreview;
 }): Promise<{
   skillProposalCandidates: ExtractionPreview["skill_proposal_candidates"];
@@ -2731,6 +2776,36 @@ async function filterExistingSkillProposalCandidates(input: {
       "unknown";
     const proposedText =
       candidate.proposed_text ?? candidate.content ?? candidate.source_excerpt;
+    // 先查已存在的 active skill(按 skill_key 匹配),如果有就追加证据
+    const existingSkill = await pool.query<{ id: string }>(
+      `
+      SELECT id
+      FROM skill
+      WHERE tenant_id = $1
+        AND scope = $2
+        AND status = 'active'
+        AND skill_key = $3
+      LIMIT 1
+      `,
+      [input.tenantId, input.scope, targetSkill],
+    );
+    if (existingSkill.rowCount && existingSkill.rows[0]) {
+      skippedExistingSkillProposalCount += 1;
+      // P1 修复:DUPLICATE 时追加证据到已存在的 skill
+      await attachProvenanceForCandidate({
+        tenantId: input.tenantId,
+        scope: input.scope,
+        traceId: input.traceId,
+        targetType: "skill",
+        targetId: existingSkill.rows[0].id,
+        candidate,
+        artifactTag: "skill_proposal_candidate",
+        sessionFile: input.sessionFile,
+        sourceTimestamp: candidate.source_timestamp,
+      });
+      continue;
+    }
+    // 再查 pending 的 skill_update_proposal(避免重复创建 proposal)
     const existing = await pool.query<{ id: string }>(
       `
       SELECT id
@@ -2747,6 +2822,7 @@ async function filterExistingSkillProposalCandidates(input: {
     );
     if (existing.rowCount && existing.rows[0]) {
       skippedExistingSkillProposalCount += 1;
+      // pending proposal 阶段没有 skill 实体可挂,跳过
       continue;
     }
     skillProposalCandidates.push(candidate);

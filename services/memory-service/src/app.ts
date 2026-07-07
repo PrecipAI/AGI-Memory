@@ -102,7 +102,11 @@ import {
 } from "./memoryPolicyEngine.js";
 import { MemoryRouter } from "./memoryRouter.js";
 import { queryMemoryByKind } from "./queries.js";
-import { resolveRequestContext, getTraceId } from "./requestContext.js";
+import {
+  resolveRequestContext,
+  getTraceId,
+  resolveScopeFromQueryOrHeader,
+} from "./requestContext.js";
 import { ResidentMemoryBuilder } from "./residentMemoryBuilder.js";
 import { RetrievalGate } from "./retrievalGate.js";
 import { buildRetrieveBundle } from "./retrieveBundle.js";
@@ -1614,11 +1618,19 @@ export function buildMemoryServiceApp() {
       request.headers as Record<string, unknown>,
       "knowledge-graph-entities",
     );
-    const query = (request.query ?? {}) as { q?: string; limit?: number };
+    const query = (request.query ?? {}) as {
+      q?: string;
+      limit?: number;
+      scope?: string;
+    };
+    const scope = resolveScopeFromQueryOrHeader(
+      query as Record<string, unknown>,
+      request.headers as Record<string, unknown>,
+    );
     const response: KnowledgeGraphListResponse =
       await listKnowledgeGraphEntities({
         tenantId: context.tenantId,
-        scope: context.scope,
+        scope,
         query: query.q ?? null,
         limit: typeof query.limit === "number" ? query.limit : undefined,
       });
@@ -1630,10 +1642,18 @@ export function buildMemoryServiceApp() {
       request.headers as Record<string, unknown>,
       "knowledge-graph-facts",
     );
-    const query = (request.query ?? {}) as { q?: string; limit?: number };
+    const query = (request.query ?? {}) as {
+      q?: string;
+      limit?: number;
+      scope?: string;
+    };
+    const scope = resolveScopeFromQueryOrHeader(
+      query as Record<string, unknown>,
+      request.headers as Record<string, unknown>,
+    );
     const response: KnowledgeGraphListResponse = await listKnowledgeGraphFacts({
       tenantId: context.tenantId,
-      scope: context.scope,
+      scope,
       query: query.q ?? null,
       limit: typeof query.limit === "number" ? query.limit : undefined,
     });
@@ -1648,7 +1668,12 @@ export function buildMemoryServiceApp() {
     const query = (request.query ?? {}) as {
       object_ids?: string | string[];
       limit?: number;
+      scope?: string;
     };
+    const scope = resolveScopeFromQueryOrHeader(
+      query as Record<string, unknown>,
+      request.headers as Record<string, unknown>,
+    );
     const objectIds =
       typeof query.object_ids === "string"
         ? query.object_ids
@@ -1664,7 +1689,7 @@ export function buildMemoryServiceApp() {
     const response: KnowledgeGraphListResponse =
       await listKnowledgeGraphRelations({
         tenantId: context.tenantId,
-        scope: context.scope,
+        scope,
         objectIds,
         limit: typeof query.limit === "number" ? query.limit : undefined,
       });
@@ -1679,12 +1704,19 @@ export function buildMemoryServiceApp() {
       request.headers as Record<string, unknown>,
       "knowledge-graph-overview",
     );
-    const query = (request.query ?? {}) as { limit?: number | string };
+    const query = (request.query ?? {}) as {
+      limit?: number | string;
+      scope?: string;
+    };
+    const scope = resolveScopeFromQueryOrHeader(
+      query as Record<string, unknown>,
+      request.headers as Record<string, unknown>,
+    );
     const limit =
       typeof query.limit === "string" ? Number(query.limit) : query.limit;
     return getKnowledgeGraphOverview({
       tenantId: context.tenantId,
-      scope: context.scope,
+      scope,
       limit: Number.isFinite(limit) ? limit : undefined,
     });
   });
