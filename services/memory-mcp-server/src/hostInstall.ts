@@ -6,12 +6,13 @@ import {
   buildCodexAgentsSnippet,
   buildMcpStdioCommand,
   buildClaudeSnippet,
+  buildTraeSnippet,
   ensureDir,
   pathExists,
-  resolveConfigPath
+  resolveConfigPath,
 } from "./config.js";
 
-export type HostInstallTarget = "codex" | "claude-code";
+export type HostInstallTarget = "codex" | "claude-code" | "trae";
 
 export type HostInstallOptions = {
   cwd: string;
@@ -36,21 +37,29 @@ const CODEX_MARKER_START = "# >>> memory-v3 mcp >>>";
 const CODEX_MARKER_END = "# <<< memory-v3 mcp <<<";
 const INSTRUCTIONS_MARKER_START = "<!-- >>> memory-v3 policy >>>";
 const INSTRUCTIONS_MARKER_END = "<<< memory-v3 policy <<< -->";
-const CODEX_TABLE_PATTERN = /^\[mcp_servers\.memory-v3\]\r?\n(?:^(?!\[).*\r?\n?)*/m;
+const CODEX_TABLE_PATTERN =
+  /^\[mcp_servers\.memory-v3\]\r?\n(?:^(?!\[).*\r?\n?)*/m;
 
-export async function installHost(options: HostInstallOptions): Promise<HostInstallResult> {
+export async function installHost(
+  options: HostInstallOptions,
+): Promise<HostInstallResult> {
   if (!options.yes) {
     return {
       status: "NEEDS_APPROVAL",
       host: options.host,
-      files: []
+      files: [],
     };
   }
 
-  const memoryConfigPath = resolveConfigPath(options.cwd, options.configPathInput);
+  const memoryConfigPath = resolveConfigPath(
+    options.cwd,
+    options.configPathInput,
+  );
   const files: HostInstallResult["files"] = [];
   if (options.host === "codex") {
     await installCodex({ ...options, memoryConfigPath, files });
+  } else if (options.host === "trae") {
+    await installTrae({ ...options, memoryConfigPath, files });
   } else {
     await installClaudeCode({ ...options, memoryConfigPath, files });
   }
@@ -58,17 +67,26 @@ export async function installHost(options: HostInstallOptions): Promise<HostInst
   return {
     status: "INSTALLED",
     host: options.host,
-    files
+    files,
   };
 }
 
-async function installCodex(options: HostInstallOptions & { memoryConfigPath: string; files: HostInstallResult["files"] }) {
+async function installCodex(
+  options: HostInstallOptions & {
+    memoryConfigPath: string;
+    files: HostInstallResult["files"];
+  },
+) {
   const hostConfigPath = resolveTargetPath(
     options.cwd,
     options.hostConfigPathInput,
-    path.join(os.homedir(), ".codex", "config.toml")
+    path.join(os.homedir(), ".codex", "config.toml"),
   );
-  const instructionsPath = resolveTargetPath(options.cwd, options.instructionsPathInput, path.join(options.cwd, "AGENTS.md"));
+  const instructionsPath = resolveTargetPath(
+    options.cwd,
+    options.instructionsPathInput,
+    path.join(options.cwd, "AGENTS.md"),
+  );
   const shell = buildMcpStdioCommand(options.memoryConfigPath);
   const tomlBlock = [
     CODEX_MARKER_START,
@@ -77,7 +95,7 @@ async function installCodex(options: HostInstallOptions & { memoryConfigPath: st
     `args = ${toTomlStringArray(shell.args)}`,
     "enabled = true",
     CODEX_MARKER_END,
-    ""
+    "",
   ].join("\n");
 
   await upsertMarkedTextFile({
@@ -85,32 +103,77 @@ async function installCodex(options: HostInstallOptions & { memoryConfigPath: st
     block: tomlBlock,
     markerStart: CODEX_MARKER_START,
     markerEnd: CODEX_MARKER_END,
-    files: options.files
+    files: options.files,
   });
   await upsertMarkedTextFile({
     filePath: instructionsPath,
     block: wrapInstructionBlock(buildCodexAgentsSnippet()),
     markerStart: INSTRUCTIONS_MARKER_START,
     markerEnd: INSTRUCTIONS_MARKER_END,
-    files: options.files
+    files: options.files,
   });
 }
 
-async function installClaudeCode(options: HostInstallOptions & { memoryConfigPath: string; files: HostInstallResult["files"] }) {
-  const hostConfigPath = resolveTargetPath(options.cwd, options.hostConfigPathInput, path.join(options.cwd, ".mcp.json"));
-  const instructionsPath = resolveTargetPath(options.cwd, options.instructionsPathInput, path.join(options.cwd, "CLAUDE.md"));
+async function installClaudeCode(
+  options: HostInstallOptions & {
+    memoryConfigPath: string;
+    files: HostInstallResult["files"];
+  },
+) {
+  const hostConfigPath = resolveTargetPath(
+    options.cwd,
+    options.hostConfigPathInput,
+    path.join(options.cwd, ".mcp.json"),
+  );
+  const instructionsPath = resolveTargetPath(
+    options.cwd,
+    options.instructionsPathInput,
+    path.join(options.cwd, "CLAUDE.md"),
+  );
   const templates = buildClientTemplates(options.memoryConfigPath);
   await mergeMcpJsonFile({
     filePath: hostConfigPath,
-    serverConfig: templates["claude-code-project.mcp.json"].mcpServers["memory-v3"],
-    files: options.files
+    serverConfig:
+      templates["claude-code-project.mcp.json"].mcpServers["memory-v3"],
+    files: options.files,
   });
   await upsertMarkedTextFile({
     filePath: instructionsPath,
     block: wrapInstructionBlock(buildClaudeSnippet()),
     markerStart: INSTRUCTIONS_MARKER_START,
     markerEnd: INSTRUCTIONS_MARKER_END,
-    files: options.files
+    files: options.files,
+  });
+}
+
+async function installTrae(
+  options: HostInstallOptions & {
+    memoryConfigPath: string;
+    files: HostInstallResult["files"];
+  },
+) {
+  const hostConfigPath = resolveTargetPath(
+    options.cwd,
+    options.hostConfigPathInput,
+    path.join(options.cwd, ".trae", "mcp.json"),
+  );
+  const instructionsPath = resolveTargetPath(
+    options.cwd,
+    options.instructionsPathInput,
+    path.join(options.cwd, ".trae", "instructions.md"),
+  );
+  const templates = buildClientTemplates(options.memoryConfigPath);
+  await mergeMcpJsonFile({
+    filePath: hostConfigPath,
+    serverConfig: templates["trae-mcp.json"].mcpServers["memory-v3"],
+    files: options.files,
+  });
+  await upsertMarkedTextFile({
+    filePath: instructionsPath,
+    block: wrapInstructionBlock(buildTraeSnippet()),
+    markerStart: INSTRUCTIONS_MARKER_START,
+    markerEnd: INSTRUCTIONS_MARKER_END,
+    files: options.files,
   });
 }
 
@@ -127,15 +190,19 @@ async function mergeMcpJsonFile(options: {
     ...parsed,
     mcpServers: {
       ...(parsed.mcpServers ?? {}),
-      "memory-v3": options.serverConfig
-    }
+      "memory-v3": options.serverConfig,
+    },
   };
   await ensureDir(path.dirname(options.filePath));
-  await writeFile(options.filePath, `${JSON.stringify(next, null, 2)}\n`, "utf8");
+  await writeFile(
+    options.filePath,
+    `${JSON.stringify(next, null, 2)}\n`,
+    "utf8",
+  );
   options.files.push({
     path: options.filePath,
     status: exists ? "UPDATE" : "CREATE",
-    backup_path: backupPath
+    backup_path: backupPath,
   });
 }
 
@@ -151,13 +218,18 @@ async function upsertMarkedTextFile(options: {
   const backupPath = exists ? await backupFile(options.filePath) : undefined;
   const startIndex = previous.indexOf(options.markerStart);
   const endIndex = previous.indexOf(options.markerEnd);
-  const normalizedBlock = options.block.endsWith("\n") ? options.block : `${options.block}\n`;
+  const normalizedBlock = options.block.endsWith("\n")
+    ? options.block
+    : `${options.block}\n`;
   let next: string;
 
   if (startIndex >= 0 && endIndex > startIndex) {
     const afterEnd = endIndex + options.markerEnd.length;
     next = `${previous.slice(0, startIndex)}${normalizedBlock}${previous.slice(afterEnd).replace(/^\r?\n/, "")}`;
-  } else if (options.markerStart === CODEX_MARKER_START && CODEX_TABLE_PATTERN.test(previous)) {
+  } else if (
+    options.markerStart === CODEX_MARKER_START &&
+    CODEX_TABLE_PATTERN.test(previous)
+  ) {
     next = previous.replace(CODEX_TABLE_PATTERN, normalizedBlock);
   } else {
     next = `${previous.trimEnd()}${previous.trim().length > 0 ? "\n\n" : ""}${normalizedBlock}`;
@@ -172,19 +244,26 @@ async function upsertMarkedTextFile(options: {
   options.files.push({
     path: options.filePath,
     status: exists ? "UPDATE" : "CREATE",
-    backup_path: backupPath
+    backup_path: backupPath,
   });
 }
 
 async function backupFile(filePath: string): Promise<string> {
   const backupDir = path.join(path.dirname(filePath), ".memory-mcp-backups");
   await mkdir(backupDir, { recursive: true });
-  const backupPath = path.join(backupDir, `${path.basename(filePath)}.${Date.now()}.bak`);
+  const backupPath = path.join(
+    backupDir,
+    `${path.basename(filePath)}.${Date.now()}.bak`,
+  );
   await copyFile(filePath, backupPath);
   return backupPath;
 }
 
-function resolveTargetPath(cwd: string, inputPath: string | undefined, fallback: string): string {
+function resolveTargetPath(
+  cwd: string,
+  inputPath: string | undefined,
+  fallback: string,
+): string {
   if (!inputPath) {
     return fallback;
   }

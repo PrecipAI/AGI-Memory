@@ -13,11 +13,23 @@ import {
   getPool,
   updateMemoryCandidate,
 } from "@super-agent/db";
-import type { CodexCapturePreviewRequest, HostCaptureName } from "./codexHostCapture.js";
+import type {
+  CodexCapturePreviewRequest,
+  HostCaptureName,
+} from "./codexHostCapture.js";
 import { previewHostCapture } from "./hostCapture.js";
-import { buildGovernanceBatchPreview, VALID_KNOWLEDGE_TYPES, type GovernanceBatchPreviewResponse, type GovernanceKnowledgeType } from "./hostCaptureGovernanceBatch.js";
+import {
+  buildGovernanceBatchPreview,
+  VALID_KNOWLEDGE_TYPES,
+  type GovernanceBatchPreviewResponse,
+  type GovernanceKnowledgeType,
+} from "./hostCaptureGovernanceBatch.js";
 import { applyHostModelGovernanceResult } from "./hostModelGovernanceAdapter.js";
-import { validatePreviewToken, consumePreviewToken } from "./previewTokenStore.js";
+import {
+  validatePreviewToken,
+  consumePreviewToken,
+} from "./previewTokenStore.js";
+import { persistCandidateProvenance } from "./candidateProvenance.js";
 import { detectConflicts } from "./governance/L2ConflictDetector.js";
 import { scanEvolution } from "./governance/L3EvolutionScanner.js";
 import { runCognitiveEngine } from "./governance/L4CognitiveEngine.js";
@@ -25,12 +37,85 @@ import { runCognitiveEngine } from "./governance/L4CognitiveEngine.js";
 // Hard guard: never persist unnamed or empty-title/empty-content assets.
 // The adapter already validates this, but this is the persistence-layer backstop
 // that prevents UI "未命名记忆" rows from any code path.
-function requirePresentFields(layer: string, index: number, title: string, content: string) {
+function requirePresentFields(
+  layer: string,
+  index: number,
+  title: string,
+  content: string,
+) {
   if (typeof title !== "string" || title.trim() === "") {
-    throw new Error(`[persistence guard] ${layer}[${index}] has empty title; refusing to create unnamed asset`);
+    throw new Error(
+      `[persistence guard] ${layer}[${index}] has empty title; refusing to create unnamed asset`,
+    );
   }
   if (typeof content !== "string" || content.trim() === "") {
-    throw new Error(`[persistence guard] ${layer}[${index}] has empty content; refusing to create empty asset`);
+    throw new Error(
+      `[persistence guard] ${layer}[${index}] has empty content; refusing to create empty asset`,
+    );
+  }
+}
+
+/**
+ * 在 rule/memory/skill 持久化后,建立 evidence → target 的 source_of 证据链。
+ *
+ * 这是 P0 修复:hostCaptureGovernanceRun 主治理路径之前只写 rule/memory/skill
+ * 不建证据链,导致 100% 的规则没有原始证据可追溯。现在统一调
+ * persistCandidateProvenance,复用 L1 已有的 evidence + entity link 逻辑。
+ *
+ * 失败不阻塞主流程(资产已写入,provenance 是增强信息),只 warn。
+ */
+async function attachProvenanceForCandidate(input: {
+  tenantId: string;
+  scope: string;
+  traceId: string;
+  targetType: "rule" | "memory" | "skill";
+  targetId: string;
+  candidate: {
+    title: string;
+    content?: string | null;
+    source_excerpt: string;
+    source_kind: string;
+    source_refs?: Array<{
+      source_kind: string;
+      source_timestamp: string;
+      source_excerpt: string;
+    }> | null;
+  };
+  artifactTag: string;
+  sessionFile: string;
+  sourceTimestamp: string;
+}): Promise<void> {
+  // 优先用 source_refs[0] 作为 evidence 源(完整对话轮次),退化到 buildSourceRef
+  const firstRef = input.candidate.source_refs?.[0] ?? null;
+  const sourceRef = firstRef
+    ? `${input.sessionFile}#${firstRef.source_kind}:${firstRef.source_timestamp}`
+    : `${input.sessionFile}#${input.candidate.source_kind}:${input.sourceTimestamp}`;
+  const sourceType = firstRef?.source_kind ?? input.candidate.source_kind;
+  const content = input.candidate.content ?? input.candidate.source_excerpt;
+
+  try {
+    const result = await persistCandidateProvenance({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      traceId: input.traceId,
+      targetType: input.targetType,
+      targetId: input.targetId,
+      title: input.candidate.title,
+      content,
+      sourceRef,
+      sourceType,
+      artifactTag: input.artifactTag,
+    });
+    if (result.errors.length > 0) {
+      console.warn(
+        `[hostCaptureGovernanceRun] provenance partial failure ${input.targetType}:${input.targetId} errors=${JSON.stringify(result.errors)}`,
+      );
+    }
+  } catch (e) {
+    // 失败不阻塞主流程,资产已写入
+    console.warn(
+      `[hostCaptureGovernanceRun] provenance attach failed ${input.targetType}:${input.targetId} error=${e instanceof Error ? e.message : String(e)}`,
+    );
   }
 }
 
@@ -42,7 +127,9 @@ type HostGovernanceRunRequest = CodexCapturePreviewRequest & {
   host_model_result?: {
     model_ref?: string | null;
     generated_at?: string | null;
-    extraction_preview?: Partial<GovernanceBatchPreviewResponse["extraction_preview"]> | null;
+    extraction_preview?: Partial<
+      GovernanceBatchPreviewResponse["extraction_preview"]
+    > | null;
   } | null;
   // Two-Step MCP Dance: host_model 模式下必须带 preview_token
   preview_token?: string | null;
@@ -113,7 +200,12 @@ export type HostGovernanceRunResponse = {
       execution_steps: string[] | null;
     }>;
     synthesized_knowledge_ids: string[];
-    knowledge_items: Array<{ id: string; title: string; content: string; knowledge_type: string }>;
+    knowledge_items: Array<{
+      id: string;
+      title: string;
+      content: string;
+      knowledge_type: string;
+    }>;
     evidence_ids: string[];
     governance_evidence_bundle_id: string | null;
     governance_decision_ids: string[];
@@ -169,26 +261,39 @@ export type HostGovernanceRunResponse = {
   preview: GovernanceBatchPreviewResponse;
 };
 
-type SourceKind = "user_message" | "assistant_message" | "commentary" | "command" | "tool" | "mcp";
+type SourceKind =
+  | "user_message"
+  | "assistant_message"
+  | "commentary"
+  | "command"
+  | "tool"
+  | "mcp";
 
-type CandidatePreview = GovernanceBatchPreviewResponse["extraction_preview"]["rule_candidates"][number];
+type CandidatePreview =
+  GovernanceBatchPreviewResponse["extraction_preview"]["rule_candidates"][number];
 type ExtractionPreview = GovernanceBatchPreviewResponse["extraction_preview"];
 
-function assertValidKnowledgeType(value: unknown, context: string): GovernanceKnowledgeType {
-  if (typeof value === "string" && VALID_KNOWLEDGE_TYPES.has(value as GovernanceKnowledgeType)) {
+function assertValidKnowledgeType(
+  value: unknown,
+  context: string,
+): GovernanceKnowledgeType {
+  if (
+    typeof value === "string" &&
+    VALID_KNOWLEDGE_TYPES.has(value as GovernanceKnowledgeType)
+  ) {
     return value as GovernanceKnowledgeType;
   }
   throw new Error(
     `[P0-b] Invalid knowledge_type "${String(value)}" ${context}. ` +
       `Allowed types: ${[...VALID_KNOWLEDGE_TYPES].join(", ")}. ` +
-      `execution_derived_knowledge is not a valid synthesis type.`
+      `execution_derived_knowledge is not a valid synthesis type.`,
   );
 }
 
 function resolveKnowledgePromotionState(
   governanceMode: "host_model" | "rules_fallback",
   candidatePromotionStatus: unknown,
-  options?: { knowledgeTypeValid?: boolean }
+  options?: { knowledgeTypeValid?: boolean },
 ): { lifecycleState: string; reviewState: string; recallState: string } {
   // P0-a: fallback path must never write active knowledge, regardless of candidate promotion_status.
   // P0-b: schema-invalid knowledge_type must never be active either.
@@ -197,21 +302,39 @@ function resolveKnowledgePromotionState(
     return {
       lifecycleState: "pending_review",
       reviewState: "pending_review",
-      recallState: "audit_only"
+      recallState: "audit_only",
     };
   }
   if (candidatePromotionStatus === "rejected") {
-    return { lifecycleState: "pending_review", reviewState: "rejected", recallState: "inactive" };
+    return {
+      lifecycleState: "pending_review",
+      reviewState: "rejected",
+      recallState: "inactive",
+    };
   }
   if (candidatePromotionStatus === "needs_review") {
-    return { lifecycleState: "pending_review", reviewState: "pending_review", recallState: "audit_only" };
+    return {
+      lifecycleState: "pending_review",
+      reviewState: "pending_review",
+      recallState: "audit_only",
+    };
   }
   // host_model + active/accepted
-  return { lifecycleState: "curated", reviewState: "model_accepted", recallState: "active" };
+  return {
+    lifecycleState: "curated",
+    reviewState: "model_accepted",
+    recallState: "active",
+  };
 }
 
-function normalizeKnowledgeType(value: unknown): { type: GovernanceKnowledgeType; valid: boolean } {
-  if (typeof value === "string" && VALID_KNOWLEDGE_TYPES.has(value as GovernanceKnowledgeType)) {
+function normalizeKnowledgeType(value: unknown): {
+  type: GovernanceKnowledgeType;
+  valid: boolean;
+} {
+  if (
+    typeof value === "string" &&
+    VALID_KNOWLEDGE_TYPES.has(value as GovernanceKnowledgeType)
+  ) {
     return { type: value as GovernanceKnowledgeType, valid: true };
   }
   // P0-b: map legacy/invalid types to the most conservative spec-39 type and quarantine via resolveKnowledgePromotionState.
@@ -221,7 +344,9 @@ function normalizeKnowledgeType(value: unknown): { type: GovernanceKnowledgeType
 
 // P0-a: fallback path must never promote any candidate to active, regardless of type.
 // Force every candidate in the batch to a quarantine promotion status before persistence.
-function forceFallbackQuarantine(batch: { extraction_preview: ExtractionPreview }): void {
+function forceFallbackQuarantine(batch: {
+  extraction_preview: ExtractionPreview;
+}): void {
   // Candidate-level promotion status only supports candidate | active | needs_review | rejected.
   // "needs_review" is the closest candidate-level signal; persistence will map it to
   // DB-level pending_review / audit_only quarantine states.
@@ -255,19 +380,19 @@ async function quarantineFallbackOutputs(input: {
   if (input.ruleIds.length > 0) {
     await pool.query(
       `UPDATE rule SET status = 'parked' WHERE tenant_id = $1 AND scope = $2 AND id = ANY($3::uuid[])`,
-      [input.tenantId, input.scope, input.ruleIds]
+      [input.tenantId, input.scope, input.ruleIds],
     );
   }
   if (input.memoryIds.length > 0) {
     await pool.query(
       `UPDATE memory SET status = 'parked' WHERE tenant_id = $1 AND scope = $2 AND id = ANY($3::uuid[])`,
-      [input.tenantId, input.scope, input.memoryIds]
+      [input.tenantId, input.scope, input.memoryIds],
     );
   }
   if (input.skillProposalIds.length > 0) {
     await pool.query(
       `UPDATE governance_change_proposal SET status = 'parked' WHERE tenant_id = $1 AND scope = $2 AND id = ANY($3::uuid[])`,
-      [input.tenantId, input.scope, input.skillProposalIds]
+      [input.tenantId, input.scope, input.skillProposalIds],
     );
   }
   if (input.synthesizedKnowledgeIds.length > 0) {
@@ -275,7 +400,7 @@ async function quarantineFallbackOutputs(input: {
       `UPDATE kp_synthesized_knowledge
        SET lifecycle_state = 'pending_review', review_state = 'pending_review', recall_state = 'audit_only'
        WHERE tenant_id = $1 AND scope = $2 AND id = ANY($3::uuid[])`,
-      [input.tenantId, input.scope, input.synthesizedKnowledgeIds]
+      [input.tenantId, input.scope, input.synthesizedKnowledgeIds],
     );
   }
 }
@@ -292,16 +417,23 @@ async function persistLayerLinks(input: {
   memoryCandidates: ExtractionPreview["memory_candidates"];
   ruleIds: string[];
   memoryIds: string[];
-}): Promise<void> {
-  // 数组 index 必须与 ruleIds/memoryIds 严格对齐（同一 for 循环 push 顺序）。
+}): Promise<{
+  failures: Array<{ rule_id: string; memory_id: string; error: string }>;
+}> {
+  const layerLinkFailures: Array<{
+    rule_id: string;
+    memory_id: string;
+    error: string;
+  }> = [];
+  // 数组 index 必须与 ruleIds/memoryIds 严格对齐(同一 for 循环 push 顺序)。
   if (input.ruleCandidates.length !== input.ruleIds.length) {
-    return;
+    return { failures: layerLinkFailures };
   }
   if (input.memoryCandidates.length !== input.memoryIds.length) {
-    return;
+    return { failures: layerLinkFailures };
   }
   if (input.ruleIds.length === 0 || input.memoryIds.length === 0) {
-    return;
+    return { failures: layerLinkFailures };
   }
   const pool = getPool();
   for (let ruleIdx = 0; ruleIdx < input.ruleCandidates.length; ruleIdx += 1) {
@@ -324,13 +456,24 @@ async function persistLayerLinks(input: {
           VALUES ($1, $2, 'active', $3::uuid, 'rule', $4::uuid, 'memory', 'derived_from', 0.9, $5)
           ON CONFLICT (source_id, target_id, link_type) DO NOTHING
           `,
-          [input.tenantId, input.scope, ruleId, memId, input.traceId]
+          [input.tenantId, input.scope, ruleId, memId, input.traceId],
         );
-      } catch {
-        // 单条 layer_links 写入失败不应阻断整个治理批次；下游 P0.5 验证已覆盖主路径。
+      } catch (e) {
+        // 单条 layer_links 写入失败不应阻断整个治理批次;但必须留痕,不能空 catch。
+        // 累计失败计数,调用方应在响应里通过 warnings 透传。
+        console.error(
+          `[persistLayerLinks] INSERT failed for rule ${ruleId} → memory ${memId}:`,
+          e instanceof Error ? e.message : String(e),
+        );
+        layerLinkFailures.push({
+          rule_id: ruleId,
+          memory_id: memId,
+          error: e instanceof Error ? e.message : String(e),
+        });
       }
     }
   }
+  return { failures: layerLinkFailures };
 }
 
 export async function runCodexHostGovernance(input: {
@@ -351,7 +494,7 @@ export async function runCodexHostGovernance(input: {
     if (!input.body.preview_token) {
       throw new Error(
         "PREVIEW_TOKEN_MISSING: governance_mode='host_model' requires preview_token. " +
-        "Call memory_preview_host_governance first to get a token, then pass its token_id in preview_token."
+          "Call memory_preview_host_governance first to get a token, then pass its token_id in preview_token.",
       );
     }
     // host_model 模式还必须带 host_model_result.extraction_preview
@@ -359,7 +502,7 @@ export async function runCodexHostGovernance(input: {
     if (!input.body.host_model_result?.extraction_preview) {
       throw new Error(
         "HOST_MODEL_RESULT_MISSING: governance_mode='host_model' requires host_model_result.extraction_preview. " +
-        "YOU are the extraction engine — fill the typed candidate arrays per the Four-Layer Extraction Protocol."
+          "YOU are the extraction engine — fill the typed candidate arrays per the Four-Layer Extraction Protocol.",
       );
     }
     const tokenResult = validatePreviewToken({
@@ -369,7 +512,7 @@ export async function runCodexHostGovernance(input: {
       host: preview.host,
       thread_id: preview.thread_id,
       session_file: preview.session_file,
-      user_messages: preview.governance_preview.user_messages
+      user_messages: preview.governance_preview.user_messages,
     });
     if (!tokenResult.valid) {
       throw new Error(`${tokenResult.error_code}: ${tokenResult.message}`);
@@ -382,7 +525,7 @@ export async function runCodexHostGovernance(input: {
   const { batch, modelAdapter } = applyHostModelGovernanceResult({
     batch: fallbackBatch,
     governanceMode,
-    hostModelResult: input.body.host_model_result ?? null
+    hostModelResult: input.body.host_model_result ?? null,
   });
   // P0-a: if the pipeline resolved to rules_fallback, nothing may reach active recall.
   if (modelAdapter.mode === "rules_fallback") {
@@ -394,7 +537,9 @@ export async function runCodexHostGovernance(input: {
     warnings.push(modelAdapter.warning);
   }
   if (governanceMode === "rules_fallback") {
-    warnings.push(`[P0-c] Governance ran in rules_fallback mode for ${preview.session_file}. All knowledge candidates are quarantined for review.`);
+    warnings.push(
+      `[P0-c] Governance ran in rules_fallback mode for ${preview.session_file}. All knowledge candidates are quarantined for review.`,
+    );
   }
   const incremental = await filterNewGovernanceCandidates({
     tenantId: input.tenantId,
@@ -407,56 +552,82 @@ export async function runCodexHostGovernance(input: {
     modelRef: modelAdapter.model_ref,
     accepted: modelAdapter.accepted,
     warning: modelAdapter.warning,
-    previewTokenId: validatedTokenId
+    previewTokenId: validatedTokenId,
   });
   const existingMemoryFilter = await filterExistingFactualMemoryCandidates({
     tenantId: input.tenantId,
     scope: input.scope,
-    extractionPreview: incremental.extraction_preview
+    extractionPreview: incremental.extraction_preview,
   });
-  incremental.extraction_preview.memory_candidates = existingMemoryFilter.memoryCandidates;
-  incremental.skippedCandidateCount += existingMemoryFilter.skippedExistingMemoryCount;
+  incremental.extraction_preview.memory_candidates =
+    existingMemoryFilter.memoryCandidates;
+  incremental.skippedCandidateCount +=
+    existingMemoryFilter.skippedExistingMemoryCount;
   const existingRuleFilter = await filterExistingRuleCandidates({
     tenantId: input.tenantId,
     scope: input.scope,
-    extractionPreview: incremental.extraction_preview
+    extractionPreview: incremental.extraction_preview,
   });
-  incremental.extraction_preview.rule_candidates = existingRuleFilter.ruleCandidates;
-  incremental.skippedCandidateCount += existingRuleFilter.skippedExistingRuleCount;
-  const existingSkillProposalFilter = await filterExistingSkillProposalCandidates({
-    tenantId: input.tenantId,
-    scope: input.scope,
-    extractionPreview: incremental.extraction_preview
-  });
-  incremental.extraction_preview.skill_proposal_candidates = existingSkillProposalFilter.skillProposalCandidates;
-  incremental.skippedCandidateCount += existingSkillProposalFilter.skippedExistingSkillProposalCount;
+  incremental.extraction_preview.rule_candidates =
+    existingRuleFilter.ruleCandidates;
+  incremental.skippedCandidateCount +=
+    existingRuleFilter.skippedExistingRuleCount;
+  const existingSkillProposalFilter =
+    await filterExistingSkillProposalCandidates({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      extractionPreview: incremental.extraction_preview,
+    });
+  incremental.extraction_preview.skill_proposal_candidates =
+    existingSkillProposalFilter.skillProposalCandidates;
+  incremental.skippedCandidateCount +=
+    existingSkillProposalFilter.skippedExistingSkillProposalCount;
 
   const ruleIds: string[] = [];
   const ruleItems: HostGovernanceRunResponse["persisted"]["rule_items"] = [];
   const memoryIds: string[] = [];
-  const memoryItems: HostGovernanceRunResponse["persisted"]["memory_items"] = [];
+  const memoryItems: HostGovernanceRunResponse["persisted"]["memory_items"] =
+    [];
   const memoryCandidateIds: string[] = [];
   const skillProposalIds: string[] = [];
-  const skillProposalItems: HostGovernanceRunResponse["persisted"]["skill_proposal_items"] = [];
+  const skillProposalItems: HostGovernanceRunResponse["persisted"]["skill_proposal_items"] =
+    [];
   const synthesizedKnowledgeIds: string[] = [];
-  const knowledgeItems: HostGovernanceRunResponse["persisted"]["knowledge_items"] = [];
+  const knowledgeItems: HostGovernanceRunResponse["persisted"]["knowledge_items"] =
+    [];
   const evidenceIds: string[] = [];
   const governanceDecisionIds: string[] = [];
   let governanceEvidenceBundleId: string | null = null;
 
   for (const candidate of incremental.extraction_preview.rule_candidates) {
-    const canonicalContent = candidate.content ?? candidate.source_excerpt ?? "";
-    requirePresentFields("rule_candidate", ruleIds.length, candidate.title, canonicalContent);
+    const canonicalContent =
+      candidate.content ?? candidate.source_excerpt ?? "";
+    requirePresentFields(
+      "rule_candidate",
+      ruleIds.length,
+      candidate.title,
+      canonicalContent,
+    );
     const enforcementLevel = inferRuleEnforcement(canonicalContent);
     const ruleId = await createOrReplaceRule({
       tenantId: input.tenantId,
       scope: input.scope,
-      ruleKey: buildStableKey("host-rule", candidate.availability_scope, candidate.rule_domain ?? "execution", candidate.title, canonicalContent),
+      ruleKey: buildStableKey(
+        "host-rule",
+        candidate.availability_scope,
+        candidate.rule_domain ?? "execution",
+        candidate.title,
+        canonicalContent,
+      ),
       ruleType: `${candidate.rule_domain ?? "execution"}_rule`,
       title: candidate.title,
       statement: canonicalContent,
       normalizedStatement: normalizeText(canonicalContent),
-      appliesTo: candidate.applies_to_phase ?? ["governance", "integration", "execution"],
+      appliesTo: candidate.applies_to_phase ?? [
+        "governance",
+        "integration",
+        "execution",
+      ],
       triggerConditions: candidate.trigger_conditions ?? {
         host: preview.host,
         source: "host_capture",
@@ -468,15 +639,22 @@ export async function runCodexHostGovernance(input: {
         promotion_status: candidate.promotion_status,
         rule_domain: candidate.rule_domain ?? "execution",
         rule_scope: candidate.rule_scope ?? candidate.origin_scope,
-        violation_behavior: candidate.violation_behavior ?? "warn"
+        violation_behavior: candidate.violation_behavior ?? "warn",
       },
       enforcementLevel,
       priority: enforcementLevel === "must_not" ? 95 : 90,
       riskLevel: "medium",
       verificationStatus: "verified",
-      sourceRefs: (Array.isArray(candidate.source_refs) && candidate.source_refs.length > 0)
-        ? candidate.source_refs
-        : [buildSourceRef(preview.session_file, candidate.source_timestamp, candidate.source_kind)],
+      sourceRefs:
+        Array.isArray(candidate.source_refs) && candidate.source_refs.length > 0
+          ? candidate.source_refs
+          : [
+              buildSourceRef(
+                preview.session_file,
+                candidate.source_timestamp,
+                candidate.source_kind,
+              ),
+            ],
       evidenceRefs: [],
       originScope: candidate.origin_scope,
       governanceLevel: candidate.governance_level,
@@ -488,18 +666,22 @@ export async function runCodexHostGovernance(input: {
         source_kind: candidate.source_kind,
         host: preview.host,
         thread_id: preview.thread_id,
-        applies_to_phase: candidate.applies_to_phase ?? ["governance", "integration", "execution"],
+        applies_to_phase: candidate.applies_to_phase ?? [
+          "governance",
+          "integration",
+          "execution",
+        ],
         violation_behavior: candidate.violation_behavior ?? "warn",
         source_excerpt: candidate.source_excerpt,
         source_refs: candidate.source_refs ?? [
           {
             source_kind: candidate.source_kind,
             source_timestamp: candidate.source_timestamp,
-            source_excerpt: candidate.source_excerpt
-          }
+            source_excerpt: candidate.source_excerpt,
+          },
         ],
       },
-      traceId: input.traceId
+      traceId: input.traceId,
     });
     ruleIds.push(ruleId);
     ruleItems.push({
@@ -511,23 +693,53 @@ export async function runCodexHostGovernance(input: {
       rule_scope: candidate.rule_scope ?? candidate.origin_scope,
       governance_level: candidate.governance_level,
       availability_scope: candidate.availability_scope,
-      promotion_status: candidate.promotion_status
+      promotion_status: candidate.promotion_status,
+    });
+    // P0 修复:rule 持久化后建立 evidence → rule 的 source_of 证据链
+    await attachProvenanceForCandidate({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      traceId: input.traceId,
+      targetType: "rule",
+      targetId: ruleId,
+      candidate,
+      artifactTag: candidate.rule_domain ?? "execution",
+      sessionFile: preview.session_file,
+      sourceTimestamp: candidate.source_timestamp,
     });
   }
 
   for (const candidate of incremental.extraction_preview.memory_candidates) {
     const taskStepId = randomUUID();
-    const sourceRef = buildSourceRef(preview.session_file, candidate.source_timestamp, candidate.source_kind);
+    const sourceRef = buildSourceRef(
+      preview.session_file,
+      candidate.source_timestamp,
+      candidate.source_kind,
+    );
     const canonicalContent = candidate.content ?? candidate.source_excerpt;
-    const artifactTag = inferMemoryArtifactTag(candidate.title, canonicalContent);
-    const normalizedMemoryContent = normalizeMemoryContent(candidate.title, canonicalContent);
-    requirePresentFields("memory_candidate", memoryIds.length, candidate.title, normalizedMemoryContent);
+    const artifactTag = inferMemoryArtifactTag(
+      candidate.title,
+      canonicalContent,
+    );
+    const normalizedMemoryContent = normalizeMemoryContent(
+      candidate.title,
+      canonicalContent,
+    );
+    requirePresentFields(
+      "memory_candidate",
+      memoryIds.length,
+      candidate.title,
+      normalizedMemoryContent,
+    );
     const candidatePayload = buildMemoryCandidatePayload({
       preview,
       candidate,
       title: candidate.title,
       content: normalizedMemoryContent,
-      factType: artifactTag === "environment_fact" ? "environment_context" : "design_progress"
+      factType:
+        artifactTag === "environment_fact"
+          ? "environment_context"
+          : "design_progress",
     });
 
     await ensureMemoryCandidateTaskEnvelope({
@@ -538,7 +750,7 @@ export async function runCodexHostGovernance(input: {
       sourceRef,
       artifactTag,
       sideEffectClass: "read_only",
-      traceId: input.traceId
+      traceId: input.traceId,
     });
     const created = await createMemoryCandidate({
       tenantId: input.tenantId,
@@ -553,16 +765,26 @@ export async function runCodexHostGovernance(input: {
       fingerprint: input.body.fingerprint ?? null,
       fingerprintStatus: input.body.fingerprint ? "matched" : "matched_or_na",
       routingDecision: "host-capture-memory",
-      rankScore: candidate.confidence === "high" ? 90 : candidate.confidence === "medium" ? 78 : 62,
+      rankScore:
+        candidate.confidence === "high"
+          ? 90
+          : candidate.confidence === "medium"
+            ? 78
+            : 62,
       candidatePayload,
       llmRefinedPayload: null,
-      traceId: input.traceId
+      traceId: input.traceId,
     });
     await updateMemoryCandidate({
       candidateId: created.id,
       status: "persisted",
       routingDecision: "host-capture-memory",
-      rankScore: candidate.confidence === "high" ? 90 : candidate.confidence === "medium" ? 78 : 62
+      rankScore:
+        candidate.confidence === "high"
+          ? 90
+          : candidate.confidence === "medium"
+            ? 78
+            : 62,
     });
     memoryCandidateIds.push(created.id);
 
@@ -590,17 +812,27 @@ export async function runCodexHostGovernance(input: {
           {
             source_kind: candidate.source_kind,
             source_timestamp: candidate.source_timestamp,
-            source_excerpt: candidate.source_excerpt
-          }
+            source_excerpt: candidate.source_excerpt,
+          },
         ],
       },
-      importance: candidate.confidence === "high" ? 90 : candidate.confidence === "medium" ? 78 : 62,
-      confidenceScore: candidate.confidence === "high" ? 0.92 : candidate.confidence === "medium" ? 0.82 : 0.68,
+      importance:
+        candidate.confidence === "high"
+          ? 90
+          : candidate.confidence === "medium"
+            ? 78
+            : 62,
+      confidenceScore:
+        candidate.confidence === "high"
+          ? 0.92
+          : candidate.confidence === "medium"
+            ? 0.82
+            : 0.68,
       originScope: candidate.origin_scope,
       governanceLevel: candidate.governance_level,
       availabilityScope: candidate.availability_scope,
       promotionStatus: candidate.promotion_status,
-      traceId: input.traceId
+      traceId: input.traceId,
     });
     memoryIds.push(memoryId);
     memoryItems.push({
@@ -611,26 +843,57 @@ export async function runCodexHostGovernance(input: {
       origin_scope: candidate.origin_scope,
       governance_level: candidate.governance_level,
       availability_scope: candidate.availability_scope,
-      promotion_status: candidate.promotion_status
+      promotion_status: candidate.promotion_status,
+    });
+    // P0 修复:memory 持久化后建立 evidence → memory 的 source_of 证据链
+    await attachProvenanceForCandidate({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      traceId: input.traceId,
+      targetType: "memory",
+      targetId: memoryId,
+      candidate,
+      artifactTag,
+      sessionFile: preview.session_file,
+      sourceTimestamp: candidate.source_timestamp,
     });
   }
 
-  for (const candidate of incremental.extraction_preview.skill_proposal_candidates) {
-    requirePresentFields("skill_proposal_candidate", skillProposalIds.length, candidate.title, candidate.proposed_text ?? candidate.source_excerpt);
+  for (const candidate of incremental.extraction_preview
+    .skill_proposal_candidates) {
+    requirePresentFields(
+      "skill_proposal_candidate",
+      skillProposalIds.length,
+      candidate.title,
+      candidate.proposed_text ?? candidate.source_excerpt,
+    );
     const proposalId = await createSkillProposal({
       tenantId: input.tenantId,
       scope: input.scope,
       traceId: input.traceId,
       title: candidate.title,
-      sourceRef: buildSourceRef(preview.session_file, candidate.source_timestamp, candidate.source_kind),
+      sourceRef: buildSourceRef(
+        preview.session_file,
+        candidate.source_timestamp,
+        candidate.source_kind,
+      ),
       sourceExcerpt: candidate.source_excerpt,
-      targetSkill: candidate.target_skill ?? inferSkillKeyHints(candidate.title, candidate.content ?? candidate.source_excerpt)[0] ?? "unknown",
+      targetSkill:
+        candidate.target_skill ??
+        inferSkillKeyHints(
+          candidate.title,
+          candidate.content ?? candidate.source_excerpt,
+        )[0] ??
+        "unknown",
       targetSkillPath: candidate.target_skill_path ?? null,
       changeType: candidate.change_type ?? "update",
       currentSection: candidate.current_section ?? null,
       currentText: candidate.current_text ?? null,
       currentGap: candidate.current_gap ?? null,
-      proposedText: candidate.proposed_text ?? candidate.content ?? candidate.source_excerpt,
+      proposedText:
+        candidate.proposed_text ??
+        candidate.content ??
+        candidate.source_excerpt,
       proposedPatch: candidate.proposed_patch ?? null,
       validationMethod: candidate.validation_method ?? null,
       rationale: candidate.rationale ?? null,
@@ -644,27 +907,36 @@ export async function runCodexHostGovernance(input: {
         {
           source_kind: candidate.source_kind,
           source_timestamp: candidate.source_timestamp,
-          source_excerpt: candidate.source_excerpt
-        }
+          source_excerpt: candidate.source_excerpt,
+        },
       ],
       host: preview.host,
       threadId: preview.thread_id,
       description: candidate.description ?? null,
       applicableScenarios: candidate.applicable_scenarios ?? null,
       nonApplicableScenarios: candidate.non_applicable_scenarios ?? null,
-      executionSteps: candidate.execution_steps ?? null
+      executionSteps: candidate.execution_steps ?? null,
     });
     skillProposalIds.push(proposalId);
     skillProposalItems.push({
       id: proposalId,
       title: candidate.title,
-      target_skill: candidate.target_skill ?? inferSkillKeyHints(candidate.title, candidate.content ?? candidate.source_excerpt)[0] ?? "unknown",
+      target_skill:
+        candidate.target_skill ??
+        inferSkillKeyHints(
+          candidate.title,
+          candidate.content ?? candidate.source_excerpt,
+        )[0] ??
+        "unknown",
       target_skill_path: candidate.target_skill_path ?? null,
       change_type: candidate.change_type ?? "update",
       current_section: candidate.current_section ?? null,
       current_text: candidate.current_text ?? null,
       current_gap: candidate.current_gap ?? null,
-      proposed_text: candidate.proposed_text ?? candidate.content ?? candidate.source_excerpt,
+      proposed_text:
+        candidate.proposed_text ??
+        candidate.content ??
+        candidate.source_excerpt,
       proposed_patch: candidate.proposed_patch ?? null,
       validation_method: candidate.validation_method ?? null,
       rationale: candidate.rationale ?? null,
@@ -678,22 +950,36 @@ export async function runCodexHostGovernance(input: {
         {
           source_kind: candidate.source_kind,
           source_timestamp: candidate.source_timestamp,
-          source_excerpt: candidate.source_excerpt
-        }
+          source_excerpt: candidate.source_excerpt,
+        },
       ],
       source_excerpt: candidate.source_excerpt,
       skill_key_hints: inferSkillKeyHints(
         candidate.title,
-        `${candidate.target_skill ?? ""} ${candidate.proposed_text ?? candidate.content ?? candidate.source_excerpt}`
+        `${candidate.target_skill ?? ""} ${candidate.proposed_text ?? candidate.content ?? candidate.source_excerpt}`,
       ),
       description: candidate.description ?? null,
       applicable_scenarios: candidate.applicable_scenarios ?? null,
       non_applicable_scenarios: candidate.non_applicable_scenarios ?? null,
-      execution_steps: candidate.execution_steps ?? null
+      execution_steps: candidate.execution_steps ?? null,
+    });
+    // P0 修复:skill proposal 持久化后建立 evidence → skill 的 source_of 证据链
+    await attachProvenanceForCandidate({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      traceId: input.traceId,
+      targetType: "skill",
+      targetId: proposalId,
+      candidate,
+      artifactTag: candidate.target_skill ?? "skill",
+      sessionFile: preview.session_file,
+      sourceTimestamp: candidate.source_timestamp,
     });
   }
 
-  if (incremental.extraction_preview.governance_evidence_candidates.length > 0) {
+  if (
+    incremental.extraction_preview.governance_evidence_candidates.length > 0
+  ) {
     governanceEvidenceBundleId = await createKnowledgeContextBundle({
       tenantId: input.tenantId,
       scope: input.scope,
@@ -701,34 +987,47 @@ export async function runCodexHostGovernance(input: {
       bundleType: "governance_evidence_bundle",
       summary: `${preview.host} host governance collected ${incremental.extraction_preview.governance_evidence_candidates.length} governance evidence items for later synthesis and review.`,
       warnings: [],
-      evidenceRefs: incremental.extraction_preview.governance_evidence_candidates.map((candidate) => ({
-        title: candidate.title,
-        evidence_category: candidate.evidence_category ?? null,
-        source_kind: candidate.source_kind,
-        source_timestamp: candidate.source_timestamp,
-        source_excerpt: candidate.source_excerpt,
-        reason: candidate.reason,
-        confidence: candidate.confidence
-      })),
+      evidenceRefs:
+        incremental.extraction_preview.governance_evidence_candidates.map(
+          (candidate) => ({
+            title: candidate.title,
+            evidence_category: candidate.evidence_category ?? null,
+            source_kind: candidate.source_kind,
+            source_timestamp: candidate.source_timestamp,
+            source_excerpt: candidate.source_excerpt,
+            reason: candidate.reason,
+            confidence: candidate.confidence,
+          }),
+        ),
       assemblyTrace: {
         host: preview.host,
         thread_id: preview.thread_id,
         session_file: preview.session_file,
-        evidence_candidate_count: incremental.extraction_preview.governance_evidence_candidates.length,
-        evidence_titles: incremental.extraction_preview.governance_evidence_candidates.map((candidate) => candidate.title),
-        evidence_categories: incremental.extraction_preview.governance_evidence_candidates.map((candidate) => ({
-          title: candidate.title,
-          category: candidate.evidence_category ?? null
-        }))
+        evidence_candidate_count:
+          incremental.extraction_preview.governance_evidence_candidates.length,
+        evidence_titles:
+          incremental.extraction_preview.governance_evidence_candidates.map(
+            (candidate) => candidate.title,
+          ),
+        evidence_categories:
+          incremental.extraction_preview.governance_evidence_candidates.map(
+            (candidate) => ({
+              title: candidate.title,
+              category: candidate.evidence_category ?? null,
+            }),
+          ),
       },
-      traceId: input.traceId
+      traceId: input.traceId,
     });
   } else {
-    warnings.push("No governance evidence candidates were collected from non-conversation task traces.");
+    warnings.push(
+      "No governance evidence candidates were collected from non-conversation task traces.",
+    );
   }
 
   let governanceJobId: string | null = null;
-  const knowledgeCandidates = incremental.extraction_preview.knowledge_candidates;
+  const knowledgeCandidates =
+    incremental.extraction_preview.knowledge_candidates;
   if (knowledgeCandidates.length > 0) {
     governanceJobId = await createKnowledgeGovernanceJob({
       tenantId: input.tenantId,
@@ -744,33 +1043,48 @@ export async function runCodexHostGovernance(input: {
         host: preview.host,
         thread_id: preview.thread_id,
         thread_name: preview.thread_name,
-        session_file: preview.session_file
+        session_file: preview.session_file,
       },
-      traceId: input.traceId
+      traceId: input.traceId,
     });
 
     await markKnowledgeGovernanceJobRunning({ jobId: governanceJobId });
 
     for (const candidate of knowledgeCandidates) {
       const canonicalContent = candidate.content ?? candidate.source_excerpt;
-      requirePresentFields("knowledge_candidate", synthesizedKnowledgeIds.length, candidate.title, canonicalContent);
-      const knowledgeTypeResult = normalizeKnowledgeType(candidate.knowledge_type);
+      requirePresentFields(
+        "knowledge_candidate",
+        synthesizedKnowledgeIds.length,
+        candidate.title,
+        canonicalContent,
+      );
+      const knowledgeTypeResult = normalizeKnowledgeType(
+        candidate.knowledge_type,
+      );
       if (!knowledgeTypeResult.valid) {
         warnings.push(
           `[P0-b] Invalid knowledge_type "${String(candidate.knowledge_type)}" for "${candidate.title}". ` +
-            `Normalized to "${knowledgeTypeResult.type}" and quarantined for review.`
+            `Normalized to "${knowledgeTypeResult.type}" and quarantined for review.`,
         );
       }
-      const promotionState = resolveKnowledgePromotionState(governanceMode, candidate.promotion_status, {
-        knowledgeTypeValid: knowledgeTypeResult.valid
-      });
+      const promotionState = resolveKnowledgePromotionState(
+        governanceMode,
+        candidate.promotion_status,
+        {
+          knowledgeTypeValid: knowledgeTypeResult.valid,
+        },
+      );
       const evidenceId = await createKnowledgeEvidence({
         tenantId: input.tenantId,
         scope: input.scope,
         memoryDomain: "knowledge",
         evidenceType: "host_capture_excerpt",
         sourceType: `${preview.host}_session`,
-        sourceUri: buildSourceRef(preview.session_file, candidate.source_timestamp, candidate.source_kind),
+        sourceUri: buildSourceRef(
+          preview.session_file,
+          candidate.source_timestamp,
+          candidate.source_kind,
+        ),
         rawRef: preview.thread_id,
         contentExcerpt: candidate.source_excerpt ?? canonicalContent,
         contentHash: sha256(candidate.source_excerpt ?? canonicalContent ?? ""),
@@ -783,9 +1097,9 @@ export async function runCodexHostGovernance(input: {
           origin_scope: candidate.origin_scope,
           governance_level: candidate.governance_level,
           availability_scope: candidate.availability_scope,
-          promotion_status: candidate.promotion_status
+          promotion_status: candidate.promotion_status,
         },
-        traceId: input.traceId
+        traceId: input.traceId,
       });
       evidenceIds.push(evidenceId);
       const synthesized = await createSynthesizedKnowledge({
@@ -803,8 +1117,14 @@ export async function runCodexHostGovernance(input: {
         evidenceIds: [evidenceId],
         reasoningSummary:
           "Derived from host task execution records. This is promoted only when execution outputs contain reusable external or cross-task knowledge.",
-        confidenceScore: candidate.confidence === "high" ? 0.9 : candidate.confidence === "medium" ? 0.78 : 0.62,
-        riskLevel: candidate.promotion_status === "needs_review" ? "medium" : "low",
+        confidenceScore:
+          candidate.confidence === "high"
+            ? 0.9
+            : candidate.confidence === "medium"
+              ? 0.78
+              : 0.62,
+        riskLevel:
+          candidate.promotion_status === "needs_review" ? "medium" : "low",
         governanceJobId,
         metadata: {
           source_kind: candidate.source_kind,
@@ -821,11 +1141,11 @@ export async function runCodexHostGovernance(input: {
             {
               source_kind: candidate.source_kind,
               source_timestamp: candidate.source_timestamp,
-              source_excerpt: candidate.source_excerpt
-            }
+              source_excerpt: candidate.source_excerpt,
+            },
           ],
         },
-        traceId: input.traceId
+        traceId: input.traceId,
       });
       if (synthesized.existed) {
         continue;
@@ -835,7 +1155,7 @@ export async function runCodexHostGovernance(input: {
         id: synthesized.id,
         title: candidate.title,
         content: canonicalContent,
-        knowledge_type: knowledgeTypeResult.type
+        knowledge_type: knowledgeTypeResult.type,
       });
     }
   }
@@ -850,7 +1170,7 @@ export async function runCodexHostGovernance(input: {
       ruleIds,
       memoryIds,
       skillProposalIds,
-      synthesizedKnowledgeIds
+      synthesizedKnowledgeIds,
     });
   }
 
@@ -858,15 +1178,21 @@ export async function runCodexHostGovernance(input: {
   // 因为 incremental 过滤会重排候选数组 index，原 batch 里的 candidate_index 已失效，
   // 必须在最终 incremental 数组 + ruleIds/memoryIds 同步对齐后重算。
   // 单向存储原则：constrains 只存 source→target 一条，查询时反查 target→source。
-  await persistLayerLinks({
+  const layerLinkResult = await persistLayerLinks({
     tenantId: input.tenantId,
     scope: input.scope,
     traceId: input.traceId,
     ruleCandidates: incremental.extraction_preview.rule_candidates,
     memoryCandidates: incremental.extraction_preview.memory_candidates,
     ruleIds,
-    memoryIds
+    memoryIds,
   });
+  // 透传 layer_links 写入失败到 warnings,避免静默丢失
+  if (layerLinkResult.failures.length > 0) {
+    warnings.push(
+      `[persistLayerLinks] ${layerLinkResult.failures.length} layer_link(s) failed to write. First failure: rule=${layerLinkResult.failures[0].rule_id} memory=${layerLinkResult.failures[0].memory_id} error=${layerLinkResult.failures[0].error}`,
+    );
+  }
 
   const contextBundleId = await createKnowledgeContextBundle({
     tenantId: input.tenantId,
@@ -885,9 +1211,9 @@ export async function runCodexHostGovernance(input: {
       skill_proposal_ids: skillProposalIds,
       synthesized_knowledge_ids: synthesizedKnowledgeIds,
       evidence_ids: evidenceIds,
-      governance_decision_ids: governanceDecisionIds
+      governance_decision_ids: governanceDecisionIds,
     },
-    traceId: input.traceId
+    traceId: input.traceId,
   });
 
   // Finalize governance job in DB with acceptance report
@@ -897,28 +1223,31 @@ export async function runCodexHostGovernance(input: {
       commentary_signal_count: batch.raw_inputs.commentary_messages.length,
       command_count: batch.raw_inputs.commands.length,
       tool_call_count: batch.raw_inputs.tool_calls.length,
-      mcp_call_count: batch.raw_inputs.mcp_calls.length
+      mcp_call_count: batch.raw_inputs.mcp_calls.length,
     },
     governance_candidates: {
       rule_count: incremental.extraction_preview.rule_candidates.length,
       memory_count: incremental.extraction_preview.memory_candidates.length,
-      skill_proposal_count: incremental.extraction_preview.skill_proposal_candidates.length,
-      knowledge_count: incremental.extraction_preview.knowledge_candidates.length,
-      governance_evidence_count: incremental.extraction_preview.governance_evidence_candidates.length
+      skill_proposal_count:
+        incremental.extraction_preview.skill_proposal_candidates.length,
+      knowledge_count:
+        incremental.extraction_preview.knowledge_candidates.length,
+      governance_evidence_count:
+        incremental.extraction_preview.governance_evidence_candidates.length,
     },
     promoted_outputs: {
       rule_count: ruleIds.length,
       long_term_memory_count: memoryIds.length,
       skill_proposal_count: skillProposalIds.length,
-      synthesized_knowledge_count: synthesizedKnowledgeIds.length
-    }
+      synthesized_knowledge_count: synthesizedKnowledgeIds.length,
+    },
   };
 
   if (governanceJobId) {
     await finalizeKnowledgeGovernanceJob({
       jobId: governanceJobId,
       runStatus: "completed",
-      resultPayload: acceptanceReport1
+      resultPayload: acceptanceReport1,
     });
   }
 
@@ -942,7 +1271,7 @@ export async function runCodexHostGovernance(input: {
       evidence_ids: evidenceIds,
       governance_evidence_bundle_id: governanceEvidenceBundleId,
       governance_decision_ids: governanceDecisionIds,
-      context_bundle_id: contextBundleId
+      context_bundle_id: contextBundleId,
     },
     acceptance_report: {
       inputs_read: {
@@ -950,48 +1279,59 @@ export async function runCodexHostGovernance(input: {
         commentary_signal_count: batch.raw_inputs.commentary_messages.length,
         command_count: batch.raw_inputs.commands.length,
         tool_call_count: batch.raw_inputs.tool_calls.length,
-        mcp_call_count: batch.raw_inputs.mcp_calls.length
+        mcp_call_count: batch.raw_inputs.mcp_calls.length,
       },
       governance_candidates: {
         rule_count: incremental.extraction_preview.rule_candidates.length,
         memory_count: incremental.extraction_preview.memory_candidates.length,
-        skill_proposal_count: incremental.extraction_preview.skill_proposal_candidates.length,
-        knowledge_count: incremental.extraction_preview.knowledge_candidates.length,
-        governance_evidence_count: incremental.extraction_preview.governance_evidence_candidates.length
+        skill_proposal_count:
+          incremental.extraction_preview.skill_proposal_candidates.length,
+        knowledge_count:
+          incremental.extraction_preview.knowledge_candidates.length,
+        governance_evidence_count:
+          incremental.extraction_preview.governance_evidence_candidates.length,
       },
-      governance_evidence_retained: incremental.extraction_preview.governance_evidence_candidates.map((candidate) => ({
-        title: candidate.title,
-        evidence_category: candidate.evidence_category ?? null,
-        source_kind: candidate.source_kind,
-        source_excerpt: candidate.source_excerpt
-      })),
+      governance_evidence_retained:
+        incremental.extraction_preview.governance_evidence_candidates.map(
+          (candidate) => ({
+            title: candidate.title,
+            evidence_category: candidate.evidence_category ?? null,
+            source_kind: candidate.source_kind,
+            source_excerpt: candidate.source_excerpt,
+          }),
+        ),
       promoted_outputs: {
         rule_count: ruleIds.length,
         long_term_memory_count: memoryIds.length,
         skill_proposal_count: skillProposalIds.length,
-        synthesized_knowledge_count: synthesizedKnowledgeIds.length
+        synthesized_knowledge_count: synthesizedKnowledgeIds.length,
       },
       retained_non_answering_layers: {
-        governance_evidence_bundle_id: governanceEvidenceBundleId
+        governance_evidence_bundle_id: governanceEvidenceBundleId,
       },
       discarded_or_not_promoted: {
-        knowledge_candidates_not_promoted: Math.max(0, incremental.extraction_preview.knowledge_candidates.length - synthesizedKnowledgeIds.length),
-        governance_candidates_left_as_evidence_only: incremental.extraction_preview.governance_evidence_candidates.length
+        knowledge_candidates_not_promoted: Math.max(
+          0,
+          incremental.extraction_preview.knowledge_candidates.length -
+            synthesizedKnowledgeIds.length,
+        ),
+        governance_candidates_left_as_evidence_only:
+          incremental.extraction_preview.governance_evidence_candidates.length,
       },
       incremental: {
         new_candidate_count: incremental.newCandidateCount,
-        skipped_previously_governed_count: incremental.skippedCandidateCount
+        skipped_previously_governed_count: incremental.skippedCandidateCount,
       },
       governance_model: {
         mode: modelAdapter.mode,
         model_ref: modelAdapter.model_ref,
         generated_at: modelAdapter.generated_at,
         accepted: modelAdapter.accepted,
-        warning: modelAdapter.warning
-      }
+        warning: modelAdapter.warning,
+      },
     },
     warnings,
-    preview: batch
+    preview: batch,
   };
 }
 
@@ -1015,23 +1355,41 @@ export type GovernanceFromExtractionResponse = {
   task_request_id: string;
   governance_job_id: string | null;
   pipeline: {
-    l2: { skipped_count: number; merged_count: number; conflict_proposal_count: number; skipped_titles: string[] };
-    l3: { signals_count: number; relations_count: number; proposal_ids: string[] };
-    l4: { hypotheses_count: number; synthesized_knowledge_ids: string[]; proposal_ids: string[]; meta_cognition: Record<string, unknown> };
+    l2: {
+      skipped_count: number;
+      merged_count: number;
+      conflict_proposal_count: number;
+      skipped_titles: string[];
+    };
+    l3: {
+      signals_count: number;
+      relations_count: number;
+      proposal_ids: string[];
+    };
+    l4: {
+      hypotheses_count: number;
+      synthesized_knowledge_ids: string[];
+      proposal_ids: string[];
+      meta_cognition: Record<string, unknown>;
+    };
   } | null;
   persisted: HostGovernanceRunResponse["persisted"];
   acceptance_report: HostGovernanceRunResponse["acceptance_report"];
   warnings: string[];
 };
 
-export async function runGovernanceFromExtraction(input: GovernanceFromExtractionInput): Promise<GovernanceFromExtractionResponse> {
+export async function runGovernanceFromExtraction(
+  input: GovernanceFromExtractionInput,
+): Promise<GovernanceFromExtractionResponse> {
   const hostName = input.host ?? "generic";
   const taskRequestId = input.task_request_id?.trim() || randomUUID();
   const warnings: string[] = [];
   // P0-c: do not silently default to rules_fallback in the generic extraction path either.
   const governanceMode = input.governance_mode ?? "host_model";
   if (governanceMode === "rules_fallback") {
-    warnings.push(`[P0-c] Governance ran in rules_fallback mode for generic-extraction://${taskRequestId}. All candidates are quarantined for review.`);
+    warnings.push(
+      `[P0-c] Governance ran in rules_fallback mode for generic-extraction://${taskRequestId}. All candidates are quarantined for review.`,
+    );
   }
 
   // Use the extraction_preview directly — skip previewHostCapture,
@@ -1040,10 +1398,12 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
   let extractionPreview: ExtractionPreview = {
     rule_candidates: input.extraction_preview.rule_candidates ?? [],
     memory_candidates: input.extraction_preview.memory_candidates ?? [],
-    skill_proposal_candidates: input.extraction_preview.skill_proposal_candidates ?? [],
+    skill_proposal_candidates:
+      input.extraction_preview.skill_proposal_candidates ?? [],
     knowledge_candidates: input.extraction_preview.knowledge_candidates ?? [],
-    governance_evidence_candidates: input.extraction_preview.governance_evidence_candidates ?? [],
-    layer_links: input.extraction_preview.layer_links ?? []
+    governance_evidence_candidates:
+      input.extraction_preview.governance_evidence_candidates ?? [],
+    layer_links: input.extraction_preview.layer_links ?? [],
   };
 
   if (governanceMode === "rules_fallback") {
@@ -1056,7 +1416,7 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
     host: hostName as HostCaptureName,
     thread_id: `generic-${taskRequestId}`,
     thread_name: null as string | null,
-    session_file: `generic-extraction://${taskRequestId}`
+    session_file: `generic-extraction://${taskRequestId}`,
   };
 
   // P0.5: host_model mode must still run schema/cross-layer audit even when
@@ -1073,14 +1433,14 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
         commentary_messages: [],
         commands: [],
         tool_calls: [],
-        mcp_calls: []
+        mcp_calls: [],
       },
-      extraction_preview: extractionPreview
+      extraction_preview: extractionPreview,
     };
     const validated = applyHostModelGovernanceResult({
       batch: virtualBatch,
       governanceMode,
-      hostModelResult: { extraction_preview: extractionPreview }
+      hostModelResult: { extraction_preview: extractionPreview },
     });
     extractionPreview = validated.batch.extraction_preview;
   }
@@ -1089,23 +1449,25 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
   const existingMemoryFilter = await filterExistingFactualMemoryCandidates({
     tenantId: input.tenantId,
     scope: input.scope,
-    extractionPreview
+    extractionPreview,
   });
   extractionPreview.memory_candidates = existingMemoryFilter.memoryCandidates;
 
   const existingRuleFilter = await filterExistingRuleCandidates({
     tenantId: input.tenantId,
     scope: input.scope,
-    extractionPreview
+    extractionPreview,
   });
   extractionPreview.rule_candidates = existingRuleFilter.ruleCandidates;
 
-  const existingSkillProposalFilter = await filterExistingSkillProposalCandidates({
-    tenantId: input.tenantId,
-    scope: input.scope,
-    extractionPreview
-  });
-  extractionPreview.skill_proposal_candidates = existingSkillProposalFilter.skillProposalCandidates;
+  const existingSkillProposalFilter =
+    await filterExistingSkillProposalCandidates({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      extractionPreview,
+    });
+  extractionPreview.skill_proposal_candidates =
+    existingSkillProposalFilter.skillProposalCandidates;
 
   // ── L2: 语义冲突检测（写入前） ──────────────────────
   const l2SkippedTitles: string[] = [];
@@ -1114,7 +1476,8 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
 
   const survivingRuleCandidates: typeof extractionPreview.rule_candidates = [];
   for (const candidate of extractionPreview.rule_candidates) {
-    const candidateContent = candidate.content ?? candidate.source_excerpt ?? "";
+    const candidateContent =
+      candidate.content ?? candidate.source_excerpt ?? "";
     try {
       const result = await detectConflicts({
         tenantId: input.tenantId,
@@ -1136,15 +1499,29 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       }
       survivingRuleCandidates.push(candidate);
     } catch (err) {
-      console.error(`[L2] detectConflicts failed for rule "${candidate.title}":`, err instanceof Error ? err.message : String(err));
+      // L2 失败时保守策略:标记 candidate 为 l2_skipped_due_to_error,而不是静默放行。
+      // 这样后续反查可以 SELECT WHERE metadata->>'l2_audit_status' = 'skipped_due_to_error'。
+      console.error(
+        `[L2] detectConflicts failed for rule "${candidate.title}":`,
+        err instanceof Error ? err.message : String(err),
+      );
+      const errMsg = err instanceof Error ? err.message : String(err);
+      warnings.push(
+        `[L2] detectConflicts failed for rule "${candidate.title}": ${errMsg}. Candidate marked l2_audit_status=skipped_due_to_error, NOT blocked — review manually.`,
+      );
+      (candidate as Record<string, unknown>).l2_audit_status =
+        "skipped_due_to_error";
+      (candidate as Record<string, unknown>).l2_audit_error = errMsg;
       survivingRuleCandidates.push(candidate);
     }
   }
   extractionPreview.rule_candidates = survivingRuleCandidates;
 
-  const survivingMemoryCandidates: typeof extractionPreview.memory_candidates = [];
+  const survivingMemoryCandidates: typeof extractionPreview.memory_candidates =
+    [];
   for (const candidate of extractionPreview.memory_candidates) {
-    const candidateContent = candidate.content ?? candidate.source_excerpt ?? "";
+    const candidateContent =
+      candidate.content ?? candidate.source_excerpt ?? "";
     try {
       const result = await detectConflicts({
         tenantId: input.tenantId,
@@ -1166,7 +1543,18 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       }
       survivingMemoryCandidates.push(candidate);
     } catch (err) {
-      console.error(`[L2] detectConflicts failed for memory "${candidate.title}":`, err instanceof Error ? err.message : String(err));
+      // 同 rule 的处理:标记 + warning,不静默放行
+      console.error(
+        `[L2] detectConflicts failed for memory "${candidate.title}":`,
+        err instanceof Error ? err.message : String(err),
+      );
+      const errMsg = err instanceof Error ? err.message : String(err);
+      warnings.push(
+        `[L2] detectConflicts failed for memory "${candidate.title}": ${errMsg}. Candidate marked l2_audit_status=skipped_due_to_error, NOT blocked — review manually.`,
+      );
+      (candidate as Record<string, unknown>).l2_audit_status =
+        "skipped_due_to_error";
+      (candidate as Record<string, unknown>).l2_audit_error = errMsg;
       survivingMemoryCandidates.push(candidate);
     }
   }
@@ -1177,28 +1565,42 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
   const ruleIds: string[] = [];
   const ruleItems: HostGovernanceRunResponse["persisted"]["rule_items"] = [];
   const memoryIds: string[] = [];
-  const memoryItems: HostGovernanceRunResponse["persisted"]["memory_items"] = [];
+  const memoryItems: HostGovernanceRunResponse["persisted"]["memory_items"] =
+    [];
   const memoryCandidateIds: string[] = [];
   const skillProposalIds: string[] = [];
-  const skillProposalItems: HostGovernanceRunResponse["persisted"]["skill_proposal_items"] = [];
+  const skillProposalItems: HostGovernanceRunResponse["persisted"]["skill_proposal_items"] =
+    [];
   const synthesizedKnowledgeIds: string[] = [];
-  const knowledgeItems: HostGovernanceRunResponse["persisted"]["knowledge_items"] = [];
+  const knowledgeItems: HostGovernanceRunResponse["persisted"]["knowledge_items"] =
+    [];
   const evidenceIds: string[] = [];
   const governanceDecisionIds: string[] = [];
   let governanceEvidenceBundleId: string | null = null;
 
   for (const candidate of extractionPreview.rule_candidates) {
-    const canonicalContent = candidate.content ?? candidate.source_excerpt ?? "";
+    const canonicalContent =
+      candidate.content ?? candidate.source_excerpt ?? "";
     const enforcementLevel = inferRuleEnforcement(canonicalContent);
     const ruleId = await createOrReplaceRule({
       tenantId: input.tenantId,
       scope: input.scope,
-      ruleKey: buildStableKey("host-rule", candidate.availability_scope, candidate.rule_domain ?? "execution", candidate.title, canonicalContent),
+      ruleKey: buildStableKey(
+        "host-rule",
+        candidate.availability_scope,
+        candidate.rule_domain ?? "execution",
+        candidate.title,
+        canonicalContent,
+      ),
       ruleType: `${candidate.rule_domain ?? "execution"}_rule`,
       title: candidate.title,
       statement: canonicalContent,
       normalizedStatement: normalizeText(canonicalContent),
-      appliesTo: candidate.applies_to_phase ?? ["governance", "integration", "execution"],
+      appliesTo: candidate.applies_to_phase ?? [
+        "governance",
+        "integration",
+        "execution",
+      ],
       triggerConditions: candidate.trigger_conditions ?? {
         host: hostName,
         source: "host_capture",
@@ -1210,15 +1612,22 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
         promotion_status: candidate.promotion_status,
         rule_domain: candidate.rule_domain ?? "execution",
         rule_scope: candidate.rule_scope ?? candidate.origin_scope,
-        violation_behavior: candidate.violation_behavior ?? "warn"
+        violation_behavior: candidate.violation_behavior ?? "warn",
       },
       enforcementLevel,
       priority: enforcementLevel === "must_not" ? 95 : 90,
       riskLevel: "medium",
       verificationStatus: "verified",
-      sourceRefs: (Array.isArray(candidate.source_refs) && candidate.source_refs.length > 0)
-        ? candidate.source_refs
-        : [buildSourceRef(virtualPreview.session_file, candidate.source_timestamp, candidate.source_kind)],
+      sourceRefs:
+        Array.isArray(candidate.source_refs) && candidate.source_refs.length > 0
+          ? candidate.source_refs
+          : [
+              buildSourceRef(
+                virtualPreview.session_file,
+                candidate.source_timestamp,
+                candidate.source_kind,
+              ),
+            ],
       evidenceRefs: [],
       originScope: candidate.origin_scope,
       governanceLevel: candidate.governance_level,
@@ -1230,18 +1639,22 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
         source_kind: candidate.source_kind,
         host: hostName,
         thread_id: virtualPreview.thread_id,
-        applies_to_phase: candidate.applies_to_phase ?? ["governance", "integration", "execution"],
+        applies_to_phase: candidate.applies_to_phase ?? [
+          "governance",
+          "integration",
+          "execution",
+        ],
         violation_behavior: candidate.violation_behavior ?? "warn",
         source_excerpt: candidate.source_excerpt,
         source_refs: candidate.source_refs ?? [
           {
             source_kind: candidate.source_kind,
             source_timestamp: candidate.source_timestamp,
-            source_excerpt: candidate.source_excerpt
-          }
+            source_excerpt: candidate.source_excerpt,
+          },
         ],
       },
-      traceId: input.traceId
+      traceId: input.traceId,
     });
     ruleIds.push(ruleId);
     ruleItems.push({
@@ -1253,22 +1666,47 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       rule_scope: candidate.rule_scope ?? candidate.origin_scope,
       governance_level: candidate.governance_level,
       availability_scope: candidate.availability_scope,
-      promotion_status: candidate.promotion_status
+      promotion_status: candidate.promotion_status,
+    });
+    // P0 修复:rule 持久化后建立 evidence → rule 的 source_of 证据链
+    await attachProvenanceForCandidate({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      traceId: input.traceId,
+      targetType: "rule",
+      targetId: ruleId,
+      candidate,
+      artifactTag: candidate.rule_domain ?? "execution",
+      sessionFile: virtualPreview.session_file,
+      sourceTimestamp: candidate.source_timestamp,
     });
   }
 
   for (const candidate of extractionPreview.memory_candidates) {
     const taskStepId = randomUUID();
-    const sourceRef = buildSourceRef(virtualPreview.session_file, candidate.source_timestamp, candidate.source_kind);
+    const sourceRef = buildSourceRef(
+      virtualPreview.session_file,
+      candidate.source_timestamp,
+      candidate.source_kind,
+    );
     const canonicalContent = candidate.content ?? candidate.source_excerpt;
-    const artifactTag = inferMemoryArtifactTag(candidate.title, canonicalContent);
-    const normalizedMemoryContent = normalizeMemoryContent(candidate.title, canonicalContent);
+    const artifactTag = inferMemoryArtifactTag(
+      candidate.title,
+      canonicalContent,
+    );
+    const normalizedMemoryContent = normalizeMemoryContent(
+      candidate.title,
+      canonicalContent,
+    );
     const candidatePayload = buildMemoryCandidatePayload({
       preview: virtualPreview,
       candidate,
       title: candidate.title,
       content: normalizedMemoryContent,
-      factType: artifactTag === "environment_fact" ? "environment_context" : "design_progress"
+      factType:
+        artifactTag === "environment_fact"
+          ? "environment_context"
+          : "design_progress",
     });
 
     await ensureMemoryCandidateTaskEnvelope({
@@ -1279,7 +1717,7 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       sourceRef,
       artifactTag,
       sideEffectClass: "read_only",
-      traceId: input.traceId
+      traceId: input.traceId,
     });
     const created = await createMemoryCandidate({
       tenantId: input.tenantId,
@@ -1294,16 +1732,26 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       fingerprint: input.fingerprint ?? null,
       fingerprintStatus: input.fingerprint ? "matched" : "matched_or_na",
       routingDecision: "host-capture-memory",
-      rankScore: candidate.confidence === "high" ? 90 : candidate.confidence === "medium" ? 78 : 62,
+      rankScore:
+        candidate.confidence === "high"
+          ? 90
+          : candidate.confidence === "medium"
+            ? 78
+            : 62,
       candidatePayload,
       llmRefinedPayload: null,
-      traceId: input.traceId
+      traceId: input.traceId,
     });
     await updateMemoryCandidate({
       candidateId: created.id,
       status: "persisted",
       routingDecision: "host-capture-memory",
-      rankScore: candidate.confidence === "high" ? 90 : candidate.confidence === "medium" ? 78 : 62
+      rankScore:
+        candidate.confidence === "high"
+          ? 90
+          : candidate.confidence === "medium"
+            ? 78
+            : 62,
     });
     memoryCandidateIds.push(created.id);
 
@@ -1331,17 +1779,27 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
           {
             source_kind: candidate.source_kind,
             source_timestamp: candidate.source_timestamp,
-            source_excerpt: candidate.source_excerpt
-          }
+            source_excerpt: candidate.source_excerpt,
+          },
         ],
       },
-      importance: candidate.confidence === "high" ? 90 : candidate.confidence === "medium" ? 78 : 62,
-      confidenceScore: candidate.confidence === "high" ? 0.92 : candidate.confidence === "medium" ? 0.82 : 0.68,
+      importance:
+        candidate.confidence === "high"
+          ? 90
+          : candidate.confidence === "medium"
+            ? 78
+            : 62,
+      confidenceScore:
+        candidate.confidence === "high"
+          ? 0.92
+          : candidate.confidence === "medium"
+            ? 0.82
+            : 0.68,
       originScope: candidate.origin_scope,
       governanceLevel: candidate.governance_level,
       availabilityScope: candidate.availability_scope,
       promotionStatus: candidate.promotion_status,
-      traceId: input.traceId
+      traceId: input.traceId,
     });
     memoryIds.push(memoryId);
     memoryItems.push({
@@ -1352,7 +1810,19 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       origin_scope: candidate.origin_scope,
       governance_level: candidate.governance_level,
       availability_scope: candidate.availability_scope,
-      promotion_status: candidate.promotion_status
+      promotion_status: candidate.promotion_status,
+    });
+    // P0 修复:memory 持久化后建立 evidence → memory 的 source_of 证据链
+    await attachProvenanceForCandidate({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      traceId: input.traceId,
+      targetType: "memory",
+      targetId: memoryId,
+      candidate,
+      artifactTag,
+      sessionFile: virtualPreview.session_file,
+      sourceTimestamp: candidate.source_timestamp,
     });
   }
 
@@ -1362,15 +1832,28 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       scope: input.scope,
       traceId: input.traceId,
       title: candidate.title,
-      sourceRef: buildSourceRef(virtualPreview.session_file, candidate.source_timestamp, candidate.source_kind),
+      sourceRef: buildSourceRef(
+        virtualPreview.session_file,
+        candidate.source_timestamp,
+        candidate.source_kind,
+      ),
       sourceExcerpt: candidate.source_excerpt,
-      targetSkill: candidate.target_skill ?? inferSkillKeyHints(candidate.title, candidate.content ?? candidate.source_excerpt)[0] ?? "unknown",
+      targetSkill:
+        candidate.target_skill ??
+        inferSkillKeyHints(
+          candidate.title,
+          candidate.content ?? candidate.source_excerpt,
+        )[0] ??
+        "unknown",
       targetSkillPath: candidate.target_skill_path ?? null,
       changeType: candidate.change_type ?? "update",
       currentSection: candidate.current_section ?? null,
       currentText: candidate.current_text ?? null,
       currentGap: candidate.current_gap ?? null,
-      proposedText: candidate.proposed_text ?? candidate.content ?? candidate.source_excerpt,
+      proposedText:
+        candidate.proposed_text ??
+        candidate.content ??
+        candidate.source_excerpt,
       proposedPatch: candidate.proposed_patch ?? null,
       validationMethod: candidate.validation_method ?? null,
       rationale: candidate.rationale ?? null,
@@ -1384,27 +1867,36 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
         {
           source_kind: candidate.source_kind,
           source_timestamp: candidate.source_timestamp,
-          source_excerpt: candidate.source_excerpt
-        }
+          source_excerpt: candidate.source_excerpt,
+        },
       ],
       host: hostName as HostCaptureName,
       threadId: virtualPreview.thread_id,
       description: candidate.description ?? null,
       applicableScenarios: candidate.applicable_scenarios ?? null,
       nonApplicableScenarios: candidate.non_applicable_scenarios ?? null,
-      executionSteps: candidate.execution_steps ?? null
+      executionSteps: candidate.execution_steps ?? null,
     });
     skillProposalIds.push(proposalId);
     skillProposalItems.push({
       id: proposalId,
       title: candidate.title,
-      target_skill: candidate.target_skill ?? inferSkillKeyHints(candidate.title, candidate.content ?? candidate.source_excerpt)[0] ?? "unknown",
+      target_skill:
+        candidate.target_skill ??
+        inferSkillKeyHints(
+          candidate.title,
+          candidate.content ?? candidate.source_excerpt,
+        )[0] ??
+        "unknown",
       target_skill_path: candidate.target_skill_path ?? null,
       change_type: candidate.change_type ?? "update",
       current_section: candidate.current_section ?? null,
       current_text: candidate.current_text ?? null,
       current_gap: candidate.current_gap ?? null,
-      proposed_text: candidate.proposed_text ?? candidate.content ?? candidate.source_excerpt,
+      proposed_text:
+        candidate.proposed_text ??
+        candidate.content ??
+        candidate.source_excerpt,
       proposed_patch: candidate.proposed_patch ?? null,
       validation_method: candidate.validation_method ?? null,
       rationale: candidate.rationale ?? null,
@@ -1418,18 +1910,30 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
         {
           source_kind: candidate.source_kind,
           source_timestamp: candidate.source_timestamp,
-          source_excerpt: candidate.source_excerpt
-        }
+          source_excerpt: candidate.source_excerpt,
+        },
       ],
       source_excerpt: candidate.source_excerpt,
       skill_key_hints: inferSkillKeyHints(
         candidate.title,
-        `${candidate.target_skill ?? ""} ${candidate.proposed_text ?? candidate.content ?? candidate.source_excerpt}`
+        `${candidate.target_skill ?? ""} ${candidate.proposed_text ?? candidate.content ?? candidate.source_excerpt}`,
       ),
       description: candidate.description ?? null,
       applicable_scenarios: candidate.applicable_scenarios ?? null,
       non_applicable_scenarios: candidate.non_applicable_scenarios ?? null,
-      execution_steps: candidate.execution_steps ?? null
+      execution_steps: candidate.execution_steps ?? null,
+    });
+    // P0 修复:skill proposal 持久化后建立 evidence → skill 的 source_of 证据链
+    await attachProvenanceForCandidate({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      traceId: input.traceId,
+      targetType: "skill",
+      targetId: proposalId,
+      candidate,
+      artifactTag: candidate.target_skill ?? "skill",
+      sessionFile: virtualPreview.session_file,
+      sourceTimestamp: candidate.source_timestamp,
     });
   }
 
@@ -1441,30 +1945,38 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       bundleType: "governance_evidence_bundle",
       summary: `${hostName} host governance collected ${extractionPreview.governance_evidence_candidates.length} governance evidence items for later synthesis and review.`,
       warnings: [],
-      evidenceRefs: extractionPreview.governance_evidence_candidates.map((candidate) => ({
-        title: candidate.title,
-        evidence_category: candidate.evidence_category ?? null,
-        source_kind: candidate.source_kind,
-        source_timestamp: candidate.source_timestamp,
-        source_excerpt: candidate.source_excerpt,
-        reason: candidate.reason,
-        confidence: candidate.confidence
-      })),
+      evidenceRefs: extractionPreview.governance_evidence_candidates.map(
+        (candidate) => ({
+          title: candidate.title,
+          evidence_category: candidate.evidence_category ?? null,
+          source_kind: candidate.source_kind,
+          source_timestamp: candidate.source_timestamp,
+          source_excerpt: candidate.source_excerpt,
+          reason: candidate.reason,
+          confidence: candidate.confidence,
+        }),
+      ),
       assemblyTrace: {
         host: hostName,
         thread_id: virtualPreview.thread_id,
         session_file: virtualPreview.session_file,
-        evidence_candidate_count: extractionPreview.governance_evidence_candidates.length,
-        evidence_titles: extractionPreview.governance_evidence_candidates.map((candidate) => candidate.title),
-        evidence_categories: extractionPreview.governance_evidence_candidates.map((candidate) => ({
-          title: candidate.title,
-          category: candidate.evidence_category ?? null
-        }))
+        evidence_candidate_count:
+          extractionPreview.governance_evidence_candidates.length,
+        evidence_titles: extractionPreview.governance_evidence_candidates.map(
+          (candidate) => candidate.title,
+        ),
+        evidence_categories:
+          extractionPreview.governance_evidence_candidates.map((candidate) => ({
+            title: candidate.title,
+            category: candidate.evidence_category ?? null,
+          })),
       },
-      traceId: input.traceId
+      traceId: input.traceId,
     });
   } else {
-    warnings.push("No governance evidence candidates were collected from the extraction preview.");
+    warnings.push(
+      "No governance evidence candidates were collected from the extraction preview.",
+    );
   }
 
   let governanceJobId: string | null = null;
@@ -1484,33 +1996,48 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
         host: hostName,
         thread_id: virtualPreview.thread_id,
         thread_name: virtualPreview.thread_name,
-        session_file: virtualPreview.session_file
+        session_file: virtualPreview.session_file,
       },
-      traceId: input.traceId
+      traceId: input.traceId,
     });
 
     await markKnowledgeGovernanceJobRunning({ jobId: governanceJobId });
 
     for (const candidate of knowledgeCandidates) {
       const canonicalContent = candidate.content ?? candidate.source_excerpt;
-      requirePresentFields("knowledge_candidate", synthesizedKnowledgeIds.length, candidate.title, canonicalContent);
-      const knowledgeTypeResult = normalizeKnowledgeType(candidate.knowledge_type);
+      requirePresentFields(
+        "knowledge_candidate",
+        synthesizedKnowledgeIds.length,
+        candidate.title,
+        canonicalContent,
+      );
+      const knowledgeTypeResult = normalizeKnowledgeType(
+        candidate.knowledge_type,
+      );
       if (!knowledgeTypeResult.valid) {
         warnings.push(
           `[P0-b] Invalid knowledge_type "${String(candidate.knowledge_type)}" for "${candidate.title}". ` +
-            `Normalized to "${knowledgeTypeResult.type}" and quarantined for review.`
+            `Normalized to "${knowledgeTypeResult.type}" and quarantined for review.`,
         );
       }
-      const promotionState = resolveKnowledgePromotionState(governanceMode, candidate.promotion_status, {
-        knowledgeTypeValid: knowledgeTypeResult.valid
-      });
+      const promotionState = resolveKnowledgePromotionState(
+        governanceMode,
+        candidate.promotion_status,
+        {
+          knowledgeTypeValid: knowledgeTypeResult.valid,
+        },
+      );
       const evidenceId = await createKnowledgeEvidence({
         tenantId: input.tenantId,
         scope: input.scope,
         memoryDomain: "knowledge",
         evidenceType: "host_capture_excerpt",
         sourceType: `${hostName}_session`,
-        sourceUri: buildSourceRef(virtualPreview.session_file, candidate.source_timestamp, candidate.source_kind),
+        sourceUri: buildSourceRef(
+          virtualPreview.session_file,
+          candidate.source_timestamp,
+          candidate.source_kind,
+        ),
         rawRef: virtualPreview.thread_id,
         contentExcerpt: candidate.source_excerpt ?? canonicalContent,
         contentHash: sha256(candidate.source_excerpt ?? canonicalContent ?? ""),
@@ -1523,9 +2050,9 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
           origin_scope: candidate.origin_scope,
           governance_level: candidate.governance_level,
           availability_scope: candidate.availability_scope,
-          promotion_status: candidate.promotion_status
+          promotion_status: candidate.promotion_status,
         },
-        traceId: input.traceId
+        traceId: input.traceId,
       });
       evidenceIds.push(evidenceId);
       const synthesized = await createSynthesizedKnowledge({
@@ -1543,8 +2070,14 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
         evidenceIds: [evidenceId],
         reasoningSummary:
           "Derived from host task execution records. This is promoted only when execution outputs contain reusable external or cross-task knowledge.",
-        confidenceScore: candidate.confidence === "high" ? 0.9 : candidate.confidence === "medium" ? 0.78 : 0.62,
-        riskLevel: candidate.promotion_status === "needs_review" ? "medium" : "low",
+        confidenceScore:
+          candidate.confidence === "high"
+            ? 0.9
+            : candidate.confidence === "medium"
+              ? 0.78
+              : 0.62,
+        riskLevel:
+          candidate.promotion_status === "needs_review" ? "medium" : "low",
         governanceJobId,
         metadata: {
           source_kind: candidate.source_kind,
@@ -1561,11 +2094,11 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
             {
               source_kind: candidate.source_kind,
               source_timestamp: candidate.source_timestamp,
-              source_excerpt: candidate.source_excerpt
-            }
+              source_excerpt: candidate.source_excerpt,
+            },
           ],
         },
-        traceId: input.traceId
+        traceId: input.traceId,
       });
       if (synthesized.existed) {
         continue;
@@ -1575,7 +2108,7 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
         id: synthesized.id,
         title: candidate.title,
         content: canonicalContent,
-        knowledge_type: knowledgeTypeResult.type
+        knowledge_type: knowledgeTypeResult.type,
       });
     }
   }
@@ -1589,7 +2122,7 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       ruleIds,
       memoryIds,
       skillProposalIds,
-      synthesizedKnowledgeIds
+      synthesizedKnowledgeIds,
     });
   }
 
@@ -1610,9 +2143,9 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       skill_proposal_ids: skillProposalIds,
       synthesized_knowledge_ids: synthesizedKnowledgeIds,
       evidence_ids: evidenceIds,
-      governance_decision_ids: governanceDecisionIds
+      governance_decision_ids: governanceDecisionIds,
     },
-    traceId: input.traceId
+    traceId: input.traceId,
   });
 
   // Build acceptance_report and finalize governance job in DB
@@ -1622,30 +2155,37 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       commentary_signal_count: 0,
       command_count: 0,
       tool_call_count: 0,
-      mcp_call_count: 0
+      mcp_call_count: 0,
     },
     governance_candidates: {
       rule_count: extractionPreview.rule_candidates.length,
       memory_count: extractionPreview.memory_candidates.length,
       skill_proposal_count: extractionPreview.skill_proposal_candidates.length,
       knowledge_count: extractionPreview.knowledge_candidates.length,
-      governance_evidence_count: extractionPreview.governance_evidence_candidates.length
+      governance_evidence_count:
+        extractionPreview.governance_evidence_candidates.length,
     },
     promoted_outputs: {
       rule_count: ruleIds.length,
       long_term_memory_count: memoryIds.length,
       skill_proposal_count: skillProposalIds.length,
-      synthesized_knowledge_count: synthesizedKnowledgeIds.length
+      synthesized_knowledge_count: synthesizedKnowledgeIds.length,
     },
-    governance_evidence_retained: extractionPreview.governance_evidence_candidates.map((candidate) => ({
-      title: candidate.title,
-      evidence_category: candidate.evidence_category ?? null,
-      source_kind: candidate.source_kind,
-      source_excerpt: candidate.source_excerpt
-    })),
+    governance_evidence_retained:
+      extractionPreview.governance_evidence_candidates.map((candidate) => ({
+        title: candidate.title,
+        evidence_category: candidate.evidence_category ?? null,
+        source_kind: candidate.source_kind,
+        source_excerpt: candidate.source_excerpt,
+      })),
     discarded_or_not_promoted: {
-      knowledge_candidates_not_promoted: Math.max(0, extractionPreview.knowledge_candidates.length - synthesizedKnowledgeIds.length),
-      governance_candidates_left_as_evidence_only: extractionPreview.governance_evidence_candidates.length
+      knowledge_candidates_not_promoted: Math.max(
+        0,
+        extractionPreview.knowledge_candidates.length -
+          synthesizedKnowledgeIds.length,
+      ),
+      governance_candidates_left_as_evidence_only:
+        extractionPreview.governance_evidence_candidates.length,
     },
     incremental: {
       new_candidate_count:
@@ -1657,23 +2197,37 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       skipped_previously_governed_count:
         existingMemoryFilter.skippedExistingMemoryCount +
         existingRuleFilter.skippedExistingRuleCount +
-        existingSkillProposalFilter.skippedExistingSkillProposalCount
-    }
+        existingSkillProposalFilter.skippedExistingSkillProposalCount,
+    },
   };
 
   if (governanceJobId) {
     await finalizeKnowledgeGovernanceJob({
       jobId: governanceJobId,
       runStatus: "completed",
-      resultPayload: acceptanceReport
+      resultPayload: acceptanceReport,
     });
   }
 
   // ── L3 + L4: 演进扫描 + 认知引擎（写入后） ──────────
   let pipelineResult: {
-    l2: { skipped_count: number; merged_count: number; conflict_proposal_count: number; skipped_titles: string[] };
-    l3: { signals_count: number; relations_count: number; proposal_ids: string[] };
-    l4: { hypotheses_count: number; synthesized_knowledge_ids: string[]; proposal_ids: string[]; meta_cognition: Record<string, unknown> };
+    l2: {
+      skipped_count: number;
+      merged_count: number;
+      conflict_proposal_count: number;
+      skipped_titles: string[];
+    };
+    l3: {
+      signals_count: number;
+      relations_count: number;
+      proposal_ids: string[];
+    };
+    l4: {
+      hypotheses_count: number;
+      synthesized_knowledge_ids: string[];
+      proposal_ids: string[];
+      meta_cognition: Record<string, unknown>;
+    };
   } | null = null;
 
   try {
@@ -1698,10 +2252,11 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
     const batchMemories = extractionPreview.memory_candidates;
     const batchSkills = extractionPreview.skill_proposal_candidates;
     const batchKnowledge = extractionPreview.knowledge_candidates;
-    const candidateKey = (timestamp: string, title: string) => `${timestamp}#${title}`;
+    const candidateKey = (timestamp: string, title: string) =>
+      `${timestamp}#${title}`;
     const resolveCandidateKey = (
       layer: "rule" | "skill" | "knowledge" | "memory",
-      index: number
+      index: number,
     ): string => {
       try {
         if (layer === "rule") {
@@ -1764,9 +2319,15 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
           content: c.content ?? c.source_excerpt,
         })),
         layerLinks: (extractionPreview.layer_links ?? []).map((l) => ({
-          sourceId: resolveCandidateKey(l.source_layer, l.source_candidate_index),
+          sourceId: resolveCandidateKey(
+            l.source_layer,
+            l.source_candidate_index,
+          ),
           sourceLayer: l.source_layer,
-          targetId: resolveCandidateKey(l.target_layer, l.target_candidate_index),
+          targetId: resolveCandidateKey(
+            l.target_layer,
+            l.target_candidate_index,
+          ),
           targetLayer: l.target_layer,
           linkType: l.link_type,
           reason: l.reason,
@@ -1794,7 +2355,35 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       },
     };
   } catch (error) {
-    warnings.push(`[pipeline] L3/L4 failed: ${error instanceof Error ? error.message : String(error)}`);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    warnings.push(`[pipeline] L3/L4 failed: ${errMsg}`);
+    // finalizeKnowledgeGovernanceJob 已经在 L3/L4 之前标记为 completed,
+    // 这里补一次更新,把 pipeline_error 写进 result_payload,让 DB 里有痕迹。
+    // runStatus 保持 completed(L1/L2 候选已写入),但 result_payload.pipeline_error 暴露失败。
+    if (governanceJobId) {
+      try {
+        await finalizeKnowledgeGovernanceJob({
+          jobId: governanceJobId,
+          runStatus: "completed",
+          resultPayload: {
+            ...acceptanceReport,
+            pipeline_error: {
+              stage: "L3/L4",
+              message: errMsg,
+              timestamp: new Date().toISOString(),
+            },
+          },
+        });
+      } catch (finalizeErr) {
+        // 连 finalize 都失败了,只打日志,不再向上抛
+        console.error(
+          `[L3/L4 finalize] failed to update governance job ${governanceJobId}:`,
+          finalizeErr instanceof Error
+            ? finalizeErr.message
+            : String(finalizeErr),
+        );
+      }
+    }
   }
 
   return {
@@ -1815,7 +2404,7 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
       evidence_ids: evidenceIds,
       governance_evidence_bundle_id: governanceEvidenceBundleId,
       governance_decision_ids: governanceDecisionIds,
-      context_bundle_id: contextBundleId
+      context_bundle_id: contextBundleId,
     },
     acceptance_report: {
       inputs_read: {
@@ -1823,33 +2412,41 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
         commentary_signal_count: 0,
         command_count: 0,
         tool_call_count: 0,
-        mcp_call_count: 0
+        mcp_call_count: 0,
       },
       governance_candidates: {
         rule_count: extractionPreview.rule_candidates.length,
         memory_count: extractionPreview.memory_candidates.length,
-        skill_proposal_count: extractionPreview.skill_proposal_candidates.length,
+        skill_proposal_count:
+          extractionPreview.skill_proposal_candidates.length,
         knowledge_count: extractionPreview.knowledge_candidates.length,
-        governance_evidence_count: extractionPreview.governance_evidence_candidates.length
+        governance_evidence_count:
+          extractionPreview.governance_evidence_candidates.length,
       },
-      governance_evidence_retained: extractionPreview.governance_evidence_candidates.map((candidate) => ({
-        title: candidate.title,
-        evidence_category: candidate.evidence_category ?? null,
-        source_kind: candidate.source_kind,
-        source_excerpt: candidate.source_excerpt
-      })),
+      governance_evidence_retained:
+        extractionPreview.governance_evidence_candidates.map((candidate) => ({
+          title: candidate.title,
+          evidence_category: candidate.evidence_category ?? null,
+          source_kind: candidate.source_kind,
+          source_excerpt: candidate.source_excerpt,
+        })),
       promoted_outputs: {
         rule_count: ruleIds.length,
         long_term_memory_count: memoryIds.length,
         skill_proposal_count: skillProposalIds.length,
-        synthesized_knowledge_count: synthesizedKnowledgeIds.length
+        synthesized_knowledge_count: synthesizedKnowledgeIds.length,
       },
       retained_non_answering_layers: {
-        governance_evidence_bundle_id: governanceEvidenceBundleId
+        governance_evidence_bundle_id: governanceEvidenceBundleId,
       },
       discarded_or_not_promoted: {
-        knowledge_candidates_not_promoted: Math.max(0, extractionPreview.knowledge_candidates.length - synthesizedKnowledgeIds.length),
-        governance_candidates_left_as_evidence_only: extractionPreview.governance_evidence_candidates.length
+        knowledge_candidates_not_promoted: Math.max(
+          0,
+          extractionPreview.knowledge_candidates.length -
+            synthesizedKnowledgeIds.length,
+        ),
+        governance_candidates_left_as_evidence_only:
+          extractionPreview.governance_evidence_candidates.length,
       },
       incremental: {
         new_candidate_count:
@@ -1861,17 +2458,20 @@ export async function runGovernanceFromExtraction(input: GovernanceFromExtractio
         skipped_previously_governed_count:
           existingMemoryFilter.skippedExistingMemoryCount +
           existingRuleFilter.skippedExistingRuleCount +
-          existingSkillProposalFilter.skippedExistingSkillProposalCount
+          existingSkillProposalFilter.skippedExistingSkillProposalCount,
       },
       governance_model: {
         mode: governanceMode,
         model_ref: null,
         generated_at: null,
         accepted: true,
-        warning: governanceMode === "rules_fallback" ? "rules_fallback: outputs quarantined for review" : null
-      }
+        warning:
+          governanceMode === "rules_fallback"
+            ? "rules_fallback: outputs quarantined for review"
+            : null,
+      },
     },
-    warnings
+    warnings,
   };
 }
 
@@ -1879,7 +2479,11 @@ function buildStableKey(prefix: string, ...parts: string[]): string {
   return `${prefix}-${sha256(parts.join("\n")).slice(0, 12)}`;
 }
 
-function buildSourceRef(sessionFile: string, timestamp: string, sourceKind: SourceKind): string {
+function buildSourceRef(
+  sessionFile: string,
+  timestamp: string,
+  sourceKind: SourceKind,
+): string {
   return `${sessionFile}#${sourceKind}@${timestamp}`;
 }
 
@@ -1920,7 +2524,7 @@ async function filterNewGovernanceCandidates(input: {
     skill_proposal_candidates: [],
     knowledge_candidates: [],
     governance_evidence_candidates: [],
-    layer_links: []
+    layer_links: [],
   };
   let newCandidateCount = 0;
   let skippedCandidateCount = 0;
@@ -1931,7 +2535,7 @@ async function filterNewGovernanceCandidates(input: {
     "memory_candidates",
     "skill_proposal_candidates",
     "knowledge_candidates",
-    "governance_evidence_candidates"
+    "governance_evidence_candidates",
   ];
   for (const bucket of buckets) {
     for (const candidate of input.batch.extraction_preview[bucket]) {
@@ -1972,7 +2576,7 @@ async function filterNewGovernanceCandidates(input: {
             content: candidate.content ?? null,
             source_excerpt: candidate.source_excerpt,
             rule_domain: candidate.rule_domain ?? null,
-            rule_scope: candidate.rule_scope ?? null
+            rule_scope: candidate.rule_scope ?? null,
           }),
           input.traceId,
           input.governanceMode,
@@ -1980,8 +2584,8 @@ async function filterNewGovernanceCandidates(input: {
           input.modelRef,
           input.accepted,
           input.warning,
-          input.previewTokenId
-        ]
+          input.previewTokenId,
+        ],
       );
       if (result.rowCount === 0) {
         skippedCandidateCount += 1;
@@ -1992,21 +2596,31 @@ async function filterNewGovernanceCandidates(input: {
     }
   }
 
-  return { extraction_preview: output, newCandidateCount, skippedCandidateCount };
+  return {
+    extraction_preview: output,
+    newCandidateCount,
+    skippedCandidateCount,
+  };
 }
 
 async function filterExistingFactualMemoryCandidates(input: {
   tenantId: string;
   scope: string;
   extractionPreview: ExtractionPreview;
-}): Promise<{ memoryCandidates: ExtractionPreview["memory_candidates"]; skippedExistingMemoryCount: number }> {
+}): Promise<{
+  memoryCandidates: ExtractionPreview["memory_candidates"];
+  skippedExistingMemoryCount: number;
+}> {
   const pool = getPool();
   const memoryCandidates: ExtractionPreview["memory_candidates"] = [];
   let skippedExistingMemoryCount = 0;
 
   for (const candidate of input.extractionPreview.memory_candidates) {
     const canonicalContent = candidate.content ?? candidate.source_excerpt;
-    const normalizedMemoryContent = normalizeMemoryContent(candidate.title, canonicalContent);
+    const normalizedMemoryContent = normalizeMemoryContent(
+      candidate.title,
+      canonicalContent,
+    );
     const normalizedContent = normalizeText(normalizedMemoryContent);
     // 候选 memory_type 是业务类型（user_memory/project_memory 等），与 DB memory.memory_type 字段一致。
     // 历史 bug：原 SQL 写死 memory_type='factual'，而 factual 从未真正写入 DB（VALID_MEMORY_TYPES 不含），
@@ -2023,7 +2637,7 @@ async function filterExistingFactualMemoryCandidates(input: {
         AND normalized_content = $4
       LIMIT 1
       `,
-      [input.tenantId, input.scope, candidateMemoryType, normalizedContent]
+      [input.tenantId, input.scope, candidateMemoryType, normalizedContent],
     );
     if (existing.rowCount && existing.rows[0]) {
       skippedExistingMemoryCount += 1;
@@ -2039,13 +2653,17 @@ async function filterExistingRuleCandidates(input: {
   tenantId: string;
   scope: string;
   extractionPreview: ExtractionPreview;
-}): Promise<{ ruleCandidates: ExtractionPreview["rule_candidates"]; skippedExistingRuleCount: number }> {
+}): Promise<{
+  ruleCandidates: ExtractionPreview["rule_candidates"];
+  skippedExistingRuleCount: number;
+}> {
   const pool = getPool();
   const ruleCandidates: ExtractionPreview["rule_candidates"] = [];
   let skippedExistingRuleCount = 0;
 
   for (const candidate of input.extractionPreview.rule_candidates) {
-    const canonicalContent = candidate.content ?? candidate.source_excerpt ?? "";
+    const canonicalContent =
+      candidate.content ?? candidate.source_excerpt ?? "";
     const normalizedStatement = normalizeText(canonicalContent);
     const existing = await pool.query<{ id: string }>(
       `
@@ -2057,7 +2675,7 @@ async function filterExistingRuleCandidates(input: {
         AND normalized_statement = $3
       LIMIT 1
       `,
-      [input.tenantId, input.scope, normalizedStatement]
+      [input.tenantId, input.scope, normalizedStatement],
     );
     if (existing.rowCount && existing.rows[0]) {
       skippedExistingRuleCount += 1;
@@ -2077,7 +2695,7 @@ async function filterExistingRuleCandidates(input: {
         AND proposed_payload ->> 'normalized_statement' = $3
       LIMIT 1
       `,
-      [input.tenantId, input.scope, normalizedStatement]
+      [input.tenantId, input.scope, normalizedStatement],
     );
     if (existingPending.rowCount && existingPending.rows[0]) {
       skippedExistingRuleCount += 1;
@@ -2099,12 +2717,20 @@ async function filterExistingSkillProposalCandidates(input: {
   skippedExistingSkillProposalCount: number;
 }> {
   const pool = getPool();
-  const skillProposalCandidates: ExtractionPreview["skill_proposal_candidates"] = [];
+  const skillProposalCandidates: ExtractionPreview["skill_proposal_candidates"] =
+    [];
   let skippedExistingSkillProposalCount = 0;
 
   for (const candidate of input.extractionPreview.skill_proposal_candidates) {
-    const targetSkill = candidate.target_skill ?? inferSkillKeyHints(candidate.title, candidate.content ?? candidate.source_excerpt)[0] ?? "unknown";
-    const proposedText = candidate.proposed_text ?? candidate.content ?? candidate.source_excerpt;
+    const targetSkill =
+      candidate.target_skill ??
+      inferSkillKeyHints(
+        candidate.title,
+        candidate.content ?? candidate.source_excerpt,
+      )[0] ??
+      "unknown";
+    const proposedText =
+      candidate.proposed_text ?? candidate.content ?? candidate.source_excerpt;
     const existing = await pool.query<{ id: string }>(
       `
       SELECT id
@@ -2117,7 +2743,7 @@ async function filterExistingSkillProposalCandidates(input: {
         AND proposed_payload->>'proposed_text' = $4
       LIMIT 1
       `,
-      [input.tenantId, input.scope, targetSkill, proposedText]
+      [input.tenantId, input.scope, targetSkill, proposedText],
     );
     if (existing.rowCount && existing.rows[0]) {
       skippedExistingSkillProposalCount += 1;
@@ -2129,7 +2755,10 @@ async function filterExistingSkillProposalCandidates(input: {
   return { skillProposalCandidates, skippedExistingSkillProposalCount };
 }
 
-function buildCandidateEventHash(preview: { host: string; thread_id: string; session_file: string }, candidate: CandidatePreview): string {
+function buildCandidateEventHash(
+  preview: { host: string; thread_id: string; session_file: string },
+  candidate: CandidatePreview,
+): string {
   return sha256(
     [
       preview.host,
@@ -2141,8 +2770,8 @@ function buildCandidateEventHash(preview: { host: string; thread_id: string; ses
       candidate.title,
       candidate.content ?? "",
       candidate.proposed_text ?? "",
-      candidate.source_excerpt
-    ].join("\n")
+      candidate.source_excerpt,
+    ].join("\n"),
   );
 }
 
@@ -2153,7 +2782,13 @@ function inferRuleEnforcement(text: string): "must" | "must_not" {
 
 function inferMemoryArtifactTag(title: string, content: string): string {
   const normalized = `${title} ${content}`.toLowerCase();
-  if (normalized.includes("workspace") || normalized.includes("本机") || normalized.includes("链満") || normalized.includes("项目路径") || normalized.includes("d:\\workspace")) {
+  if (
+    normalized.includes("workspace") ||
+    normalized.includes("本机") ||
+    normalized.includes("链満") ||
+    normalized.includes("项目路径") ||
+    normalized.includes("d:\\workspace")
+  ) {
     return "environment_fact";
   }
   return "implementation_note";
@@ -2183,13 +2818,21 @@ function buildMemoryCandidatePayload(input: {
     session_file: input.preview.session_file,
     source_kind: input.candidate.source_kind,
     source_timestamp: input.candidate.source_timestamp,
-    candidate_hash: sha256(`${input.preview.thread_id}\n${input.candidate.title}\n${input.content}`)
+    candidate_hash: sha256(
+      `${input.preview.thread_id}\n${input.candidate.title}\n${input.content}`,
+    ),
   };
 }
 
 function normalizeMemoryContent(title: string, excerpt: string): string {
-  if (title === "项目路径上下文" || title === "工作空间路径上下文" || title === "工作空间上下文") {
-    const match = excerpt.match(/[A-Za-z]:\\[A-Za-z0-9_. ()\-\[\]]+(?:\\[A-Za-z0-9_. ()\-\[\]]+)*/);
+  if (
+    title === "项目路径上下文" ||
+    title === "工作空间路径上下文" ||
+    title === "工作空间上下文"
+  ) {
+    const match = excerpt.match(
+      /[A-Za-z]:\\[A-Za-z0-9_. ()\-\[\]]+(?:\\[A-Za-z0-9_. ()\-\[\]]+)*/,
+    );
     if (match?.[0]) {
       return match[0].trim();
     }
@@ -2276,20 +2919,23 @@ async function createSkillProposal(input: {
         model_adapter: {
           mode: "rules_fallback",
           status: "available_for_external_llm",
-          note: "The governance layer can replace this deterministic proposal builder with a model adapter without changing the persisted payload contract."
+          note: "The governance layer can replace this deterministic proposal builder with a model adapter without changing the persisted payload contract.",
         },
         source_excerpt: input.sourceExcerpt,
-        skill_key_hints: inferSkillKeyHints(input.title, `${input.targetSkill} ${input.proposedText}`),
+        skill_key_hints: inferSkillKeyHints(
+          input.title,
+          `${input.targetSkill} ${input.proposedText}`,
+        ),
         host: input.host,
-        thread_id: input.threadId
+        thread_id: input.threadId,
       }),
       input.sourceRef,
       input.originScope,
       input.governanceLevel,
       input.availabilityScope,
       input.promotionStatus,
-      input.traceId
-    ]
+      input.traceId,
+    ],
   );
   return result.rows[0].id;
 }
@@ -2303,13 +2949,25 @@ function inferSkillKeyHints(title: string, excerpt: string): string[] {
   if (normalized.includes("spec")) {
     hints.add("interview");
   }
-  if (normalized.includes("governance") || normalized.includes("治理") || normalized.includes("娌荤悊")) {
+  if (
+    normalized.includes("governance") ||
+    normalized.includes("治理") ||
+    normalized.includes("娌荤悊")
+  ) {
     hints.add("memory-governance-guidelines");
   }
-  if (normalized.includes("retrieve") || normalized.includes("召回") || normalized.includes("鍙洖")) {
+  if (
+    normalized.includes("retrieve") ||
+    normalized.includes("召回") ||
+    normalized.includes("鍙洖")
+  ) {
     hints.add("memory-retrieval-guidelines");
   }
-  if (normalized.includes("ingest") || normalized.includes("写入") || normalized.includes("鍐欏叆")) {
+  if (
+    normalized.includes("ingest") ||
+    normalized.includes("写入") ||
+    normalized.includes("鍐欏叆")
+  ) {
     hints.add("memory-ingestion-guidelines");
   }
   if (hints.size === 0) {

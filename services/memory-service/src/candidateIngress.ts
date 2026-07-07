@@ -1,10 +1,13 @@
-import type { MemoryCandidateRequest, MemoryCandidateResponse } from "@super-agent/contracts";
+import type {
+  MemoryCandidateRequest,
+  MemoryCandidateResponse,
+} from "@super-agent/contracts";
 import {
   createMemoryCandidate,
   createOrReplaceFactualMemory,
   ensureMemoryCandidateTaskEnvelope,
   updateMemoryCandidate,
-  upsertEnvironmentFingerprint
+  upsertEnvironmentFingerprint,
 } from "@super-agent/db";
 import type { CandidateRanker } from "./candidateRanker.js";
 import { persistCandidateProvenance } from "./candidateProvenance.js";
@@ -35,7 +38,7 @@ export async function handleCandidateIngress(input: {
       dependencySignature: "local-fallback",
       deploymentBaselineId: "memory-validation",
       status: "active",
-      traceId: input.traceId
+      traceId: input.traceId,
     });
   }
 
@@ -48,13 +51,13 @@ export async function handleCandidateIngress(input: {
     sourceRef: candidate.source_ref,
     artifactTag: candidate.artifact_tag,
     sideEffectClass: candidate.side_effect_class,
-    traceId: input.traceId
+    traceId: input.traceId,
   });
 
   const rankScore = input.ranker.rank(candidate);
   const routed = input.router.route({
     ...candidate,
-    rank_score: rankScore
+    rank_score: rankScore,
   });
 
   const created = await createMemoryCandidate({
@@ -74,7 +77,7 @@ export async function handleCandidateIngress(input: {
     rankScore,
     candidatePayload: candidate.candidate_payload,
     llmRefinedPayload: candidate.llm_refined_payload,
-    traceId: input.traceId
+    traceId: input.traceId,
   });
 
   let persistedObjectId: string | null = null;
@@ -88,15 +91,18 @@ export async function handleCandidateIngress(input: {
         normalizedContent: candidate.content.toLowerCase(),
         sourceRef: candidate.source_ref,
         verificationStatus: candidate.verification_status,
-        fingerprintRequirement: candidate.fingerprint_status === "matched_or_na" ? null : candidate.fingerprint ?? null,
+        fingerprintRequirement:
+          candidate.fingerprint_status === "matched_or_na"
+            ? null
+            : (candidate.fingerprint ?? null),
         tags: [candidate.artifact_tag, candidate.source_type, "memory-v3"],
         metadata: {
           candidate_id: created.id,
-          candidate_hash: candidate.candidate_hash
+          candidate_hash: candidate.candidate_hash,
         },
         importance: rankScore,
         confidenceScore: Math.min(0.99, Math.max(0.5, rankScore / 100)),
-        traceId: input.traceId
+        traceId: input.traceId,
       });
     } else if (routed.persistTarget === "rule") {
       persistedObjectId = await input.ruleBuilder.persist({
@@ -104,25 +110,30 @@ export async function handleCandidateIngress(input: {
         scope: input.scope,
         candidate: {
           ...candidate,
-          rank_score: rankScore
+          rank_score: rankScore,
         },
-        traceId: input.traceId
+        traceId: input.traceId,
       });
     } else if (routed.persistTarget === "skill") {
       persistedObjectId = await input.skillBuilder.persist({
         tenantId: input.tenantId,
         scope: input.scope,
         candidate,
-        traceId: input.traceId
+        traceId: input.traceId,
       });
     }
 
     // L1 写入后建立溯源链：
     //   a) evidence → rule/skill/memory（source_of）：这条规则从哪轮对话的哪句话抽的
     //   b) rule/skill/memory → entity（mentions）：这条规则提到了哪些技术实体
-    // 失败不阻塞主流程（candidate 已写入，provenance 是增强信息）
-    if (persistedObjectId && (routed.persistTarget === "memory" || routed.persistTarget === "rule" || routed.persistTarget === "skill")) {
-      await persistCandidateProvenance({
+    // 失败不阻塞主流程(candidate 已写入,provenance 是增强信息),但接住返回值的 errors 记日志
+    if (
+      persistedObjectId &&
+      (routed.persistTarget === "memory" ||
+        routed.persistTarget === "rule" ||
+        routed.persistTarget === "skill")
+    ) {
+      const provenanceResult = await persistCandidateProvenance({
         tenantId: input.tenantId,
         scope: input.scope,
         traceId: input.traceId,
@@ -132,8 +143,13 @@ export async function handleCandidateIngress(input: {
         content: candidate.content,
         sourceRef: candidate.source_ref,
         sourceType: candidate.source_type,
-        artifactTag: candidate.artifact_tag
+        artifactTag: candidate.artifact_tag,
       });
+      if (provenanceResult.errors.length > 0) {
+        console.warn(
+          `[candidateIngress] provenance partial failure trace_id=${input.traceId} target=${routed.persistTarget}:${persistedObjectId} errors=${JSON.stringify(provenanceResult.errors)}`,
+        );
+      }
     }
   }
 
@@ -141,17 +157,20 @@ export async function handleCandidateIngress(input: {
     candidateId: created.id,
     status: routed.candidateStatus,
     routingDecision: routed.routingDecision,
-    rankScore
+    rankScore,
   });
 
   return {
-    accepted: routed.persistTarget !== "block" && routed.persistTarget !== "drop",
+    accepted:
+      routed.persistTarget !== "block" && routed.persistTarget !== "drop",
     candidate_hash: candidate.candidate_hash,
     candidate_id: created.id,
     candidate_status: routed.candidateStatus,
     routing_decision: routed.routingDecision,
     persist_target: routed.persistTarget,
-    storage_decision: created.existed ? "idempotent-hit" : `single-tenant-${routed.persistTarget}`,
-    persisted_object_id: persistedObjectId ?? undefined
+    storage_decision: created.existed
+      ? "idempotent-hit"
+      : `single-tenant-${routed.persistTarget}`,
+    persisted_object_id: persistedObjectId ?? undefined,
   };
 }

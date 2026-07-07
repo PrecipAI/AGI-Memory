@@ -4,14 +4,37 @@ function toJson(value: unknown): string {
   return JSON.stringify(value ?? {});
 }
 
-type PersistTarget = "memory" | "rule" | "skill" | "resident_candidate" | "summary_only" | "drop" | "block";
+type PersistTarget =
+  | "memory"
+  | "rule"
+  | "skill"
+  | "resident_candidate"
+  | "summary_only"
+  | "drop"
+  | "block";
 
 function extractMemorySearchTerms(input?: string | null): string[] {
   const normalized = input?.trim().toLowerCase();
   if (!normalized) {
     return [];
   }
-  const stopwords = new Set(["the", "and", "how", "should", "would", "could", "what", "why", "when", "where", "this", "that", "什么", "怎么", "是否"]);
+  const stopwords = new Set([
+    "the",
+    "and",
+    "how",
+    "should",
+    "would",
+    "could",
+    "what",
+    "why",
+    "when",
+    "where",
+    "this",
+    "that",
+    "什么",
+    "怎么",
+    "是否",
+  ]);
   const terms = new Set<string>();
   for (const token of normalized.split(/\s+/)) {
     // 先分离 ASCII 和 CJK：把 "pr测试要求" 拆成 "pr" + "测试要求"
@@ -105,7 +128,7 @@ async function queryMemoryRows(input: {
       // 不能让这些噪音抬高 minMatchCount 门槛误伤真实命中。
       // terms >= 8（CJK 长句）→ 3；terms 4-7 → 2；terms 1-3 → 1
       terms.length >= 8 ? 3 : terms.length >= 4 ? 2 : 1,
-    ]
+    ],
   );
   return result.rows;
 }
@@ -126,7 +149,7 @@ export async function queryResidentSnapshot(input: {
     ORDER BY generated_at DESC, created_at DESC
     LIMIT $3
     `,
-    [input.tenantId, input.scope, input.limit ?? 5]
+    [input.tenantId, input.scope, input.limit ?? 5],
   );
   return result.rows;
 }
@@ -149,7 +172,12 @@ export async function queryConversationSummary(input: {
     ORDER BY created_at DESC
     LIMIT $4
     `,
-    [input.tenantId, input.scope, input.taskRequestId ?? null, input.limit ?? 10]
+    [
+      input.tenantId,
+      input.scope,
+      input.taskRequestId ?? null,
+      input.limit ?? 10,
+    ],
   );
   return result.rows;
 }
@@ -171,7 +199,12 @@ export async function queryMemoryCandidates(input: {
     ORDER BY created_at DESC
     LIMIT $4
     `,
-    [input.tenantId, input.scope, input.taskRequestId ?? null, input.limit ?? 10]
+    [
+      input.tenantId,
+      input.scope,
+      input.taskRequestId ?? null,
+      input.limit ?? 10,
+    ],
   );
   return result.rows;
 }
@@ -184,7 +217,13 @@ export async function queryFactualMemory(input: {
   query?: string | null;
   limit?: number;
 }): Promise<Record<string, unknown>[]> {
-  return queryMemoryRows({ tenantId: input.tenantId, scope: input.scope, memoryType: input.memoryType ?? null, query: input.query, limit: input.limit });
+  return queryMemoryRows({
+    tenantId: input.tenantId,
+    scope: input.scope,
+    memoryType: input.memoryType ?? null,
+    query: input.query,
+    limit: input.limit,
+  });
 }
 
 export async function queryProceduralMemory(input: {
@@ -239,7 +278,13 @@ export async function queryProceduralMemory(input: {
         created_at DESC
       LIMIT $5
       `,
-      [input.tenantId, input.scope, input.fingerprint ?? null, projectId, input.limit ?? 10]
+      [
+        input.tenantId,
+        input.scope,
+        input.fingerprint ?? null,
+        projectId,
+        input.limit ?? 10,
+      ],
     );
     return result.rows;
   }
@@ -311,7 +356,7 @@ export async function queryProceduralMemory(input: {
       input.limit ?? 10,
       terms,
       minMatch,
-    ]
+    ],
   );
   return result.rows;
 }
@@ -336,11 +381,13 @@ export async function queryActiveRules(input: {
     review: ["review", "verification"],
     ingestion: ["ingestion"],
     integration: ["integration"],
-    answer: ["answer", "router"]
+    answer: ["answer", "router"],
   };
   const taskTypes =
     input.taskType && input.taskType.length > 0
-      ? Array.from(new Set([input.taskType, ...(taskTypeAliases[input.taskType] ?? [])]))
+      ? Array.from(
+          new Set([input.taskType, ...(taskTypeAliases[input.taskType] ?? [])]),
+        )
       : null;
   const phaseAliases: Record<string, string[]> = {
     planning: ["planning", "planner"],
@@ -350,13 +397,17 @@ export async function queryActiveRules(input: {
     review: ["review", "verification"],
     governance: ["governance"],
     reporting: ["reporting", "governance"],
-    integration: ["integration"]
+    integration: ["integration"],
   };
   const taskPhases =
     input.taskPhase && input.taskPhase.length > 0
-      ? Array.from(new Set([input.taskPhase, ...(phaseAliases[input.taskPhase] ?? [])]))
+      ? Array.from(
+          new Set([input.taskPhase, ...(phaseAliases[input.taskPhase] ?? [])]),
+        )
       : null;
-  const routeKeys = Array.from(new Set([...(taskPhases ?? []), ...(taskTypes ?? [])]));
+  const routeKeys = Array.from(
+    new Set([...(taskPhases ?? []), ...(taskTypes ?? [])]),
+  );
   const result = await pool.query(
     `
     SELECT *,
@@ -423,7 +474,7 @@ export async function queryActiveRules(input: {
       // 不能让这些噪音抬高 minMatchCount 门槛误伤真实命中。
       // terms >= 8（CJK 长句）→ 3；terms 4-7 → 2；terms 1-3 → 1
       terms.length >= 8 ? 3 : terms.length >= 4 ? 2 : 1,
-    ]
+    ],
   );
   return result.rows;
 }
@@ -465,7 +516,14 @@ export async function queryActiveTaskBindings(input: {
     ORDER BY tb.priority DESC, tb.created_at DESC
     LIMIT $6
     `,
-    [input.tenantId, input.scope, input.taskType ?? null, input.host ?? null, input.projectRef ?? null, input.limit ?? 10]
+    [
+      input.tenantId,
+      input.scope,
+      input.taskType ?? null,
+      input.host ?? null,
+      input.projectRef ?? null,
+      input.limit ?? 10,
+    ],
   );
   return result.rows;
 }
@@ -502,7 +560,7 @@ export async function queryRuleCheckpoints(input: {
       )
     ORDER BY priority DESC, checkpoint_phase ASC, created_at DESC
     `,
-    [input.tenantId, input.scope, input.ruleIds, input.operation ?? null]
+    [input.tenantId, input.scope, input.ruleIds, input.operation ?? null],
   );
   return result.rows;
 }
@@ -591,10 +649,12 @@ export async function queryRuleGateCheckpoints(input: {
       input.host ?? null,
       input.projectRef ?? null,
       input.operation,
-      input.checkpointKeys && input.checkpointKeys.length > 0 ? input.checkpointKeys : null,
+      input.checkpointKeys && input.checkpointKeys.length > 0
+        ? input.checkpointKeys
+        : null,
       input.limit ?? 50,
-      input.taskPhase ?? null
-    ]
+      input.taskPhase ?? null,
+    ],
   );
   return result.rows;
 }
@@ -637,8 +697,8 @@ export async function createRuleGateAudit(input: {
       toJson(input.evidence),
       input.reason ?? null,
       input.actorRef ?? null,
-      input.traceId
-    ]
+      input.traceId,
+    ],
   );
   return result.rows[0].id;
 }
@@ -677,15 +737,15 @@ export async function ensureTaskRequestForExternalGate(input: {
       toJson({
         host: input.host ?? null,
         project_ref: input.projectRef ?? null,
-        operation: input.operation
+        operation: input.operation,
       }),
       toJson({
         source: "memory-mcp",
-        operation: input.operation
+        operation: input.operation,
       }),
       `external-rule-gate:${input.taskRequestId}`,
-      input.traceId
-    ]
+      input.traceId,
+    ],
   );
 }
 
@@ -761,7 +821,7 @@ export async function queryMemoryLayerVersions(input: {
         WHERE tenant_id = $1 AND scope = $2 AND status = 'active'
       ) AS extension_pack
     `,
-    [input.tenantId, input.scope]
+    [input.tenantId, input.scope],
   );
   return result.rows[0] ?? {};
 }
@@ -791,11 +851,14 @@ export async function createConversationSummary(input: {
     ORDER BY version DESC
     LIMIT 1
     `,
-    [input.tenantId, input.scope, input.summaryKey]
+    [input.tenantId, input.scope, input.summaryKey],
   );
 
   if (existing.rowCount && existing.rows[0]) {
-    await pool.query("UPDATE conversation_summary SET status = 'superseded', updated_at = now() WHERE id = $1", [existing.rows[0].id]);
+    await pool.query(
+      "UPDATE conversation_summary SET status = 'superseded', updated_at = now() WHERE id = $1",
+      [existing.rows[0].id],
+    );
   }
 
   const nextVersion = existing.rows[0] ? existing.rows[0].version + 1 : 1;
@@ -823,8 +886,8 @@ export async function createConversationSummary(input: {
       toJson(input.summaryPayload),
       input.supersedesId ?? existing.rows[0]?.id ?? null,
       input.rebuildStatus ?? "built",
-      input.traceId
-    ]
+      input.traceId,
+    ],
   );
   return result.rows[0].id;
 }
@@ -849,7 +912,9 @@ export async function createMemoryCandidate(input: {
   traceId: string;
 }): Promise<{ id: string; existed: boolean }> {
   const pool = getPool();
-  const candidateHash = String((input.candidatePayload as Record<string, unknown>).candidate_hash ?? "");
+  const candidateHash = String(
+    (input.candidatePayload as Record<string, unknown>).candidate_hash ?? "",
+  );
   if (candidateHash) {
     const existing = await pool.query<{ id: string }>(
       `
@@ -861,7 +926,7 @@ export async function createMemoryCandidate(input: {
         AND candidate_payload ->> 'candidate_hash' = $4
       LIMIT 1
       `,
-      [input.taskRequestId, input.taskStepId, input.sourceRef, candidateHash]
+      [input.taskRequestId, input.taskStepId, input.sourceRef, candidateHash],
     );
     if (existing.rowCount && existing.rows[0]) {
       return { id: existing.rows[0].id, existed: true };
@@ -899,8 +964,8 @@ export async function createMemoryCandidate(input: {
       input.rankScore ?? null,
       toJson(input.candidatePayload),
       toJson(input.llmRefinedPayload),
-      input.traceId
-    ]
+      input.traceId,
+    ],
   );
   return { id: result.rows[0].id, existed: false };
 }
@@ -921,7 +986,7 @@ export async function updateMemoryCandidate(input: {
         updated_at = now()
     WHERE id = $1
     `,
-    [input.candidateId, input.status, input.routingDecision, input.rankScore]
+    [input.candidateId, input.status, input.routingDecision, input.rankScore],
   );
 }
 
@@ -945,7 +1010,8 @@ export async function createOrReplaceFactualMemory(input: {
   traceId: string;
 }): Promise<string> {
   const pool = getPool();
-  const normalizedContent = input.normalizedContent ?? input.content.toLowerCase();
+  const normalizedContent =
+    input.normalizedContent ?? input.content.toLowerCase();
   const existing = await pool.query<{
     id: string;
     version: number;
@@ -969,17 +1035,20 @@ export async function createOrReplaceFactualMemory(input: {
       created_at DESC
     LIMIT 1
     `,
-    [input.tenantId, input.scope, input.title, normalizedContent]
+    [input.tenantId, input.scope, input.title, normalizedContent],
   );
 
   if (existing.rowCount && existing.rows[0]) {
     const existingRow = existing.rows[0];
-    const proposedAction = existingRow.normalized_content === normalizedContent ? "drop_duplicate_memory" : "replace_memory";
+    const proposedAction =
+      existingRow.normalized_content === normalizedContent
+        ? "drop_duplicate_memory"
+        : "replace_memory";
     const reason =
       proposedAction === "drop_duplicate_memory"
         ? "重复的事实记忆需要人工复核"
         : "同名记忆更新需要人工审批";
-    const proposal = await pool.query<{ id: string }>(
+    await pool.query<{ id: string }>(
       `
       INSERT INTO governance_change_proposal (
         tenant_id, scope, status, version, target_object_type, target_object_id,
@@ -1013,14 +1082,18 @@ export async function createOrReplaceFactualMemory(input: {
           availability_scope: input.availabilityScope ?? "session_only",
           promotion_status: input.promotionStatus ?? "active",
           next_version: existingRow.version + 1,
-          supersedes_memory_id: existingRow.id
+          supersedes_memory_id: existingRow.id,
         }),
         reason,
         input.sourceRef,
-        input.traceId
-      ]
+        input.traceId,
+      ],
     );
-    return proposal.rows[0].id;
+    // P0 修复:返回已存在 memory 的 id,而不是 proposal id。
+    // 之前返回 proposal.rows[0].id 导致 evidence_links.target_id 指向 governance_change_proposal
+    // 而非 memory 表,证据链全部断裂。proposal 仍然被创建(审批流程不受影响),但调用方
+    // 拿到的应该是实际 memory id,用于后续证据链关联 / 返回给调用方。
+    return existingRow.id;
   }
 
   const result = await pool.query<{ id: string }>(
@@ -1054,8 +1127,8 @@ export async function createOrReplaceFactualMemory(input: {
       input.governanceLevel ?? "session",
       input.availabilityScope ?? "session_only",
       input.promotionStatus ?? "active",
-      input.traceId
-    ]
+      input.traceId,
+    ],
   );
   return result.rows[0].id;
 }
@@ -1091,7 +1164,8 @@ export async function createOrReplaceRule(input: {
     rule_type: input.ruleType,
     title: input.title,
     statement: input.statement,
-    normalized_statement: input.normalizedStatement ?? input.statement.toLowerCase(),
+    normalized_statement:
+      input.normalizedStatement ?? input.statement.toLowerCase(),
     applies_to: input.appliesTo ?? [],
     trigger_conditions: input.triggerConditions ?? {},
     enforcement_level: input.enforcementLevel ?? "must",
@@ -1105,8 +1179,9 @@ export async function createOrReplaceRule(input: {
     governance_level: input.governanceLevel ?? "session",
     availability_scope: input.availabilityScope ?? "session_only",
     promotion_status: input.promotionStatus ?? "active",
-    rule_domain: input.ruleDomain ?? input.ruleType.replace(/_rule$/, "") ?? "execution",
-    rule_scope: input.ruleScope ?? input.originScope ?? "session"
+    rule_domain:
+      input.ruleDomain ?? input.ruleType.replace(/_rule$/, "") ?? "execution",
+    rule_scope: input.ruleScope ?? input.originScope ?? "session",
   };
 
   // 新增规则若要求人工审批，不能直接落表为 active，必须先创建 change proposal
@@ -1125,7 +1200,7 @@ export async function createOrReplaceRule(input: {
       ORDER BY created_at DESC
       LIMIT 1
       `,
-      [input.tenantId, input.scope, proposedPayload.rule_key]
+      [input.tenantId, input.scope, proposedPayload.rule_key],
     );
     if (existingPending.rowCount && existingPending.rows[0]) {
       return existingPending.rows[0].id;
@@ -1149,8 +1224,8 @@ export async function createOrReplaceRule(input: {
         JSON.stringify({ ...proposedPayload, next_version: 1 }),
         input.riskLevel ?? "medium",
         input.sourceRefs?.[0] ? String(input.sourceRefs[0]) : null,
-        input.traceId
-      ]
+        input.traceId,
+      ],
     );
     return proposal.rows[0].id;
   }
@@ -1174,8 +1249,8 @@ export async function createOrReplaceRule(input: {
         JSON.stringify(proposedPayload),
         input.riskLevel ?? "medium",
         input.sourceRefs?.[0] ? String(input.sourceRefs[0]) : null,
-        input.traceId
-      ]
+        input.traceId,
+      ],
     );
     return proposal.rows[0].id;
   }
@@ -1190,7 +1265,7 @@ export async function createOrReplaceRule(input: {
     ORDER BY version DESC
     LIMIT 1
     `,
-    [input.tenantId, input.scope, input.ruleKey]
+    [input.tenantId, input.scope, input.ruleKey],
   );
   const nextVersion = existing.rows[0] ? existing.rows[0].version + 1 : 1;
 
@@ -1214,12 +1289,12 @@ export async function createOrReplaceRule(input: {
         JSON.stringify({
           ...proposedPayload,
           next_version: nextVersion,
-          supersedes_rule_id: existing.rows[0].id
+          supersedes_rule_id: existing.rows[0].id,
         }),
         input.riskLevel ?? "medium",
         input.sourceRefs?.[0] ? String(input.sourceRefs[0]) : null,
-        input.traceId
-      ]
+        input.traceId,
+      ],
     );
     return proposal.rows[0].id;
   }
@@ -1267,8 +1342,8 @@ export async function createOrReplaceRule(input: {
       input.promotionStatus ?? "active",
       input.ruleDomain ?? input.ruleType.replace(/_rule$/, "") ?? "execution",
       input.ruleScope ?? input.originScope ?? "session",
-      input.traceId
-    ]
+      input.traceId,
+    ],
   );
   return result.rows[0].id;
 }
@@ -1287,7 +1362,8 @@ export async function createOrReplaceSkill(input: {
   successRate?: number | null;
   tags?: string[];
   traceId: string;
-  sourceKind?: "host_builtin" | "l1_extracted" | "user_uploaded" | "system_seed";
+  sourceKind?:
+    "host_builtin" | "l1_extracted" | "user_uploaded" | "system_seed";
 }): Promise<string> {
   const pool = getPool();
   const existing = await pool.query<{ id: string; version: number }>(
@@ -1300,7 +1376,7 @@ export async function createOrReplaceSkill(input: {
     ORDER BY version DESC
     LIMIT 1
     `,
-    [input.tenantId, input.scope, input.skillKey]
+    [input.tenantId, input.scope, input.skillKey],
   );
   const nextVersion = existing.rows[0] ? existing.rows[0].version + 1 : 1;
 
@@ -1334,11 +1410,11 @@ export async function createOrReplaceSkill(input: {
           success_rate: input.successRate ?? null,
           tags: input.tags ?? [],
           next_version: nextVersion,
-          supersedes_skill_id: existing.rows[0].id
+          supersedes_skill_id: existing.rows[0].id,
         }),
         input.riskLevel ?? "low",
-        input.traceId
-      ]
+        input.traceId,
+      ],
     );
     return proposal.rows[0].id;
   }
@@ -1372,8 +1448,8 @@ export async function createOrReplaceSkill(input: {
       input.successRate ?? null,
       input.tags ?? [],
       input.traceId,
-      input.sourceKind ?? "l1_extracted"
-    ]
+      input.sourceKind ?? "l1_extracted",
+    ],
   );
   return result.rows[0].id;
 }
@@ -1400,10 +1476,13 @@ export async function replaceResidentSnapshot(input: {
     ORDER BY version DESC
     LIMIT 1
     `,
-    [input.tenantId, input.scope, input.snapshotKey]
+    [input.tenantId, input.scope, input.snapshotKey],
   );
   if (existing.rowCount && existing.rows[0]) {
-    await pool.query("UPDATE resident_snapshot SET status = 'superseded', updated_at = now() WHERE id = $1", [existing.rows[0].id]);
+    await pool.query(
+      "UPDATE resident_snapshot SET status = 'superseded', updated_at = now() WHERE id = $1",
+      [existing.rows[0].id],
+    );
   }
   const nextVersion = existing.rows[0] ? existing.rows[0].version + 1 : 1;
   const result = await pool.query<{ id: string }>(
@@ -1427,8 +1506,8 @@ export async function replaceResidentSnapshot(input: {
       input.sourceMemoryIds,
       input.sourceSkillIds,
       input.dirtyReason ?? null,
-      input.traceId
-    ]
+      input.traceId,
+    ],
   );
   return result.rows[0].id;
 }
@@ -1455,7 +1534,7 @@ export async function upsertEnvironmentFingerprint(input: {
       AND fingerprint_key = $3
     LIMIT 1
     `,
-    [input.tenantId, input.scope, input.fingerprintKey]
+    [input.tenantId, input.scope, input.fingerprintKey],
   );
   if (existing.rowCount && existing.rows[0]) {
     await pool.query(
@@ -1479,8 +1558,8 @@ export async function upsertEnvironmentFingerprint(input: {
         input.schemaVersion ?? null,
         input.dependencySignature ?? null,
         input.deploymentBaselineId ?? null,
-        input.traceId
-      ]
+        input.traceId,
+      ],
     );
     return existing.rows[0].id;
   }
@@ -1507,8 +1586,8 @@ export async function upsertEnvironmentFingerprint(input: {
       input.schemaVersion ?? null,
       input.dependencySignature ?? null,
       input.deploymentBaselineId ?? null,
-      input.traceId
-    ]
+      input.traceId,
+    ],
   );
   return result.rows[0].id;
 }
@@ -1528,12 +1607,15 @@ export async function getEnvironmentFingerprint(input: {
       AND fingerprint_key = $3
     LIMIT 1
     `,
-    [input.tenantId, input.scope, input.fingerprintKey]
+    [input.tenantId, input.scope, input.fingerprintKey],
   );
   return result.rows[0] ?? null;
 }
 
-export async function listActiveFactualMemory(input: { tenantId: string; scope: string }): Promise<Record<string, unknown>[]> {
+export async function listActiveFactualMemory(input: {
+  tenantId: string;
+  scope: string;
+}): Promise<Record<string, unknown>[]> {
   const pool = getPool();
   const result = await pool.query(
     `
@@ -1545,7 +1627,7 @@ export async function listActiveFactualMemory(input: { tenantId: string; scope: 
       AND memory_type = 'factual'
     ORDER BY importance DESC, confidence_score DESC, created_at DESC
     `,
-    [input.tenantId, input.scope]
+    [input.tenantId, input.scope],
   );
   return result.rows;
 }
@@ -1592,12 +1674,15 @@ export async function listActiveSkills(input: {
       success_rate DESC NULLS LAST,
       created_at DESC
     `,
-    [input.tenantId, input.scope, input.fingerprint ?? null, projectId]
+    [input.tenantId, input.scope, input.fingerprint ?? null, projectId],
   );
   return result.rows;
 }
 
-export async function listActiveRules(input: { tenantId: string; scope: string }): Promise<Record<string, unknown>[]> {
+export async function listActiveRules(input: {
+  tenantId: string;
+  scope: string;
+}): Promise<Record<string, unknown>[]> {
   const pool = getPool();
   const result = await pool.query(
     `
@@ -1609,7 +1694,7 @@ export async function listActiveRules(input: { tenantId: string; scope: string }
       AND enforcement_level IN ('must', 'must_not')
     ORDER BY priority DESC, created_at DESC
     `,
-    [input.tenantId, input.scope]
+    [input.tenantId, input.scope],
   );
   return result.rows;
 }
@@ -1625,9 +1710,18 @@ export async function updateRuleRecord(input: {
 }): Promise<Record<string, unknown> | null> {
   const pool = getPool();
   const allowed = [
-    "title", "statement", "normalized_statement", "applies_to",
-    "trigger_conditions", "enforcement_level", "priority", "risk_level",
-    "verification_status", "source_refs", "evidence_refs", "metadata"
+    "title",
+    "statement",
+    "normalized_statement",
+    "applies_to",
+    "trigger_conditions",
+    "enforcement_level",
+    "priority",
+    "risk_level",
+    "verification_status",
+    "source_refs",
+    "evidence_refs",
+    "metadata",
   ];
   const sets: string[] = [];
   const vals: unknown[] = [input.ruleId, input.tenantId, input.scope];
@@ -1635,7 +1729,13 @@ export async function updateRuleRecord(input: {
   for (const key of allowed) {
     if (key in input.patch) {
       const val = input.patch[key];
-      if (key === "applies_to" || key === "trigger_conditions" || key === "source_refs" || key === "evidence_refs" || key === "metadata") {
+      if (
+        key === "applies_to" ||
+        key === "trigger_conditions" ||
+        key === "source_refs" ||
+        key === "evidence_refs" ||
+        key === "metadata"
+      ) {
         sets.push(`${key} = $${idx}::jsonb`);
         vals.push(JSON.stringify(val ?? {}));
       } else {
@@ -1651,7 +1751,7 @@ export async function updateRuleRecord(input: {
   vals.push(input.traceId);
   const result = await pool.query(
     `UPDATE rule SET ${sets.join(", ")} WHERE id = $1 AND tenant_id = $2 AND scope = $3 AND status = 'active' RETURNING *`,
-    vals
+    vals,
   );
   return result.rows[0] ?? null;
 }
@@ -1665,9 +1765,16 @@ export async function updateSkillRecord(input: {
 }): Promise<Record<string, unknown> | null> {
   const pool = getPool();
   const allowed = [
-    "title", "description", "skill_type", "trigger_conditions",
-    "procedure_payload", "verification_status", "fingerprint_requirement",
-    "risk_level", "success_rate", "tags"
+    "title",
+    "description",
+    "skill_type",
+    "trigger_conditions",
+    "procedure_payload",
+    "verification_status",
+    "fingerprint_requirement",
+    "risk_level",
+    "success_rate",
+    "tags",
   ];
   const sets: string[] = [];
   const vals: unknown[] = [input.skillId, input.tenantId, input.scope];
@@ -1694,7 +1801,7 @@ export async function updateSkillRecord(input: {
   vals.push(input.traceId);
   const result = await pool.query(
     `UPDATE skill SET ${sets.join(", ")} WHERE id = $1 AND tenant_id = $2 AND scope = $3 AND status = 'active' RETURNING *`,
-    vals
+    vals,
   );
   return result.rows[0] ?? null;
 }
@@ -1708,10 +1815,21 @@ export async function updateMemoryRecord(input: {
 }): Promise<Record<string, unknown> | null> {
   const pool = getPool();
   const allowed = [
-    "title", "content", "normalized_content", "memory_type",
-    "importance", "confidence_score", "verification_status",
-    "origin_scope", "availability_scope", "governance_level",
-    "promotion_status", "tags", "metadata", "ttl", "revalidate_after"
+    "title",
+    "content",
+    "normalized_content",
+    "memory_type",
+    "importance",
+    "confidence_score",
+    "verification_status",
+    "origin_scope",
+    "availability_scope",
+    "governance_level",
+    "promotion_status",
+    "tags",
+    "metadata",
+    "ttl",
+    "revalidate_after",
   ];
   const sets: string[] = [];
   const vals: unknown[] = [input.memoryId, input.tenantId, input.scope];
@@ -1735,7 +1853,7 @@ export async function updateMemoryRecord(input: {
   vals.push(input.traceId);
   const result = await pool.query(
     `UPDATE memory SET ${sets.join(", ")} WHERE id = $1 AND tenant_id = $2 AND scope = $3 AND status = 'active' RETURNING *`,
-    vals
+    vals,
   );
   return result.rows[0] ?? null;
 }
@@ -1765,7 +1883,7 @@ export async function downgradeSkillsOnFingerprintDrift(input: {
       AND fingerprint_requirement IS NOT NULL
       AND fingerprint_requirement <> $3
     `,
-    [input.tenantId, input.scope, input.fingerprint]
+    [input.tenantId, input.scope, input.fingerprint],
   );
   const proposalIds: string[] = [];
   for (const row of candidates.rows) {
@@ -1781,7 +1899,7 @@ export async function downgradeSkillsOnFingerprintDrift(input: {
         AND proposed_action = 'mark_skill_dirty_for_fingerprint_drift'
       LIMIT 1
       `,
-      [input.tenantId, input.scope, row.id]
+      [input.tenantId, input.scope, row.id],
     );
     if (existingProposal.rows[0]) {
       proposalIds.push(existingProposal.rows[0].id);
@@ -1810,10 +1928,10 @@ export async function downgradeSkillsOnFingerprintDrift(input: {
           title: row.title,
           fingerprint_requirement: row.fingerprint_requirement,
           requested_fingerprint: input.fingerprint,
-          proposed_status: "dirty"
+          proposed_status: "dirty",
         }),
-        input.traceId ?? `trace-skill-fingerprint-drift-${Date.now()}`
-      ]
+        input.traceId ?? `trace-skill-fingerprint-drift-${Date.now()}`,
+      ],
     );
     proposalIds.push(inserted.rows[0].id);
   }
@@ -1824,10 +1942,17 @@ export async function getPersistableRecordsForIndex(input: {
   tenantId: string;
   scope: string;
   fingerprint?: string | null;
-}): Promise<{ memory: Record<string, unknown>[]; skill: Record<string, unknown>[] }> {
+}): Promise<{
+  memory: Record<string, unknown>[];
+  skill: Record<string, unknown>[];
+}> {
   const [memory, skill] = await Promise.all([
     listActiveFactualMemory({ tenantId: input.tenantId, scope: input.scope }),
-    listActiveSkills({ tenantId: input.tenantId, scope: input.scope, fingerprint: input.fingerprint })
+    listActiveSkills({
+      tenantId: input.tenantId,
+      scope: input.scope,
+      fingerprint: input.fingerprint,
+    }),
   ]);
   return { memory, skill };
 }
@@ -1852,10 +1977,15 @@ export async function listPendingHostActions(input: {
 
   const queries: Promise<Record<string, unknown>[]>[] = [];
 
-  if (input.objectType === "rule" || input.objectType === "all" || !input.objectType) {
+  if (
+    input.objectType === "rule" ||
+    input.objectType === "all" ||
+    !input.objectType
+  ) {
     queries.push(
-      pool.query(
-        `
+      pool
+        .query(
+          `
         SELECT 'rule' AS object_type,
                id,
                rule_key AS key,
@@ -1878,15 +2008,21 @@ export async function listPendingHostActions(input: {
         ORDER BY priority DESC NULLS LAST, created_at DESC
         LIMIT $3
         `,
-        [input.tenantId, projectFilter, limit]
-      ).then((r) => r.rows)
+          [input.tenantId, projectFilter, limit],
+        )
+        .then((r) => r.rows),
     );
   }
 
-  if (input.objectType === "skill" || input.objectType === "all" || !input.objectType) {
+  if (
+    input.objectType === "skill" ||
+    input.objectType === "all" ||
+    !input.objectType
+  ) {
     queries.push(
-      pool.query(
-        `
+      pool
+        .query(
+          `
         SELECT 'skill' AS object_type,
                id,
                skill_key,
@@ -1915,8 +2051,9 @@ export async function listPendingHostActions(input: {
         ORDER BY created_at DESC
         LIMIT $3
         `,
-        [input.tenantId, projectFilter, limit]
-      ).then((r) => r.rows)
+          [input.tenantId, projectFilter, limit],
+        )
+        .then((r) => r.rows),
     );
   }
 
@@ -1939,19 +2076,20 @@ export async function updateHostActionStatus(input: {
 
   const existing = await pool.query(
     `SELECT ${column} -> 'host_action' AS host_action FROM ${table} WHERE id = $1 AND tenant_id = $2`,
-    [input.objectId, input.tenantId]
+    [input.objectId, input.tenantId],
   );
 
   if (existing.rows.length === 0) {
     return false;
   }
 
-  const previous = (existing.rows[0].host_action as Record<string, unknown> | null) ?? {};
+  const previous =
+    (existing.rows[0].host_action as Record<string, unknown> | null) ?? {};
   const merged: Record<string, unknown> = {
     ...previous,
     status: input.status,
     generated_at: new Date().toISOString(),
-    error: input.error ?? null
+    error: input.error ?? null,
   };
   if (input.summary) {
     merged.summary = input.summary;
@@ -1969,7 +2107,7 @@ export async function updateHostActionStatus(input: {
         trace_id = $2
     WHERE id = $3 AND tenant_id = $4
     `,
-    [JSON.stringify(merged), input.traceId, input.objectId, input.tenantId]
+    [JSON.stringify(merged), input.traceId, input.objectId, input.tenantId],
   );
 
   return result.rowCount !== null && result.rowCount > 0;
@@ -2003,7 +2141,12 @@ export async function upsertHostSkill(input: {
   traceId: string;
 }): Promise<{ id: string; action: "created" | "updated" | "skipped" }> {
   const pool = getPool();
-  const existing = await pool.query<{ id: string; version: number; title: string; description: string }>(
+  const existing = await pool.query<{
+    id: string;
+    version: number;
+    title: string;
+    description: string;
+  }>(
     `
     SELECT id, version, title, description
     FROM skill
@@ -2011,7 +2154,7 @@ export async function upsertHostSkill(input: {
     ORDER BY version DESC
     LIMIT 1
     `,
-    [input.tenantId, input.scope, input.skillKey]
+    [input.tenantId, input.scope, input.skillKey],
   );
 
   const skillType = input.skillType || "procedural";
@@ -2029,7 +2172,7 @@ export async function upsertHostSkill(input: {
     // 内容变化：supersede 旧版本 + INSERT 新版本
     await pool.query(
       "UPDATE skill SET status = 'superseded', updated_at = now(), trace_id = $2 WHERE id = $1",
-      [row.id, input.traceId]
+      [row.id, input.traceId],
     );
     const nextVersion = row.version + 1;
     const result = await pool.query<{ id: string }>(
@@ -2049,11 +2192,19 @@ export async function upsertHostSkill(input: {
       RETURNING id
       `,
       [
-        input.tenantId, input.scope, nextVersion, input.skillKey,
-        input.title, input.description, skillType,
-        JSON.stringify(triggerConditions), JSON.stringify(procedurePayload),
-        riskLevel, tags, input.traceId
-      ]
+        input.tenantId,
+        input.scope,
+        nextVersion,
+        input.skillKey,
+        input.title,
+        input.description,
+        skillType,
+        JSON.stringify(triggerConditions),
+        JSON.stringify(procedurePayload),
+        riskLevel,
+        tags,
+        input.traceId,
+      ],
     );
     return { id: result.rows[0].id, action: "updated" };
   }
@@ -2076,11 +2227,18 @@ export async function upsertHostSkill(input: {
     RETURNING id
     `,
     [
-      input.tenantId, input.scope, input.skillKey,
-      input.title, input.description, skillType,
-      JSON.stringify(triggerConditions), JSON.stringify(procedurePayload),
-      riskLevel, tags, input.traceId
-    ]
+      input.tenantId,
+      input.scope,
+      input.skillKey,
+      input.title,
+      input.description,
+      skillType,
+      JSON.stringify(triggerConditions),
+      JSON.stringify(procedurePayload),
+      riskLevel,
+      tags,
+      input.traceId,
+    ],
   );
   return { id: result.rows[0].id, action: "created" };
 }
@@ -2102,7 +2260,10 @@ export async function upsertHostMemory(input: {
   traceId: string;
 }): Promise<{ id: string; action: "created" | "skipped" }> {
   const pool = getPool();
-  const normalizedContent = `${input.title}\n${input.content}`.toLowerCase().replace(/\s+/g, " ").trim();
+  const normalizedContent = `${input.title}\n${input.content}`
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
 
   const existing = await pool.query<{ id: string }>(
     `
@@ -2112,7 +2273,7 @@ export async function upsertHostMemory(input: {
       AND memory_type = $3 AND normalized_content = $4
     LIMIT 1
     `,
-    [input.tenantId, input.scope, input.memoryType, normalizedContent]
+    [input.tenantId, input.scope, input.memoryType, normalizedContent],
   );
 
   if (existing.rowCount && existing.rows[0]) {
@@ -2134,10 +2295,16 @@ export async function upsertHostMemory(input: {
     RETURNING id
     `,
     [
-      input.tenantId, input.scope, input.memoryType,
-      input.title, input.content, normalizedContent,
-      input.tags ?? [], input.importance ?? 75, input.traceId
-    ]
+      input.tenantId,
+      input.scope,
+      input.memoryType,
+      input.title,
+      input.content,
+      normalizedContent,
+      input.tags ?? [],
+      input.importance ?? 75,
+      input.traceId,
+    ],
   );
   return { id: result.rows[0].id, action: "created" };
 }
@@ -2163,7 +2330,11 @@ export async function upsertHostRule(input: {
   traceId: string;
 }): Promise<{ id: string; action: "created" | "updated" | "skipped" }> {
   const pool = getPool();
-  const existing = await pool.query<{ id: string; version: number; statement: string }>(
+  const existing = await pool.query<{
+    id: string;
+    version: number;
+    statement: string;
+  }>(
     `
     SELECT id, version, statement
     FROM rule
@@ -2171,7 +2342,7 @@ export async function upsertHostRule(input: {
     ORDER BY version DESC
     LIMIT 1
     `,
-    [input.tenantId, input.scope, input.ruleKey]
+    [input.tenantId, input.scope, input.ruleKey],
   );
 
   const enforcementLevel = input.enforcementLevel || "must";
@@ -2187,7 +2358,7 @@ export async function upsertHostRule(input: {
     }
     await pool.query(
       "UPDATE rule SET status = 'superseded', updated_at = now(), trace_id = $2 WHERE id = $1",
-      [row.id, input.traceId]
+      [row.id, input.traceId],
     );
     const nextVersion = row.version + 1;
     const result = await pool.query<{ id: string }>(
@@ -2209,12 +2380,21 @@ export async function upsertHostRule(input: {
       RETURNING id
       `,
       [
-        input.tenantId, input.scope, nextVersion, input.ruleKey,
-        input.ruleType, input.title, input.statement,
-        input.statement.toLowerCase(), JSON.stringify(appliesTo),
-        enforcementLevel, priority, riskLevel,
-        ruleDomain, input.traceId
-      ]
+        input.tenantId,
+        input.scope,
+        nextVersion,
+        input.ruleKey,
+        input.ruleType,
+        input.title,
+        input.statement,
+        input.statement.toLowerCase(),
+        JSON.stringify(appliesTo),
+        enforcementLevel,
+        priority,
+        riskLevel,
+        ruleDomain,
+        input.traceId,
+      ],
     );
     return { id: result.rows[0].id, action: "updated" };
   }
@@ -2238,12 +2418,20 @@ export async function upsertHostRule(input: {
     RETURNING id
     `,
     [
-      input.tenantId, input.scope, input.ruleKey,
-      input.ruleType, input.title, input.statement,
-      input.statement.toLowerCase(), JSON.stringify(appliesTo),
-      enforcementLevel, priority, riskLevel,
-      ruleDomain, input.traceId
-    ]
+      input.tenantId,
+      input.scope,
+      input.ruleKey,
+      input.ruleType,
+      input.title,
+      input.statement,
+      input.statement.toLowerCase(),
+      JSON.stringify(appliesTo),
+      enforcementLevel,
+      priority,
+      riskLevel,
+      ruleDomain,
+      input.traceId,
+    ],
   );
   return { id: result.rows[0].id, action: "created" };
 }

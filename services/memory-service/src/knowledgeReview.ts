@@ -21,7 +21,7 @@ import {
   queryKnowledgeSectionsByDocumentId,
   queryRecallSurfaceStates,
   querySynthesizedKnowledge,
-  getKnowledgeUtility
+  getKnowledgeUtility,
 } from "@super-agent/db";
 import { getPool } from "@super-agent/db";
 
@@ -42,13 +42,13 @@ export async function listKnowledgeReviewQueueItems(input: {
     scope: input.scope,
     status: input.status ?? null,
     reviewReason: input.reviewReason ?? null,
-    limit: input.limit ?? 50
+    limit: input.limit ?? 50,
   });
 
   return {
     tenant_id: input.tenantId,
     scope: input.scope,
-    items
+    items,
   };
 }
 
@@ -65,14 +65,14 @@ export async function handleKnowledgeReviewAction(input: {
     reviewQueueId: input.reviewQueueId,
     action: input.body.action,
     resolutionPayload: input.body.payload ?? {},
-    traceId: input.traceId
+    traceId: input.traceId,
   });
 
   return {
     review_queue_id: input.reviewQueueId,
     action: input.body.action,
     status: "resolved",
-    resolved_at: new Date().toISOString()
+    resolved_at: new Date().toISOString(),
   };
 }
 
@@ -84,7 +84,7 @@ export async function getKnowledgeContextBundle(input: {
   const bundle = await getKnowledgeContextBundleById({
     tenantId: input.tenantId,
     scope: input.scope,
-    bundleId: input.bundleId
+    bundleId: input.bundleId,
   });
 
   return bundle
@@ -100,7 +100,7 @@ export async function getKnowledgeContextBundle(input: {
         section_refs: bundle.section_refs,
         warnings: bundle.warnings,
         assembly_trace: bundle.assembly_trace,
-        created_at: bundle.created_at
+        created_at: bundle.created_at,
       }
     : null;
 }
@@ -115,7 +115,7 @@ export async function listKnowledgeGraphEntities(input: {
     tenantId: input.tenantId,
     scope: input.scope,
     query: input.query ?? null,
-    limit: input.limit ?? 50
+    limit: input.limit ?? 50,
   });
   return { items };
 }
@@ -132,7 +132,7 @@ export async function listKnowledgeDocuments(input: {
     scope: input.scope,
     query: input.query ?? null,
     limit: input.limit ?? 20,
-    offset: input.offset ?? 0
+    offset: input.offset ?? 0,
   });
 }
 
@@ -144,7 +144,7 @@ export async function getKnowledgeDocumentDetails(input: {
   const document = await getKnowledgeDocumentById({
     tenantId: input.tenantId,
     scope: input.scope,
-    documentId: input.documentId
+    documentId: input.documentId,
   });
   if (!document) {
     return null;
@@ -155,26 +155,26 @@ export async function getKnowledgeDocumentDetails(input: {
       tenantId: input.tenantId,
       scope: input.scope,
       documentId: input.documentId,
-      limit: 100
+      limit: 100,
     }),
     queryKnowledgeFactsByDocumentId({
       tenantId: input.tenantId,
       scope: input.scope,
       documentId: input.documentId,
-      limit: 100
+      limit: 100,
     }),
     queryKnowledgeRelationsByDocumentId({
       tenantId: input.tenantId,
       scope: input.scope,
       documentId: input.documentId,
-      limit: 100
+      limit: 100,
     }),
     queryKnowledgeEvidenceByDocumentId({
       tenantId: input.tenantId,
       scope: input.scope,
       documentId: input.documentId,
-      limit: 100
-    })
+      limit: 100,
+    }),
   ]);
 
   return {
@@ -182,7 +182,7 @@ export async function getKnowledgeDocumentDetails(input: {
     sections,
     facts,
     relations,
-    evidence
+    evidence,
   };
 }
 
@@ -196,7 +196,7 @@ export async function listKnowledgeGraphFacts(input: {
     tenantId: input.tenantId,
     scope: input.scope,
     query: input.query ?? null,
-    limit: input.limit ?? 50
+    limit: input.limit ?? 50,
   });
   return { items };
 }
@@ -211,7 +211,7 @@ export async function listKnowledgeGraphRelations(input: {
     tenantId: input.tenantId,
     scope: input.scope,
     objectIds: input.objectIds ?? [],
-    limit: input.limit ?? 50
+    limit: input.limit ?? 50,
   });
   return { items };
 }
@@ -226,62 +226,92 @@ export async function getKnowledgeGraphOverview(input: {
 }) {
   const limit = input.limit ?? 100;
   const pool = getPool();
-  const [entities, facts, relations, synthesizedKnowledge, governanceProposals, rules, memories, skills] = await Promise.all([
+  const [
+    entities,
+    facts,
+    relations,
+    synthesizedKnowledge,
+    governanceProposals,
+    rules,
+    memories,
+    skills,
+    layerLinks,
+  ] = await Promise.all([
     queryKnowledgeEntities({
       tenantId: input.tenantId,
       scope: input.scope,
       query: null,
-      limit
+      limit,
     }),
     queryKnowledgeFacts({
       tenantId: input.tenantId,
       scope: input.scope,
       query: null,
-      limit
+      limit,
     }),
     queryKnowledgeRelationsForObjects({
       tenantId: input.tenantId,
       scope: input.scope,
       objectIds: [],
-      limit: limit * 2 // 关系天然比节点多，放宽
+      limit: limit * 2, // 关系天然比节点多，放宽
     }),
     querySynthesizedKnowledge({
       tenantId: input.tenantId,
       scope: input.scope,
       governanceJobId: null,
-      limit
+      limit,
     }),
     listGovernanceChangeProposals({
       tenantId: input.tenantId,
       scope: input.scope,
       status: null,
-      limit: limit * 2
+      limit: limit * 2,
     }),
     // 四层节点：rule/memory/skill 也进图谱，让人类一眼看到全部治理对象
-    pool.query(
-      `SELECT id, title, statement, enforcement_level, status, origin_scope, availability_scope, created_at
+    pool
+      .query(
+        `SELECT id, title, statement, enforcement_level, status, origin_scope, availability_scope, created_at
        FROM rule
        WHERE tenant_id = $1 AND scope = $2 AND status = 'active'
        ORDER BY created_at DESC LIMIT $3`,
-      [input.tenantId, input.scope, limit]
-    ).then(r => r.rows),
-    pool.query(
-      `SELECT id, title, content, memory_type, status, origin_scope, availability_scope, created_at
+        [input.tenantId, input.scope, limit],
+      )
+      .then((r) => r.rows),
+    pool
+      .query(
+        `SELECT id, title, content, memory_type, status, origin_scope, availability_scope, created_at
        FROM memory
        WHERE tenant_id = $1 AND scope = $2 AND status = 'active'
        ORDER BY created_at DESC LIMIT $3`,
-      [input.tenantId, input.scope, limit]
-    ).then(r => r.rows),
-    pool.query(
-      `SELECT id, title, description, skill_type, status, origin_scope, availability_scope, source_kind, created_at
+        [input.tenantId, input.scope, limit],
+      )
+      .then((r) => r.rows),
+    pool
+      .query(
+        `SELECT id, title, description, skill_type, status, origin_scope, availability_scope, source_kind, created_at
        FROM skill
        WHERE tenant_id = $1 AND scope = $2 AND status = 'active'
        ORDER BY created_at DESC LIMIT $3`,
-      [input.tenantId, input.scope, limit]
-    ).then(r => r.rows)
+        [input.tenantId, input.scope, limit],
+      )
+      .then((r) => r.rows),
+    // P1 派生机制：layer_links 表的跨层关系(derived_from / explains / constrains / provenance)
+    // 转换成 relations 格式合并进 relations 数组,让洋葱图能渲染跨层关系线
+    pool
+      .query(
+        `SELECT source_id AS from_object_id, target_id AS to_object_id,
+              link_type AS relation_type, source_layer, target_layer, confidence
+       FROM layer_links
+       WHERE tenant_id = $1 AND scope = $2 AND status = 'active'
+       LIMIT $3`,
+        [input.tenantId, input.scope, limit * 2],
+      )
+      .then((r) => r.rows),
   ]);
 
   // 批量拉取所有合成知识对应的 evidence（避免 N+1）
+  // P1 派生机制：把 layer_links 表的跨层关系合并进 relations,让洋葱图能渲染 derived_from 等跨层关系线
+  const allRelations = [...relations, ...layerLinks];
   const synthesizedKnowledgeIds = synthesizedKnowledge
     .map((item) => String(item.id))
     .filter(Boolean);
@@ -289,7 +319,7 @@ export async function getKnowledgeGraphOverview(input: {
     ? await queryDerivedKnowledgeEvidence({
         tenantId: input.tenantId,
         scope: input.scope,
-        synthesizedKnowledgeIds
+        synthesizedKnowledgeIds,
       })
     : [];
 
@@ -306,7 +336,12 @@ export async function getKnowledgeGraphOverview(input: {
   // 治理提案按 proposed_action 前缀分类
   // L2ConflictDetector 用 "l2_" 前缀（如 l2_conflict_skip），L3EvolutionScanner 用 "l3_"，L4CognitiveEngine 用 "l4_"
   // 前缀大小写不敏感判断；同时记录未匹配前缀的归为 "other"，方便诊断
-  const proposalsByLayer = { l2: [] as Record<string, unknown>[], l3: [] as Record<string, unknown>[], l4: [] as Record<string, unknown>[], other: [] as Record<string, unknown>[] };
+  const proposalsByLayer = {
+    l2: [] as Record<string, unknown>[],
+    l3: [] as Record<string, unknown>[],
+    l4: [] as Record<string, unknown>[],
+    other: [] as Record<string, unknown>[],
+  };
   for (const proposal of governanceProposals) {
     const action = String(proposal.proposed_action ?? "").toLowerCase();
     if (action.startsWith("l2_")) proposalsByLayer.l2.push(proposal);
@@ -322,7 +357,7 @@ export async function getKnowledgeGraphOverview(input: {
     entityTypes.add(t);
   }
   const relationTypes = new Set<string>();
-  for (const r of relations) {
+  for (const r of allRelations) {
     const t = String(r.relation_type ?? r.type ?? "related_to");
     relationTypes.add(t);
   }
@@ -335,34 +370,63 @@ export async function getKnowledgeGraphOverview(input: {
     ...memories.map((m) => String(m.id)),
     ...skills.map((s) => String(s.id)),
   ].filter(Boolean);
-  const utilityMap = utilityEntryIds.length > 0
-    ? await getKnowledgeUtility({
-        tenantId: input.tenantId,
-        scope: input.scope,
-        entryIds: utilityEntryIds,
-      })
-    : new Map();
+  const utilityMap =
+    utilityEntryIds.length > 0
+      ? await getKnowledgeUtility({
+          tenantId: input.tenantId,
+          scope: input.scope,
+          entryIds: utilityEntryIds,
+        })
+      : new Map();
 
   function attachUtility<T extends Record<string, unknown>>(items: T[]): T[] {
     return items.map((item) => {
       const id = String(item.id ?? "");
       const u = utilityMap.get(id);
-      return { ...item, utility_score: u?.utilityScore ?? null, total_recalls: u?.totalRecalls ?? 0 };
+      return {
+        ...item,
+        utility_score: u?.utilityScore ?? null,
+        total_recalls: u?.totalRecalls ?? 0,
+      };
     });
   }
-  const rulesWithUtility = attachUtility(rules as Record<string, unknown>[]) as typeof rules;
-  const memoriesWithUtility = attachUtility(memories as Record<string, unknown>[]) as typeof memories;
-  const skillsWithUtility = attachUtility(skills as Record<string, unknown>[]) as typeof skills;
-  const knowledgeWithUtility = attachUtility(synthesizedKnowledge as Record<string, unknown>[]) as typeof synthesizedKnowledge;
+  const rulesWithUtility = attachUtility(
+    rules as Record<string, unknown>[],
+  ) as typeof rules;
+  const memoriesWithUtility = attachUtility(
+    memories as Record<string, unknown>[],
+  ) as typeof memories;
+  const skillsWithUtility = attachUtility(
+    skills as Record<string, unknown>[],
+  ) as typeof skills;
+  const knowledgeWithUtility = attachUtility(
+    synthesizedKnowledge as Record<string, unknown>[],
+  ) as typeof synthesizedKnowledge;
 
   // utility 分布统计：high ≥0.8 / medium 0.5-0.8 / low <0.5 / no_signal NULL
   const allWithUtility = [
-    ...rulesWithUtility, ...memoriesWithUtility, ...skillsWithUtility, ...knowledgeWithUtility,
+    ...rulesWithUtility,
+    ...memoriesWithUtility,
+    ...skillsWithUtility,
+    ...knowledgeWithUtility,
   ] as Array<Record<string, unknown>>;
   const utilitySummary = {
-    high: allWithUtility.filter((x) => (x.utility_score as number | null) !== null && (x.utility_score as number) >= 0.8).length,
-    medium: allWithUtility.filter((x) => (x.utility_score as number | null) !== null && (x.utility_score as number) >= 0.5 && (x.utility_score as number) < 0.8).length,
-    low: allWithUtility.filter((x) => (x.utility_score as number | null) !== null && (x.utility_score as number) < 0.5).length,
+    high: allWithUtility.filter(
+      (x) =>
+        (x.utility_score as number | null) !== null &&
+        (x.utility_score as number) >= 0.8,
+    ).length,
+    medium: allWithUtility.filter(
+      (x) =>
+        (x.utility_score as number | null) !== null &&
+        (x.utility_score as number) >= 0.5 &&
+        (x.utility_score as number) < 0.8,
+    ).length,
+    low: allWithUtility.filter(
+      (x) =>
+        (x.utility_score as number | null) !== null &&
+        (x.utility_score as number) < 0.5,
+    ).length,
     no_signal: allWithUtility.filter((x) => x.utility_score === null).length,
   };
 
@@ -372,7 +436,7 @@ export async function getKnowledgeGraphOverview(input: {
     stats: {
       entity_count: entities.length,
       fact_count: facts.length,
-      relation_count: relations.length,
+      relation_count: allRelations.length,
       synthesized_knowledge_count: synthesizedKnowledge.length,
       evidence_count: evidence.length,
       proposal_count: governanceProposals.length,
@@ -383,11 +447,11 @@ export async function getKnowledgeGraphOverview(input: {
       rule_count: rules.length,
       memory_count: memories.length,
       skill_count: skills.length,
-      utility_summary: utilitySummary
+      utility_summary: utilitySummary,
     },
     entities,
     facts,
-    relations,
+    relations: allRelations,
     synthesized_knowledge: knowledgeWithUtility,
     evidence,
     evidence_trace: evidenceTrace, // 保留合成知识→evidence 的映射关系
@@ -397,7 +461,7 @@ export async function getKnowledgeGraphOverview(input: {
     relation_types: [...relationTypes].sort(),
     rules: rulesWithUtility,
     memories: memoriesWithUtility,
-    skills: skillsWithUtility
+    skills: skillsWithUtility,
   };
 }
 
@@ -409,7 +473,7 @@ export async function listKnowledgeGovernanceRuns(input: {
   const items = await listKnowledgeGovernanceJobs({
     tenantId: input.tenantId,
     scope: input.scope,
-    limit: input.limit ?? 50
+    limit: input.limit ?? 50,
   });
   return { items };
 }
@@ -422,46 +486,47 @@ export async function getKnowledgeGovernanceRunDetails(input: {
   const jobs = await listKnowledgeGovernanceJobs({
     tenantId: input.tenantId,
     scope: input.scope,
-    limit: 100
+    limit: 100,
   });
   const job = jobs.find((item) => item.id === input.jobId) ?? null;
   if (!job) {
     return null;
   }
 
-  const [decisions, cleaningLogs, synthesizedKnowledge, recallSurfaceStates] = await Promise.all([
-    queryKnowledgeGovernanceDecisions({
-      tenantId: input.tenantId,
-      scope: input.scope,
-      governanceJobId: input.jobId,
-      limit: 200
-    }),
-    queryKnowledgeGovernanceCleaningLogs({
-      tenantId: input.tenantId,
-      scope: input.scope,
-      governanceJobId: input.jobId,
-      limit: 200
-    }),
-    querySynthesizedKnowledge({
-      tenantId: input.tenantId,
-      scope: input.scope,
-      governanceJobId: input.jobId,
-      limit: 100
-    }),
-    queryRecallSurfaceStates({
-      tenantId: input.tenantId,
-      scope: input.scope,
-      governanceJobId: input.jobId,
-      limit: 300
-    })
-  ]);
+  const [decisions, cleaningLogs, synthesizedKnowledge, recallSurfaceStates] =
+    await Promise.all([
+      queryKnowledgeGovernanceDecisions({
+        tenantId: input.tenantId,
+        scope: input.scope,
+        governanceJobId: input.jobId,
+        limit: 200,
+      }),
+      queryKnowledgeGovernanceCleaningLogs({
+        tenantId: input.tenantId,
+        scope: input.scope,
+        governanceJobId: input.jobId,
+        limit: 200,
+      }),
+      querySynthesizedKnowledge({
+        tenantId: input.tenantId,
+        scope: input.scope,
+        governanceJobId: input.jobId,
+        limit: 100,
+      }),
+      queryRecallSurfaceStates({
+        tenantId: input.tenantId,
+        scope: input.scope,
+        governanceJobId: input.jobId,
+        limit: 300,
+      }),
+    ]);
 
   return {
     job,
     decisions,
     cleaning_logs: cleaningLogs,
     synthesized_knowledge: synthesizedKnowledge,
-    recall_surface_states: recallSurfaceStates
+    recall_surface_states: recallSurfaceStates,
   };
 }
 
@@ -475,7 +540,7 @@ export async function listKnowledgeGovernanceDecisions(input: {
     tenantId: input.tenantId,
     scope: input.scope,
     governanceJobId: input.governanceJobId ?? null,
-    limit: input.limit ?? 100
+    limit: input.limit ?? 100,
   });
   return { items };
 }
@@ -490,7 +555,7 @@ export async function listSynthesizedKnowledge(input: {
     tenantId: input.tenantId,
     scope: input.scope,
     governanceJobId: input.governanceJobId ?? null,
-    limit: input.limit ?? 100
+    limit: input.limit ?? 100,
   });
   return { items };
 }
@@ -503,7 +568,7 @@ export async function getSynthesizedKnowledgeDetails(input: {
   const item = await getSynthesizedKnowledgeById({
     tenantId: input.tenantId,
     scope: input.scope,
-    synthesizedKnowledgeId: input.synthesizedKnowledgeId
+    synthesizedKnowledgeId: input.synthesizedKnowledgeId,
   });
   if (!item) {
     return null;
@@ -512,12 +577,12 @@ export async function getSynthesizedKnowledgeDetails(input: {
   const evidence_trace = await queryDerivedKnowledgeEvidence({
     tenantId: input.tenantId,
     scope: input.scope,
-    synthesizedKnowledgeIds: [input.synthesizedKnowledgeId]
+    synthesizedKnowledgeIds: [input.synthesizedKnowledgeId],
   });
 
   return {
     item,
-    evidence_trace
+    evidence_trace,
   };
 }
 
@@ -533,7 +598,7 @@ export async function listRecallSurfaceStates(input: {
     scope: input.scope,
     governanceJobId: input.governanceJobId ?? null,
     objectType: input.objectType ?? null,
-    limit: input.limit ?? 100
+    limit: input.limit ?? 100,
   });
   return { items };
 }
@@ -545,13 +610,15 @@ export async function getKnowledgeOpsOverviewData(input: {
   const [result, dailyRuns] = await Promise.all([
     getKnowledgeOpsOverview({
       tenantId: input.tenantId,
-      scope: input.scope
+      scope: input.scope,
     }),
     getDailyGovernanceRuns({
       tenantId: input.tenantId,
       scope: input.scope,
-      days: 7
-    }).catch(() => [] as Array<{ date: string; l2: number; l3: number; l4: number }>)
+      days: 7,
+    }).catch(
+      () => [] as Array<{ date: string; l2: number; l3: number; l4: number }>,
+    ),
   ]);
   return {
     document_count: Number(result.document_count ?? 0),
@@ -568,13 +635,13 @@ export async function getKnowledgeOpsOverviewData(input: {
       memory: Number(result.memory_count ?? 0),
       knowledge: Number(result.knowledge_count ?? 0),
       rule: Number(result.rule_count ?? 0),
-      skill: Number(result.skill_count ?? 0)
+      skill: Number(result.skill_count ?? 0),
     },
     governance_breakdown: {
       approved: Number(result.approved_proposal_count ?? 0),
       rejected: Number(result.rejected_proposal_count ?? 0),
       pending: Number(result.pending_proposal_count ?? 0),
-      auto_promoted: 0
+      auto_promoted: 0,
     },
     trace_count: Number(result.trace_count ?? 0),
     gate_trigger_count: Number(result.gate_trigger_count ?? 0),
@@ -588,12 +655,24 @@ export async function getKnowledgeOpsOverviewData(input: {
       retired_evidence_count: Number(result.retired_evidence_count ?? 0),
       retired_fact_count: Number(result.retired_fact_count ?? 0),
       retired_relation_count: Number(result.retired_relation_count ?? 0),
-      active_full_markdown_document_count: Number(result.active_full_markdown_document_count ?? 0),
-      active_generated_document_count: Number(result.active_generated_document_count ?? 0),
-      active_duplicate_markdown_hash_count: Number(result.active_duplicate_markdown_hash_count ?? 0),
-      active_duplicate_canonical_source_uri_count: Number(result.active_duplicate_canonical_source_uri_count ?? 0),
-      active_temp_test_document_count: Number(result.active_temp_test_document_count ?? 0),
-      active_derived_knowledge_count: Number(result.active_derived_knowledge_count ?? 0)
-    }
+      active_full_markdown_document_count: Number(
+        result.active_full_markdown_document_count ?? 0,
+      ),
+      active_generated_document_count: Number(
+        result.active_generated_document_count ?? 0,
+      ),
+      active_duplicate_markdown_hash_count: Number(
+        result.active_duplicate_markdown_hash_count ?? 0,
+      ),
+      active_duplicate_canonical_source_uri_count: Number(
+        result.active_duplicate_canonical_source_uri_count ?? 0,
+      ),
+      active_temp_test_document_count: Number(
+        result.active_temp_test_document_count ?? 0,
+      ),
+      active_derived_knowledge_count: Number(
+        result.active_derived_knowledge_count ?? 0,
+      ),
+    },
   };
 }

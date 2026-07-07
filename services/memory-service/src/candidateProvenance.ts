@@ -27,7 +27,8 @@ import {
  *   a) evidence → rule/skill/memory（link_type=source_of）：这条规则从哪轮对话的哪句话抽的
  *   b) rule/skill/memory → entity（relationType=mentions）：这条规则提到了哪些技术实体
  *
- * 失败不抛异常，只打 console.error，避免阻塞 candidate 写入主流程。
+ * 失败不抛异常,但返回 { evidence_link_ok, entity_link_ok, errors } 让调用方可感知。
+ * 所有失败都带 traceId 写 console.error,便于排查。
  */
 export async function persistCandidateProvenance(input: {
   tenantId: string;
@@ -40,8 +41,26 @@ export async function persistCandidateProvenance(input: {
   sourceRef: string;
   sourceType: string;
   artifactTag: string;
-}): Promise<void> {
-  const { tenantId, scope, traceId, targetType, targetId, title, content, sourceRef, sourceType, artifactTag } = input;
+}): Promise<{
+  evidence_link_ok: boolean;
+  entity_link_ok: boolean;
+  errors: string[];
+}> {
+  const {
+    tenantId,
+    scope,
+    traceId,
+    targetType,
+    targetId,
+    title,
+    content,
+    sourceRef,
+    sourceType,
+    artifactTag,
+  } = input;
+  const errors: string[] = [];
+  let evidenceLinkOk = false;
+  let entityLinkOk = false;
 
   // ─── a) evidence → rule/skill/memory（source_of 关联） ───
   // 把 candidate 的 source_ref + content 作为 evidence，记录"这条规则从哪抽的"
@@ -73,8 +92,14 @@ export async function persistCandidateProvenance(input: {
       confidence: 1.0,
       traceId,
     });
+    evidenceLinkOk = true;
   } catch (e) {
-    console.error(`[candidateProvenance] evidence link failed for ${targetType} ${targetId}:`, e);
+    const errMsg = e instanceof Error ? e.message : String(e);
+    // 结构化日志:带 traceId / targetType / targetId,便于关联
+    console.error(
+      `[candidateProvenance] evidence link failed trace_id=${traceId} target=${targetType}:${targetId} error=${errMsg}`,
+    );
+    errors.push(`evidence_link_failed: ${errMsg}`);
   }
 
   // ─── b) rule/skill/memory → entity（mentions 关联） ───
@@ -108,9 +133,20 @@ export async function persistCandidateProvenance(input: {
         traceId,
       });
     }
+    entityLinkOk = true;
   } catch (e) {
-    console.error(`[candidateProvenance] entity extraction failed for ${targetType} ${targetId}:`, e);
+    const errMsg = e instanceof Error ? e.message : String(e);
+    console.error(
+      `[candidateProvenance] entity extraction failed trace_id=${traceId} target=${targetType}:${targetId} error=${errMsg}`,
+    );
+    errors.push(`entity_link_failed: ${errMsg}`);
   }
+
+  return {
+    evidence_link_ok: evidenceLinkOk,
+    entity_link_ok: entityLinkOk,
+    errors,
+  };
 }
 
 /**
@@ -158,7 +194,8 @@ function extractTechEntities(text: string): ExtractedEntity[] {
 
   // 2. use* / with* 前缀的 hook/util 名（useEffect / useMemo / withTimeout）
   // 这类可能不被 CamelCase 正则命中（如果首字母小写）
-  const hookMatches = text.match(/\b(use[A-Z][a-zA-Z0-9]*|with[A-Z][a-zA-Z0-9]*)\b/g) ?? [];
+  const hookMatches =
+    text.match(/\b(use[A-Z][a-zA-Z0-9]*|with[A-Z][a-zA-Z0-9]*)\b/g) ?? [];
   for (const match of hookMatches) {
     const slug = match.toLowerCase();
     if (seen.has(slug)) continue;
@@ -172,7 +209,17 @@ function extractTechEntities(text: string): ExtractedEntity[] {
 
   // 3. 英文全大写缩写（CI / PR / API / DOM / JSON / TSC）
   const abbrMatches = text.match(/\b[A-Z]{2,5}\b/g) ?? [];
-  const abbrBlacklist = new Set(["A", "I", "OK", "TODO", "FIXME", "NOT", "AND", "OR", "THE"]);
+  const abbrBlacklist = new Set([
+    "A",
+    "I",
+    "OK",
+    "TODO",
+    "FIXME",
+    "NOT",
+    "AND",
+    "OR",
+    "THE",
+  ]);
   for (const match of abbrMatches) {
     if (abbrBlacklist.has(match)) continue;
     const slug = match.toLowerCase();
@@ -189,10 +236,38 @@ function extractTechEntities(text: string): ExtractedEntity[] {
   // 抽 2-4 字中文词组，过滤常见停用词
   const cjkText = text.replace(/[^\u4e00-\u9fff]/g, "");
   const cjkStopwords = new Set([
-    "的了在是", "我和就", "不都一", "上也", "很到", "说要", "去你会", "着看好",
-    "这个", "那个", "可以", "需要", "应该", "必须", "不要", "不能",
-    "什么", "怎么", "为什", "么", "如果", "因为", "所以", "但是",
-    "用户", "系统", "我们", "你们", "他们", "自己", "一个", "这个",
+    "的了在是",
+    "我和就",
+    "不都一",
+    "上也",
+    "很到",
+    "说要",
+    "去你会",
+    "着看好",
+    "这个",
+    "那个",
+    "可以",
+    "需要",
+    "应该",
+    "必须",
+    "不要",
+    "不能",
+    "什么",
+    "怎么",
+    "为什",
+    "么",
+    "如果",
+    "因为",
+    "所以",
+    "但是",
+    "用户",
+    "系统",
+    "我们",
+    "你们",
+    "他们",
+    "自己",
+    "一个",
+    "这个",
   ]);
   for (let i = 0; i < cjkText.length - 1; i++) {
     const bigram = cjkText.slice(i, i + 2);
@@ -214,13 +289,87 @@ function extractTechEntities(text: string): ExtractedEntity[] {
 
 function isTechBigram(bigram: string): boolean {
   const techChars = new Set([
-    "类", "型", "规", "范", "错", "误", "处", "理", "状", "态", "管", "理",
-    "组", "件", "钩", "子", "依", "赖", "数", "组", "提", "交", "分", "支",
-    "合", "并", "冲", "突", "重", "试", "超", "时", "校", "验", "环", "境",
-    "变", "量", "日", "志", "级", "别", "结", "构", "化", "测", "试", "审",
-    "查", "回", "收", "废", "弃", "升", "级", "降", "权", "遗", "忘", "演",
-    "进", "扫", "描", "假", "设", "推", "理", "证", "据", "合", "成", "知",
-    "识", "图", "谱", "实", "体", "事", "实", "关", "系",
+    "类",
+    "型",
+    "规",
+    "范",
+    "错",
+    "误",
+    "处",
+    "理",
+    "状",
+    "态",
+    "管",
+    "理",
+    "组",
+    "件",
+    "钩",
+    "子",
+    "依",
+    "赖",
+    "数",
+    "组",
+    "提",
+    "交",
+    "分",
+    "支",
+    "合",
+    "并",
+    "冲",
+    "突",
+    "重",
+    "试",
+    "超",
+    "时",
+    "校",
+    "验",
+    "环",
+    "境",
+    "变",
+    "量",
+    "日",
+    "志",
+    "级",
+    "别",
+    "结",
+    "构",
+    "化",
+    "测",
+    "试",
+    "审",
+    "查",
+    "回",
+    "收",
+    "废",
+    "弃",
+    "升",
+    "级",
+    "降",
+    "权",
+    "遗",
+    "忘",
+    "演",
+    "进",
+    "扫",
+    "描",
+    "假",
+    "设",
+    "推",
+    "理",
+    "证",
+    "据",
+    "合",
+    "成",
+    "知",
+    "识",
+    "图",
+    "谱",
+    "实",
+    "体",
+    "事",
+    "实",
+    "关",
+    "系",
   ]);
   for (const ch of bigram) {
     if (techChars.has(ch)) return true;
@@ -231,9 +380,34 @@ function isTechBigram(bigram: string): boolean {
 function inferEntityType(name: string): string {
   const lower = name.toLowerCase();
   // 已知框架/库
-  const frameworks = new Set(["react", "redux", "zustand", "vite", "next", "vue", "angular", "svelte"]);
-  const libraries = new Set(["typescript", "javascript", "eslint", "prettier", "jest", "vitest", "storybook"]);
-  const tools = new Set(["npm", "git", "webpack", "rollup", "esbuild", "turbopack", "babel"]);
+  const frameworks = new Set([
+    "react",
+    "redux",
+    "zustand",
+    "vite",
+    "next",
+    "vue",
+    "angular",
+    "svelte",
+  ]);
+  const libraries = new Set([
+    "typescript",
+    "javascript",
+    "eslint",
+    "prettier",
+    "jest",
+    "vitest",
+    "storybook",
+  ]);
+  const tools = new Set([
+    "npm",
+    "git",
+    "webpack",
+    "rollup",
+    "esbuild",
+    "turbopack",
+    "babel",
+  ]);
 
   if (frameworks.has(lower)) return "framework";
   if (libraries.has(lower)) return "library";

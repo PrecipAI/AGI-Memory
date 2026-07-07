@@ -14,95 +14,107 @@
  */
 
 const TYPE_COLORS = {
-  entity:    '#06b6d4',
-  fact:      '#10b981',
-  knowledge: '#f59e0b',
-  evidence:  '#3b82f6',
-  proposal:  '#f43f5e',
-  rule:      '#8b5cf6',
-  memory:    '#ec4899',
-  skill:     '#14b8a6'
+  entity: "#2A6B8C", // 深青蓝 — 版 C 感知层
+  fact: "#5B8C5A", // 苔绿 — 版 C 事实
+  knowledge: "#C68B3C", // 赭石 — 版 C Knowledge 层身份色
+  evidence: "#4A7A8C", // 暮青蓝 — 证据
+  proposal: "#B5684D", // terra-dim — 治理提案
+  rule: "#7C5B9E", // 暖紫 — 版 C Rule 层身份色
+  memory: "#3A6B9C", // 暖青蓝 — 记忆(版 C 暖色系)
+  skill: "#CC785C", // 赤陶橙 — 版 C 主 accent,Skill 核心
 };
 
 const TYPE_NAMES = {
-  entity: '实体',
-  fact: '事实',
-  knowledge: '知识',
-  evidence: '证据',
-  proposal: '治理提案',
-  rule: '规则',
-  memory: '记忆',
-  skill: '技能'
+  entity: "实体",
+  fact: "事实",
+  knowledge: "知识",
+  evidence: "证据",
+  proposal: "治理提案",
+  rule: "规则",
+  memory: "记忆",
+  skill: "技能",
 };
 
 // 环半径定义（外圈 → 内核）
 const RING_RADII = {
-  evidence:  400,
-  fact:      400,
-  entity:    400,
+  evidence: 400,
+  fact: 400,
+  entity: 400,
   knowledge: 260,
-  memory:    150,
-  rule:       80,
-  skill:      30
+  memory: 150,
+  rule: 80,
+  skill: 30,
 };
 
 const RING_LABELS = [
-  { r: 400, label: 'Perception · 感知层', color: 'rgba(100,160,220,0.18)' },
-  { r: 260, label: 'Knowledge · 知识层',   color: 'rgba(245,158,11,0.18)' },
-  { r: 150, label: 'Memory · 记忆层',      color: 'rgba(236,72,153,0.18)' },
-  { r: 80,  label: 'Rule · 规则层',        color: 'rgba(139,92,246,0.18)' },
-  { r: 30,  label: 'Skill · 技能核',       color: 'rgba(20,184,166,0.18)' }
+  { r: 400, label: "Perception · 感知层", color: "rgba(74, 122, 140, 0.22)" }, // 暮青蓝
+  { r: 260, label: "Knowledge · 知识层", color: "rgba(198, 139, 60, 0.22)" }, // 赭石
+  { r: 150, label: "Memory · 记忆层", color: "rgba(58, 107, 156, 0.22)" }, // 暖青蓝
+  { r: 80, label: "Rule · 规则层", color: "rgba(124, 91, 158, 0.22)" }, // 暖紫
+  { r: 30, label: "Skill · 技能核", color: "rgba(204, 120, 92, 0.30)" }, // 赤陶橙(核心,稍强)
 ];
 
 const BASE_SIZES = {
-  entity:    [14, 22],
-  fact:      [8, 14],
-  evidence:  [7, 12],
+  entity: [14, 22],
+  fact: [8, 14],
+  evidence: [7, 12],
   knowledge: [18, 28],
-  memory:    [11, 17],
-  rule:      [13, 20],
-  skill:     [11, 16],
-  proposal:  [10, 16]
+  memory: [11, 17],
+  rule: [13, 20],
+  skill: [11, 16],
+  proposal: [10, 16],
 };
 
 const GOVERNANCE_RELATIONS = new Set([
-  'supports', 'contradicts', 'supersedes', 'complements',
-  'refines', 'constrains', 'applies_to'
+  "supports",
+  "contradicts",
+  "supersedes",
+  "complements",
+  "refines",
+  "constrains",
+  "applies_to",
 ]);
 
 const RELATION_COLORS = {
-  supports:         '#10b981',
-  contradicts:      '#ef4444',
-  supersedes:       '#f59e0b',
-  complements:      '#3b82f6',
-  refines:          '#8b5cf6',
-  constrains:       '#ec4899',
-  applies_to:       '#14b8a6',
-  // 补全常用关系色（mock 数据 + 后端默认关系）
-  integrates_with:  '#06b6d4',
-  triggers:         '#f43f5e',
-  describes:        '#94a3b8',
-  synthesized_from: '#f59e0b',
-  evidenced_by:     '#3b82f6',
-  proposed_for:     '#ec4899',
-  iterates_from:    '#a855f7'
+  // 版 C 暖色系关系色 — 全部基于 terra / 四层身份色 / 派生暖色
+  supports: "#5B8C5A", // 苔绿 — 支持
+  contradicts: "#B85450", // 暖红 — 矛盾
+  supersedes: "#C68B3C", // 赭石 — 覆写
+  complements: "#4A7A8C", // 暮青蓝 — 互补
+  refines: "#7C5B9E", // 暖紫 — 细化
+  constrains: "#B5684D", // terra-dim — 约束
+  applies_to: "#CC785C", // 赤陶橙 — 适用(主 accent)
+  // 补全常用关系色
+  integrates_with: "#2A6B8C", // 深青蓝 — 集成
+  triggers: "#B85450", // 暖红 — 触发
+  describes: "#7A6F5F", // 暖灰 — 描述(中性)
+  synthesized_from: "#C68B3C", // 赭石 — 合成自
+  evidenced_by: "#4A7A8C", // 暮青蓝 — 证据
+  proposed_for: "#B5684D", // terra-dim — 提议
+  iterates_from: "#7C5B9E", // 暖紫 — 迭代自
+  mentions: "#CC785C", // 赤陶橙 — 提到(memory→entity 高频关系,用主 accent 突出)
+  source_of: "#C68B3C", // 赭石 — 来源(evidence→rule/skill/memory)
+  derived_from: "#7C5B9E", // 暖紫 — 派生自(跨层派生)
 };
 
 const RELATION_LABELS = {
-  integrates_with:  '集成',
-  triggers:         '触发',
-  describes:        '描述',
-  synthesized_from: '合成自',
-  evidenced_by:     '证据',
-  proposed_for:     '提议',
-  iterates_from:    '迭代自',
-  supports:         '支持',
-  contradicts:      '矛盾',
-  supersedes:       '覆写',
-  complements:      '互补',
-  refines:          '细化',
-  constrains:       '约束',
-  applies_to:       '适用'
+  integrates_with: "集成",
+  triggers: "触发",
+  describes: "描述",
+  synthesized_from: "合成自",
+  evidenced_by: "证据",
+  proposed_for: "提议",
+  iterates_from: "迭代自",
+  supports: "支持",
+  contradicts: "矛盾",
+  supersedes: "覆写",
+  complements: "互补",
+  refines: "细化",
+  constrains: "约束",
+  applies_to: "适用",
+  mentions: "提到",
+  source_of: "来源",
+  derived_from: "派生自",
 };
 
 const MAX_NODES_FULL_QUALITY = 400;
@@ -112,14 +124,23 @@ class KnowledgeGraphOnion {
   constructor(containerId, options = {}) {
     this.containerId = containerId;
     this.container = document.getElementById(containerId);
-    if (!this.container) throw new Error(`KnowledgeGraphOnion: container #${containerId} not found`);
+    if (!this.container)
+      throw new Error(
+        `KnowledgeGraphOnion: container #${containerId} not found`,
+      );
 
     this.onNodeClick = options.onNodeClick || (() => {});
     this.onHover = options.onHover || (() => {});
-    this.searchTerm = (options.searchTerm || '').toLowerCase();
+    this.searchTerm = (options.searchTerm || "").toLowerCase();
     this.showTypes = options.showTypes || {
-      entity: true, fact: true, knowledge: true, evidence: true,
-      proposal: true, rule: true, memory: true, skill: true
+      entity: true,
+      fact: true,
+      knowledge: true,
+      evidence: true,
+      proposal: true,
+      rule: true,
+      memory: true,
+      skill: true,
     };
 
     this.canvas = null;
@@ -154,15 +175,15 @@ class KnowledgeGraphOnion {
     const width = this.container.clientWidth;
     const height = this.container.clientHeight;
 
-    this.canvas = document.createElement('canvas');
+    this.canvas = document.createElement("canvas");
     this.canvas.width = width * (window.devicePixelRatio || 1);
     this.canvas.height = height * (window.devicePixelRatio || 1);
     this.canvas.style.width = `${width}px`;
     this.canvas.style.height = `${height}px`;
-    this.canvas.style.cursor = 'default';
+    this.canvas.style.cursor = "default";
     this.container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
 
     this.centerX = width / 2;
@@ -175,12 +196,28 @@ class KnowledgeGraphOnion {
   }
 
   _buildStarField(width, height) {
-    this.starFieldCanvas = document.createElement('canvas');
+    this.starFieldCanvas = document.createElement("canvas");
     this.starFieldCanvas.width = width;
     this.starFieldCanvas.height = height;
-    const sctx = this.starFieldCanvas.getContext('2d');
+    const sctx = this.starFieldCanvas.getContext("2d");
 
-    sctx.fillStyle = '#030308';
+    // 版 C 暖夜墨底 — 不是冷蓝深空,是带温度的暗夜(呼应奶油纸的暖色系)
+    sctx.fillStyle = "#1A1814";
+    sctx.fillRect(0, 0, width, height);
+
+    // 微弱暖色径向晕染(像旧纸在暗光下的颗粒感)
+    const warmGlow = sctx.createRadialGradient(
+      width / 2,
+      height / 2,
+      0,
+      width / 2,
+      height / 2,
+      Math.max(width, height) * 0.7,
+    );
+    warmGlow.addColorStop(0, "rgba(204, 120, 92, 0.04)");
+    warmGlow.addColorStop(0.5, "rgba(122, 111, 95, 0.02)");
+    warmGlow.addColorStop(1, "rgba(26, 24, 20, 0)");
+    sctx.fillStyle = warmGlow;
     sctx.fillRect(0, 0, width, height);
 
     const starCount = 600;
@@ -192,10 +229,10 @@ class KnowledgeGraphOnion {
       if (r < 0.02) {
         size = 1.5 + Math.random() * 1.5;
         alpha = 0.7 + Math.random() * 0.3;
-        // 微小 glow
+        // 微小 glow — 暖米白而非冷蓝白
         const grad = sctx.createRadialGradient(x, y, 0, x, y, size * 3);
-        grad.addColorStop(0, `rgba(200,220,255,${alpha})`);
-        grad.addColorStop(1, 'rgba(200,220,255,0)');
+        grad.addColorStop(0, `rgba(245, 240, 232, ${alpha})`);
+        grad.addColorStop(1, "rgba(245, 240, 232, 0)");
         sctx.fillStyle = grad;
         sctx.beginPath();
         sctx.arc(x, y, size * 3, 0, Math.PI * 2);
@@ -207,8 +244,9 @@ class KnowledgeGraphOnion {
         size = 0.2 + Math.random() * 0.6;
         alpha = 0.1 + Math.random() * 0.25;
       }
-      const hue = 200 + Math.random() * 60;
-      sctx.fillStyle = `hsla(${hue}, 40%, 85%, ${alpha})`;
+      // 暖色调星光:hue 30-60(米黄/暖灰)而非 200-260(冷蓝)
+      const hue = 30 + Math.random() * 30;
+      sctx.fillStyle = `hsla(${hue}, 30%, 88%, ${alpha})`;
       sctx.beginPath();
       sctx.arc(x, y, size, 0, Math.PI * 2);
       sctx.fill();
@@ -216,35 +254,40 @@ class KnowledgeGraphOnion {
   }
 
   _buildTooltip() {
-    this.tooltipEl = document.createElement('div');
+    this.tooltipEl = document.createElement("div");
+    // 版 C · 奶油底 tooltip — 跟外围 UI 配色一致,Canvas 内仍保留深色场景
     this.tooltipEl.style.cssText = `
       position: fixed;
       pointer-events: none;
       z-index: 10000;
-      background: rgba(11, 17, 32, 0.92);
-      border: 1px solid #334155;
-      border-radius: 6px;
-      padding: 8px 10px;
+      background: rgba(251, 248, 242, 0.96);
+      border: 1px solid #D9CFBF;
+      border-left: 3px solid #CC785C;
+      border-radius: 4px;
+      padding: 10px 12px;
       font-size: 12px;
-      color: #f1f5f9;
+      color: #1A1814;
       max-width: 260px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 16px rgba(26, 24, 20, 0.15);
       opacity: 0;
       transition: opacity 0.1s ease;
       backdrop-filter: blur(4px);
+      font-family: 'Inter', sans-serif;
     `;
     document.body.appendChild(this.tooltipEl);
   }
 
   _bindEvents() {
     const canvas = this.canvas;
-    canvas.addEventListener('pointerdown', this._onPointerDown.bind(this));
-    canvas.addEventListener('pointermove', this._onPointerMove.bind(this));
-    canvas.addEventListener('pointerup', this._onPointerUp.bind(this));
-    canvas.addEventListener('pointerleave', this._onPointerLeave.bind(this));
-    canvas.addEventListener('wheel', this._onWheel.bind(this), { passive: false });
-    canvas.addEventListener('click', this._onClick.bind(this));
-    window.addEventListener('resize', this._onResize.bind(this));
+    canvas.addEventListener("pointerdown", this._onPointerDown.bind(this));
+    canvas.addEventListener("pointermove", this._onPointerMove.bind(this));
+    canvas.addEventListener("pointerup", this._onPointerUp.bind(this));
+    canvas.addEventListener("pointerleave", this._onPointerLeave.bind(this));
+    canvas.addEventListener("wheel", this._onWheel.bind(this), {
+      passive: false,
+    });
+    canvas.addEventListener("click", this._onClick.bind(this));
+    window.addEventListener("resize", this._onResize.bind(this));
   }
 
   _onResize() {
@@ -255,7 +298,7 @@ class KnowledgeGraphOnion {
     this.canvas.height = height * (window.devicePixelRatio || 1);
     this.canvas.style.width = `${width}px`;
     this.canvas.style.height = `${height}px`;
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
     this.centerX = width / 2;
     this.centerY = height / 2;
@@ -268,14 +311,14 @@ class KnowledgeGraphOnion {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top,
       clientX: e.clientX,
-      clientY: e.clientY
+      clientY: e.clientY,
     };
   }
 
   _screenToWorld(x, y) {
     return {
       x: (x - this.panX) / this.zoom,
-      y: (y - this.panY) / this.zoom
+      y: (y - this.panY) / this.zoom,
     };
   }
 
@@ -291,7 +334,7 @@ class KnowledgeGraphOnion {
     } else {
       this.isPanning = true;
       this.lastPointer = pos;
-      this.canvas.style.cursor = 'grabbing';
+      this.canvas.style.cursor = "grabbing";
     }
   }
 
@@ -312,10 +355,10 @@ class KnowledgeGraphOnion {
         this.hoveredNode = hit;
         if (hit) {
           this._showTooltip(hit, pos.clientX, pos.clientY);
-          this.canvas.style.cursor = 'pointer';
+          this.canvas.style.cursor = "pointer";
         } else {
           this._hideTooltip();
-          this.canvas.style.cursor = 'default';
+          this.canvas.style.cursor = "default";
         }
         this.onHover(hit);
       } else if (hit) {
@@ -332,7 +375,7 @@ class KnowledgeGraphOnion {
       if (this.simulation) this.simulation.alphaTarget(0);
     }
     this.isPanning = false;
-    this.canvas.style.cursor = this.hoveredNode ? 'pointer' : 'default';
+    this.canvas.style.cursor = this.hoveredNode ? "pointer" : "default";
   }
 
   _onPointerLeave() {
@@ -340,14 +383,17 @@ class KnowledgeGraphOnion {
     this.isPanning = false;
     this.draggedNode = null;
     this._hideTooltip();
-    this.canvas.style.cursor = 'default';
+    this.canvas.style.cursor = "default";
   }
 
   _onWheel(e) {
     e.preventDefault();
     const pos = this._getMousePos(e);
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    const newZoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoom * delta));
+    const newZoom = Math.max(
+      this.minZoom,
+      Math.min(this.maxZoom, this.zoom * delta),
+    );
     const ratio = newZoom / this.zoom;
     this.panX = pos.x - (pos.x - this.panX) * ratio;
     this.panY = pos.y - (pos.y - this.panY) * ratio;
@@ -361,7 +407,13 @@ class KnowledgeGraphOnion {
     const hit = this._hitTest(world.x, world.y);
     if (hit) {
       this.selectedNode = hit;
-      this.onNodeClick({ id: hit.id, name: hit.name, type: hit.type, raw: hit.raw, degree: hit.degree });
+      this.onNodeClick({
+        id: hit.id,
+        name: hit.name,
+        type: hit.type,
+        raw: hit.raw,
+        degree: hit.degree,
+      });
     } else {
       this.selectedNode = null;
     }
@@ -382,25 +434,45 @@ class KnowledgeGraphOnion {
     if (!this.tooltipEl) return;
     const d = node.raw || {};
     const typeName = TYPE_NAMES[node.type] || node.type;
-    const title = d.canonical_name || d.title || d.proposed_action || d.statement || d.content || node.name;
-    const utility = typeof d.utility_score === 'number' ? d.utility_score.toFixed(2) : '无';
-    const confidence = typeof d.confidence_score === 'number' ? d.confidence_score.toFixed(2) : '无';
+    const title =
+      d.canonical_name ||
+      d.title ||
+      d.proposed_action ||
+      d.statement ||
+      d.content ||
+      node.name;
+    const utility =
+      typeof d.utility_score === "number" ? d.utility_score.toFixed(2) : "无";
+    const confidence =
+      typeof d.confidence_score === "number"
+        ? d.confidence_score.toFixed(2)
+        : "无";
     this.tooltipEl.innerHTML = `
-      <div style="font-weight:600;color:${TYPE_COLORS[node.type]};margin-bottom:4px;">[${typeName}] ${this._escapeHtml(String(title).slice(0, 40))}</div>
-      <div style="color:#94a3b8;font-size:11px;">连接数: ${node.degree} · utility: ${utility} · 置信度: ${confidence}</div>
-      <div style="color:#64748b;font-size:10px;margin-top:4px;">${String(node.id).slice(0, 12)}...</div>
+      <div style="font-weight:600;color:${TYPE_COLORS[node.type]};margin-bottom:4px;font-family:'Fraunces',Georgia,serif;">[${typeName}] ${this._escapeHtml(String(title).slice(0, 40))}</div>
+      <div style="color:#7A6F5F;font-size:11px;font-family:'JetBrains Mono',monospace;">连接数: ${node.degree} · utility: ${utility} · 置信度: ${confidence}</div>
+      <div style="color:#A39885;font-size:10px;margin-top:4px;font-family:'JetBrains Mono',monospace;">${String(node.id).slice(0, 12)}...</div>
     `;
     this.tooltipEl.style.left = `${clientX + 14}px`;
     this.tooltipEl.style.top = `${clientY + 14}px`;
-    this.tooltipEl.style.opacity = '1';
+    this.tooltipEl.style.opacity = "1";
   }
 
   _hideTooltip() {
-    if (this.tooltipEl) this.tooltipEl.style.opacity = '0';
+    if (this.tooltipEl) this.tooltipEl.style.opacity = "0";
   }
 
   _escapeHtml(str) {
-    return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    return str.replace(
+      /[&<>"']/g,
+      (m) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[m],
+    );
   }
 
   _startAnimation() {
@@ -421,16 +493,16 @@ class KnowledgeGraphOnion {
       degreeMap.set(id, (degreeMap.get(id) ?? 0) + 1);
     };
 
-    (data.relations || []).forEach(r => {
-      bumpDegree(String(r.from_object_id ?? ''));
-      bumpDegree(String(r.to_object_id ?? ''));
+    (data.relations || []).forEach((r) => {
+      bumpDegree(String(r.from_object_id ?? ""));
+      bumpDegree(String(r.to_object_id ?? ""));
     });
-    (data.evidence_trace || []).forEach(et => {
-      bumpDegree(String(et.synthesized_knowledge_id ?? ''));
-      bumpDegree(String(et.evidence_id ?? ''));
+    (data.evidence_trace || []).forEach((et) => {
+      bumpDegree(String(et.synthesized_knowledge_id ?? ""));
+      bumpDegree(String(et.evidence_id ?? ""));
     });
-    (data.governance_proposals || []).forEach(p => {
-      bumpDegree(String(p.target_object_id ?? ''));
+    (data.governance_proposals || []).forEach((p) => {
+      bumpDegree(String(p.target_object_id ?? ""));
       bumpDegree(String(p.id));
     });
 
@@ -439,18 +511,91 @@ class KnowledgeGraphOnion {
       if (!id || nodeIndex.has(id)) return;
       if (!this.showTypes[type]) return;
       const degree = degreeMap.get(id) ?? 0;
-      this.nodes.push({ id, name: name || id.slice(0, 8), type, raw, degree, x: 0, y: 0, vx: 0, vy: 0, radius: 10 });
+      this.nodes.push({
+        id,
+        name: name || id.slice(0, 8),
+        type,
+        raw,
+        degree,
+        x: 0,
+        y: 0,
+        vx: 0,
+        vy: 0,
+        radius: 10,
+      });
       nodeIndex.set(id, this.nodes.length - 1);
     };
 
-    (data.entities || []).forEach(e => pushNode(String(e.id), String(e.canonical_name || e.name || 'entity'), 'entity', e));
-    (data.facts || []).forEach(f => pushNode(String(f.id), String(f.title || f.normalized_statement || 'fact').slice(0, 40), 'fact', f));
-    (data.synthesized_knowledge || []).forEach(k => pushNode(String(k.id), String(k.title || 'synthesized').slice(0, 40), 'knowledge', k));
-    (data.evidence || []).forEach(ev => pushNode(String(ev.id || ev.evidence_id || ''), String(ev.content_excerpt || ev.fact_statement || ev.content || ev.statement || 'evidence').slice(0, 40), 'evidence', ev));
-    (data.governance_proposals || []).forEach(p => pushNode(String(p.id), String(p.proposed_action || 'proposal').slice(0, 40), 'proposal', p));
-    (data.rules || []).forEach(r => pushNode(String(r.id), String(r.title || r.rule_key || 'rule').slice(0, 40), 'rule', r));
-    (data.memories || []).forEach(m => pushNode(String(m.id), String(m.title || 'memory').slice(0, 40), 'memory', m));
-    (data.skills || []).forEach(s => pushNode(String(s.id), String(s.title || s.skill_key || 'skill').slice(0, 40), 'skill', s));
+    (data.entities || []).forEach((e) =>
+      pushNode(
+        String(e.id),
+        String(e.canonical_name || e.name || "entity"),
+        "entity",
+        e,
+      ),
+    );
+    (data.facts || []).forEach((f) =>
+      pushNode(
+        String(f.id),
+        String(f.title || f.normalized_statement || "fact").slice(0, 40),
+        "fact",
+        f,
+      ),
+    );
+    (data.synthesized_knowledge || []).forEach((k) =>
+      pushNode(
+        String(k.id),
+        String(k.title || "synthesized").slice(0, 40),
+        "knowledge",
+        k,
+      ),
+    );
+    (data.evidence || []).forEach((ev) =>
+      pushNode(
+        String(ev.id || ev.evidence_id || ""),
+        String(
+          ev.content_excerpt ||
+            ev.fact_statement ||
+            ev.content ||
+            ev.statement ||
+            "evidence",
+        ).slice(0, 40),
+        "evidence",
+        ev,
+      ),
+    );
+    (data.governance_proposals || []).forEach((p) =>
+      pushNode(
+        String(p.id),
+        String(p.proposed_action || "proposal").slice(0, 40),
+        "proposal",
+        p,
+      ),
+    );
+    (data.rules || []).forEach((r) =>
+      pushNode(
+        String(r.id),
+        String(r.title || r.rule_key || "rule").slice(0, 40),
+        "rule",
+        r,
+      ),
+    );
+    (data.memories || []).forEach((m) =>
+      pushNode(
+        String(m.id),
+        String(m.title || "memory").slice(0, 40),
+        "memory",
+        m,
+      ),
+    );
+    (data.skills || []).forEach((s) =>
+      pushNode(
+        String(s.id),
+        String(s.title || s.skill_key || "skill").slice(0, 40),
+        "skill",
+        s,
+      ),
+    );
 
     this.lodMode = this.nodes.length > MAX_NODES_FULL_QUALITY;
     if (this.nodes.length > MAX_NODES_AGGREGATE) {
@@ -460,25 +605,25 @@ class KnowledgeGraphOnion {
     this._computeNodeSizes();
 
     const linkSources = [
-      ...(data.relations || []).map(r => ({
-        source: String(r.from_object_id ?? ''),
-        target: String(r.to_object_id ?? ''),
-        type: 'relation',
-        rel: r.relation_type
+      ...(data.relations || []).map((r) => ({
+        source: String(r.from_object_id ?? ""),
+        target: String(r.to_object_id ?? ""),
+        type: "relation",
+        rel: r.relation_type,
       })),
-      ...(data.evidence_trace || []).map(et => ({
-        source: String(et.synthesized_knowledge_id ?? ''),
-        target: String(et.evidence_id ?? ''),
-        type: 'evidence',
-        rel: 'evidenced_by'
+      ...(data.evidence_trace || []).map((et) => ({
+        source: String(et.synthesized_knowledge_id ?? ""),
+        target: String(et.evidence_id ?? ""),
+        type: "evidence",
+        rel: "evidenced_by",
       })),
-      ...(data.governance_proposals || []).map(p => ({
-        source: String(p.target_object_id ?? ''),
+      ...(data.governance_proposals || []).map((p) => ({
+        source: String(p.target_object_id ?? ""),
         target: String(p.id),
-        type: 'proposal',
-        rel: 'proposed_for'
-      }))
-    ].filter(l => nodeIndex.has(l.source) && nodeIndex.has(l.target));
+        type: "proposal",
+        rel: "proposed_for",
+      })),
+    ].filter((l) => nodeIndex.has(l.source) && nodeIndex.has(l.target));
     this.links = linkSources;
 
     this._initNodePositions();
@@ -500,7 +645,7 @@ class KnowledgeGraphOnion {
 
   _computeNodeSizes() {
     const byType = {};
-    this.nodes.forEach(n => {
+    this.nodes.forEach((n) => {
       byType[n.type] = byType[n.type] || [];
       byType[n.type].push(n);
     });
@@ -520,7 +665,7 @@ class KnowledgeGraphOnion {
     this.centerX = width / 2;
     this.centerY = height / 2;
 
-    this.nodes.forEach(n => {
+    this.nodes.forEach((n) => {
       const targetR = RING_RADII[n.type] || 300;
       const angle = Math.random() * Math.PI * 2;
       const r = targetR + (Math.random() - 0.5) * 30;
@@ -532,20 +677,31 @@ class KnowledgeGraphOnion {
   _startSimulation() {
     if (this.simulation) this.simulation.stop();
 
-    this.simulation = d3.forceSimulation(this.nodes)
-      .force('link', d3.forceLink(this.links, d => d.id)
-        .id(d => d.id)
-        .distance(d => this._isGovernanceEdge(d) ? 180 : 50)
-        .strength(d => this._isGovernanceEdge(d) ? 0.08 : 0.04))
-      .force('charge', d3.forceManyBody().strength(-8))
-      .force('collide', d3.forceCollide().radius(d => d.radius + 3).strength(0.6))
+    this.simulation = d3
+      .forceSimulation(this.nodes)
+      .force(
+        "link",
+        d3
+          .forceLink(this.links, (d) => d.id)
+          .id((d) => d.id)
+          .distance((d) => (this._isGovernanceEdge(d) ? 180 : 50))
+          .strength((d) => (this._isGovernanceEdge(d) ? 0.08 : 0.04)),
+      )
+      .force("charge", d3.forceManyBody().strength(-8))
+      .force(
+        "collide",
+        d3
+          .forceCollide()
+          .radius((d) => d.radius + 3)
+          .strength(0.6),
+      )
       .alphaDecay(0.03)
       .velocityDecay(0.6);
 
-    this.simulation.on('tick', () => {
+    this.simulation.on("tick", () => {
       const cx = this.centerX;
       const cy = this.centerY;
-      this.nodes.forEach(n => {
+      this.nodes.forEach((n) => {
         const targetR = RING_RADII[n.type] || 300;
         const dx = n.x - cx;
         const dy = n.y - cy;
@@ -560,7 +716,7 @@ class KnowledgeGraphOnion {
 
   _isGovernanceEdge(link) {
     const rel = link.rel || link.type;
-    return GOVERNANCE_RELATIONS.has(rel) || link.type === 'proposal';
+    return GOVERNANCE_RELATIONS.has(rel) || link.type === "proposal";
   }
 
   _render() {
@@ -568,11 +724,11 @@ class KnowledgeGraphOnion {
     const width = this.container.clientWidth;
     const height = this.container.clientHeight;
 
-    // 1. 清屏 → 深空背景
+    // 1. 清屏 → 暖夜墨背景(版 C)
     if (this.starFieldCanvas) {
       ctx.drawImage(this.starFieldCanvas, 0, 0, width, height);
     } else {
-      ctx.fillStyle = '#030308';
+      ctx.fillStyle = "#1A1814";
       ctx.fillRect(0, 0, width, height);
     }
 
@@ -603,35 +759,37 @@ class KnowledgeGraphOnion {
   _drawRings(ctx) {
     const cx = this.centerX;
     const cy = this.centerY;
-    // 洋葱剖面：环之间淡色填充区分层
+    // 洋葱剖面:环之间暖色填充区分层 — 版 C 配色
     const ringFills = [
-      { r: 400, fill: 'rgba(100,160,220,0.03)' },  // 感知层外
-      { r: 260, fill: 'rgba(245,158,11,0.04)' },   // 知识层
-      { r: 150, fill: 'rgba(236,72,153,0.05)' },    // 记忆层
-      { r: 80,  fill: 'rgba(139,92,246,0.06)' },   // 规则层
-      { r: 30,  fill: 'rgba(20,184,166,0.10)' }     // 技能核
+      { r: 400, fill: "rgba(74, 122, 140, 0.05)" }, // 感知层外(暮青蓝)
+      { r: 260, fill: "rgba(198, 139, 60, 0.06)" }, // 知识层(赭石)
+      { r: 150, fill: "rgba(58, 107, 156, 0.07)" }, // 记忆层(暖青蓝)
+      { r: 80, fill: "rgba(124, 91, 158, 0.08)" }, // 规则层(暖紫)
+      { r: 30, fill: "rgba(204, 120, 92, 0.14)" }, // 技能核(赤陶橙,核心稍强)
     ];
-    ringFills.forEach(ring => {
+    ringFills.forEach((ring) => {
       ctx.beginPath();
       ctx.arc(cx, cy, ring.r, 0, Math.PI * 2);
       ctx.fillStyle = ring.fill;
       ctx.fill();
     });
-    // 环线（更明显）
-    RING_LABELS.forEach(ring => {
+    // 环线 — 暖灰虚线(不再是冷白)
+    RING_LABELS.forEach((ring) => {
       ctx.beginPath();
       ctx.arc(cx, cy, ring.r, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+      ctx.strokeStyle = "rgba(245, 240, 232, 0.18)";
       ctx.setLineDash([4, 6]);
       ctx.lineWidth = 1;
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // 标签（更亮）
-      ctx.font = '600 12px system-ui';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'bottom';
-      ctx.fillStyle = ring.color.replace(/0\.18\)/, '0.55)');
+      // 标签 — Fraunces 衬线,暖色
+      ctx.font = "500 12px Fraunces, Georgia, serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.fillStyle = ring.color
+        .replace(/0\.22\)/, "0.65)")
+        .replace(/0\.30\)/, "0.75)");
       ctx.fillText(ring.label, cx, cy - ring.r - 8);
     });
   }
@@ -644,16 +802,23 @@ class KnowledgeGraphOnion {
     // 收集需要画关系标签的边（选中节点的直连边）
     const labeledEdges = [];
 
-    this.links.forEach(link => {
-      const source = typeof link.source === 'object' ? link.source : this.nodes.find(n => n.id === link.source);
-      const target = typeof link.target === 'object' ? link.target : this.nodes.find(n => n.id === link.target);
+    this.links.forEach((link) => {
+      const source =
+        typeof link.source === "object"
+          ? link.source
+          : this.nodes.find((n) => n.id === link.source);
+      const target =
+        typeof link.target === "object"
+          ? link.target
+          : this.nodes.find((n) => n.id === link.target);
       if (!source || !target || source._hidden || target._hidden) return;
 
       const isGov = this._isGovernanceEdge(link);
-      const relColor = RELATION_COLORS[link.rel] || (isGov ? '#f59e0b' : '#475569');
+      const relColor =
+        RELATION_COLORS[link.rel] || (isGov ? "#C68B3C" : "#7A6F5F");
 
-      let alpha = isGov ? 0.35 : 0.12;
-      let width = isGov ? 1.5 : 0.6;
+      let alpha = isGov ? 0.35 : 0.28; // 版 C:non-gov 从 0.12 提到 0.28,暖墨底上才看得见
+      let width = isGov ? 1.5 : 1.0; // 版 C:non-gov 从 0.6 提到 1.0,避免太细看不清
       let isHighlighted = false;
 
       if (searchActive) {
@@ -661,7 +826,8 @@ class KnowledgeGraphOnion {
         const tMatch = this._nodeMatchesSearch(target);
         alpha = sMatch || tMatch ? alpha : alpha * 0.1;
       } else if (connectedIds) {
-        const involved = connectedIds.has(source.id) && connectedIds.has(target.id);
+        const involved =
+          connectedIds.has(source.id) && connectedIds.has(target.id);
         if (involved) {
           // 选中节点的直连边：高亮加粗
           alpha = 0.95;
@@ -693,13 +859,13 @@ class KnowledgeGraphOnion {
       ctx.lineTo(target.x, target.y);
       ctx.stroke();
 
-      // 跨环流动粒子（evidence_trace 类型）
-      if (link.type === 'evidence' && !this.lodMode) {
+      // 跨环流动粒子(evidence_trace 类型)— 版 C 暮青蓝
+      if (link.type === "evidence" && !this.lodMode) {
         const t = (this.time * 0.5 + (source.x + source.y) * 0.001) % 1;
         const px = source.x + (target.x - source.x) * t;
         const py = source.y + (target.y - source.y) * t;
         ctx.globalAlpha = alpha * 1.5;
-        ctx.fillStyle = '#3b82f6';
+        ctx.fillStyle = "#4A7A8C";
         ctx.beginPath();
         ctx.arc(px, py, 2.5, 0, Math.PI * 2);
         ctx.fill();
@@ -709,7 +875,12 @@ class KnowledgeGraphOnion {
 
       // 记录高亮边用于标签绘制
       if (isHighlighted) {
-        labeledEdges.push({ source, target, relColor, rel: link.rel || link.type });
+        labeledEdges.push({
+          source,
+          target,
+          relColor,
+          rel: link.rel || link.type,
+        });
       }
     });
 
@@ -719,26 +890,26 @@ class KnowledgeGraphOnion {
       labeledEdges.forEach(({ source, target, relColor, rel }) => {
         const midX = (source.x + target.x) / 2;
         const midY = (source.y + target.y) / 2;
-        const label = RELATION_LABELS[rel] || rel || '';
+        const label = RELATION_LABELS[rel] || rel || "";
         if (!label) return;
         ctx.save();
         ctx.translate(midX, midY);
         ctx.scale(invZoom, invZoom);
-        ctx.font = '600 10px Inter, sans-serif';
+        ctx.font = "500 10px Inter, sans-serif";
         const w = ctx.measureText(label).width + 10;
         const h = 16;
-        // 背景
-        ctx.fillStyle = 'rgba(11,17,32,0.92)';
+        // 背景 — 暖墨底而非冷蓝
+        ctx.fillStyle = "rgba(26, 24, 20, 0.92)";
         ctx.strokeStyle = relColor;
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.roundRect(-w/2, -h/2, w, h, 3);
+        ctx.roundRect(-w / 2, -h / 2, w, h, 3);
         ctx.fill();
         ctx.stroke();
         // 文字
         ctx.fillStyle = relColor;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
         ctx.fillText(label, 0, 0);
         ctx.restore();
       });
@@ -750,12 +921,13 @@ class KnowledgeGraphOnion {
     const selectedId = this.selectedNode?.id;
     const connectedIds = selectedId ? this._getConnectedIds(selectedId) : null;
 
-    this.nodes.forEach(n => {
+    this.nodes.forEach((n) => {
       if (n._hidden) return;
-      const color = TYPE_COLORS[n.type] || '#64748b';
+      const color = TYPE_COLORS[n.type] || "#64748b";
 
       // 呼吸动画
-      const breathe = 1 + Math.sin(this.time * 1.5 + this._hashId(n.id) * 0.3) * 0.05;
+      const breathe =
+        1 + Math.sin(this.time * 1.5 + this._hashId(n.id) * 0.3) * 0.05;
       const r = n.radius * breathe;
 
       let opacity = 1;
@@ -781,7 +953,7 @@ class KnowledgeGraphOnion {
       // L2 中层辉光
       if (!this.lodMode) {
         const grad2 = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, r * 1.5);
-        grad2.addColorStop(0, 'rgba(255,255,255,0.6)');
+        grad2.addColorStop(0, "rgba(255,255,255,0.6)");
         grad2.addColorStop(0.5, this._withAlpha(color, 0.8));
         grad2.addColorStop(1, this._withAlpha(color, 0));
         ctx.fillStyle = grad2;
@@ -797,7 +969,7 @@ class KnowledgeGraphOnion {
       ctx.fill();
 
       // L4 白热中心
-      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.fillStyle = "rgba(255,255,255,0.8)";
       ctx.beginPath();
       ctx.arc(n.x, n.y, r * 0.2, 0, Math.PI * 2);
       ctx.fill();
@@ -811,16 +983,16 @@ class KnowledgeGraphOnion {
     const n = this.selectedNode;
     const r = n.radius;
 
-    // 外圈扩散环
+    // 外圈扩散环 — 暖米白(版 C)而非冷白
     const pulseR = r * 1.8 + Math.sin(this.time * 3) * 4;
-    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.strokeStyle = "rgba(245, 240, 232, 0.65)";
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.arc(n.x, n.y, pulseR, 0, Math.PI * 2);
     ctx.stroke();
 
-    // 12 条放射光线
-    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    // 12 条放射光线 — 暖米白
+    ctx.strokeStyle = "rgba(245, 240, 232, 0.35)";
     ctx.lineWidth = 1;
     for (let i = 0; i < 12; i++) {
       const angle = (i / 12) * Math.PI * 2 + this.time * 0.5;
@@ -838,18 +1010,23 @@ class KnowledgeGraphOnion {
   _drawLabels(ctx) {
     const labelAlpha = Math.min(1, (this.zoom - 0.6) / 0.6);
     const showAll = this.zoom >= 1.2;
-    const alwaysShow = new Set(['knowledge', 'entity', 'rule', 'proposal']);
+    const alwaysShow = new Set(["knowledge", "entity", "rule", "proposal"]);
 
-    this.nodes.forEach(n => {
+    this.nodes.forEach((n) => {
       if (n._hidden) return;
-      const shouldShow = alwaysShow.has(n.type) || showAll || n === this.hoveredNode || n === this.selectedNode;
+      const shouldShow =
+        alwaysShow.has(n.type) ||
+        showAll ||
+        n === this.hoveredNode ||
+        n === this.selectedNode;
       if (!shouldShow) return;
 
-      ctx.font = '500 10px system-ui';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.fillStyle = `rgba(241, 245, 249, ${labelAlpha})`;
-      ctx.shadowColor = '#000';
+      ctx.font = "500 10px Inter, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      // 暖米白标签(版 C)而非冷蓝白
+      ctx.fillStyle = `rgba(245, 240, 232, ${labelAlpha})`;
+      ctx.shadowColor = "#1A1814";
       ctx.shadowBlur = 3;
       const label = String(n.name).slice(0, 20);
       ctx.fillText(label, n.x, n.y + n.radius + 4);
@@ -876,16 +1053,19 @@ class KnowledgeGraphOnion {
   _nodeMatchesSearch(node) {
     if (!this.searchTerm) return false;
     const d = node.raw || {};
-    const haystack = `${node.name} ${d.canonical_name || ''} ${d.title || ''} ${d.statement || ''} ${d.content || ''} ${d.proposed_action || ''} ${d.description || ''} ${d.content_excerpt || ''}`.toLowerCase();
+    const haystack =
+      `${node.name} ${d.canonical_name || ""} ${d.title || ""} ${d.statement || ""} ${d.content || ""} ${d.proposed_action || ""} ${d.description || ""} ${d.content_excerpt || ""}`.toLowerCase();
     return haystack.includes(this.searchTerm);
   }
 
   _getConnectedIds(nodeId) {
     if (!this._connectedCache || this._connectedCache.id !== nodeId) {
       const ids = new Set([nodeId]);
-      this.links.forEach(link => {
-        const s = typeof link.source === 'object' ? link.source.id : link.source;
-        const t = typeof link.target === 'object' ? link.target.id : link.target;
+      this.links.forEach((link) => {
+        const s =
+          typeof link.source === "object" ? link.source.id : link.source;
+        const t =
+          typeof link.target === "object" ? link.target.id : link.target;
         if (s === nodeId) ids.add(t);
         if (t === nodeId) ids.add(s);
       });
@@ -895,10 +1075,10 @@ class KnowledgeGraphOnion {
   }
 
   _renderInfo() {
-    const el = document.getElementById('graph-render-info');
+    const el = document.getElementById("graph-render-info");
     if (!el) return;
     let text = `${this.nodes.length} 节点 / ${this.links.length} 边`;
-    if (this.lodMode) text += '（已聚合）';
+    if (this.lodMode) text += "（已聚合）";
     if (this.searchTerm) text += ` · 搜索"${this.searchTerm}"`;
     el.textContent = text;
   }
@@ -913,7 +1093,10 @@ class KnowledgeGraphOnion {
     const requiredSize = (400 + 30) * 2;
     // 选一个让外圈刚好填满画布较短边的 zoom
     const shortSide = Math.min(width, height);
-    this.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, shortSide / requiredSize * 0.9));
+    this.zoom = Math.max(
+      this.minZoom,
+      Math.min(this.maxZoom, (shortSide / requiredSize) * 0.9),
+    );
     this.panX = width / 2 - this.centerX * this.zoom;
     this.panY = height / 2 - this.centerY * this.zoom;
   }
@@ -923,7 +1106,7 @@ class KnowledgeGraphOnion {
   }
 
   setSearch(term) {
-    this.searchTerm = (term || '').toLowerCase();
+    this.searchTerm = (term || "").toLowerCase();
     this._renderInfo();
   }
 
@@ -934,10 +1117,16 @@ class KnowledgeGraphOnion {
   // 从外部选中节点（节点列表点击时调用）
   selectNodeById(id) {
     const sid = String(id);
-    const node = this.nodes.find(n => n.id === sid);
+    const node = this.nodes.find((n) => n.id === sid);
     if (node) {
       this.selectedNode = node;
-      this.onNodeClick({ id: node.id, name: node.name, type: node.type, raw: node.raw, degree: node.degree });
+      this.onNodeClick({
+        id: node.id,
+        name: node.name,
+        type: node.type,
+        raw: node.raw,
+        degree: node.degree,
+      });
     } else {
       this.selectedNode = null;
     }
@@ -974,4 +1163,5 @@ class KnowledgeGraphOnion {
 }
 
 export { KnowledgeGraphOnion };
-if (typeof window !== 'undefined') window.KnowledgeGraphOnion = KnowledgeGraphOnion;
+if (typeof window !== "undefined")
+  window.KnowledgeGraphOnion = KnowledgeGraphOnion;

@@ -19,7 +19,13 @@ type ParsedArgs = {
 function parseArgs(argv: string[]): ParsedArgs {
   const [commandCandidate, ...rest] = argv;
   const options: Record<string, string | boolean> = {};
-  const knownCommands: CommandName[] = ["init", "doctor", "start", "install-host", "help"];
+  const knownCommands: CommandName[] = [
+    "init",
+    "doctor",
+    "start",
+    "install-host",
+    "help",
+  ];
   const command = knownCommands.includes(commandCandidate as CommandName)
     ? (commandCandidate as CommandName)
     : "help";
@@ -52,7 +58,7 @@ function parseArgs(argv: string[]): ParsedArgs {
 
   return {
     command,
-    options
+    options,
   };
 }
 
@@ -61,7 +67,7 @@ function printHelp() {
 
 Usage:
   memory-mcp init [--dir <working-dir>] [--config .memory-mcp/config.json] [--force]
-  memory-mcp install-host --host codex|claude-code [--dir <working-dir>] [--config .memory-mcp/config.json] [--host-config <path>] [--instructions <path>] --yes
+  memory-mcp install-host --host codex|claude-code|trae [--dir <working-dir>] [--config .memory-mcp/config.json] [--host-config <path>] [--instructions <path>] --yes
   memory-mcp doctor [--dir <working-dir>] [--config .memory-mcp/config.json] [--memory-service-url http://127.0.0.1:3101]
   memory-mcp start [--dir <working-dir>] [--config .memory-mcp/config.json] [--memory-service-url http://127.0.0.1:3101]
   memory-mcp --help
@@ -76,16 +82,22 @@ export async function runCli(argv = process.argv.slice(2)): Promise<number> {
     return 0;
   }
 
-  const cwd = resolveCommandCwd(process.cwd(), typeof options.dir === "string" ? options.dir : undefined);
-  const configPathInput = typeof options.config === "string" ? options.config : undefined;
+  const cwd = resolveCommandCwd(
+    process.cwd(),
+    typeof options.dir === "string" ? options.dir : undefined,
+  );
+  const configPathInput =
+    typeof options.config === "string" ? options.config : undefined;
   const memoryServiceUrlOverride =
-    typeof options["memory-service-url"] === "string" ? options["memory-service-url"] : undefined;
+    typeof options["memory-service-url"] === "string"
+      ? options["memory-service-url"]
+      : undefined;
 
   if (command === "init") {
     const result = await initializeMemoryMcp({
       cwd,
       configPathInput,
-      force: Boolean(options.force)
+      force: Boolean(options.force),
     });
 
     for (const file of result.files) {
@@ -101,34 +113,44 @@ export async function runCli(argv = process.argv.slice(2)): Promise<number> {
       configPathInput,
       env: process.env,
       cliOverrides: {
-        memoryServiceUrl: memoryServiceUrlOverride
+        memoryServiceUrl: memoryServiceUrlOverride,
       },
-      executablePath: fileURLToPath(import.meta.url)
+      executablePath: fileURLToPath(import.meta.url),
     });
   }
 
   if (command === "install-host") {
     const host = options.host;
-    if (host !== "codex" && host !== "claude-code") {
-      process.stderr.write("install-host requires --host codex|claude-code\n");
+    if (host !== "codex" && host !== "claude-code" && host !== "trae") {
+      process.stderr.write(
+        "install-host requires --host codex|claude-code|trae\n",
+      );
       return DOCTOR_EXIT_CODES.CONFIG_ERROR;
     }
     const result = await installHost({
       cwd,
       host: host as HostInstallTarget,
       configPathInput,
-      hostConfigPathInput: typeof options["host-config"] === "string" ? options["host-config"] : undefined,
-      instructionsPathInput: typeof options.instructions === "string" ? options.instructions : undefined,
-      yes: Boolean(options.yes)
+      hostConfigPathInput:
+        typeof options["host-config"] === "string"
+          ? options["host-config"]
+          : undefined,
+      instructionsPathInput:
+        typeof options.instructions === "string"
+          ? options.instructions
+          : undefined,
+      yes: Boolean(options.yes),
     });
     if (result.status === "NEEDS_APPROVAL") {
       process.stdout.write(
-        "Status: NEEDS_APPROVAL\n\nThis command writes host config/instruction files. Re-run with --yes after confirming you want backups and edits.\n"
+        "Status: NEEDS_APPROVAL\n\nThis command writes host config/instruction files. Re-run with --yes after confirming you want backups and edits.\n",
       );
       return DOCTOR_EXIT_CODES.CONFIG_ERROR;
     }
     for (const file of result.files) {
-      process.stdout.write(`[${file.status}] ${file.path}${file.backup_path ? `  backup=${file.backup_path}` : ""}\n`);
+      process.stdout.write(
+        `[${file.status}] ${file.path}${file.backup_path ? `  backup=${file.backup_path}` : ""}\n`,
+      );
     }
     process.stdout.write(`\nStatus: ${result.status}\n`);
     return 0;
@@ -138,7 +160,7 @@ export async function runCli(argv = process.argv.slice(2)): Promise<number> {
     await runStart({
       cwd,
       configPathInput,
-      memoryServiceUrlOverride
+      memoryServiceUrlOverride,
     });
     return 0;
   }
@@ -157,8 +179,8 @@ async function runStart(options: {
     configPathInput: options.configPathInput,
     env: process.env,
     cliOverrides: {
-      memoryServiceUrl: options.memoryServiceUrlOverride
-    }
+      memoryServiceUrl: options.memoryServiceUrlOverride,
+    },
   });
   const { server, adapter } = buildMemoryMcpServer(resolved.config);
 
@@ -185,7 +207,9 @@ async function runStart(options: {
       // Keep stdio transport alive until the host closes the process.
     });
   } catch (error) {
-    process.stderr.write(`${error instanceof Error ? error.stack ?? error.message : String(error)}\n`);
+    process.stderr.write(
+      `${error instanceof Error ? (error.stack ?? error.message) : String(error)}\n`,
+    );
     await shutdown(DOCTOR_EXIT_CODES.INTERNAL_ERROR);
   }
 }

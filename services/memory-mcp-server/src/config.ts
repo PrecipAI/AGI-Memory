@@ -6,7 +6,8 @@ export type MemoryMcpConfig = {
   transport: "stdio";
   tenantId: string;
   scope: string;
-  defaultFingerprintStatus: "matched" | "matched_or_na" | "mismatch" | "unknown";
+  defaultFingerprintStatus:
+    "matched" | "matched_or_na" | "mismatch" | "unknown";
   logLevel: "debug" | "info" | "warn" | "error";
 };
 
@@ -39,7 +40,7 @@ const ENV_KEY_BY_CONFIG_KEY: Record<MemoryMcpConfigKey, string> = {
   tenantId: "MEMORY_MCP_TENANT_ID",
   scope: "MEMORY_MCP_SCOPE",
   defaultFingerprintStatus: "MEMORY_MCP_DEFAULT_FINGERPRINT_STATUS",
-  logLevel: "MEMORY_MCP_LOG_LEVEL"
+  logLevel: "MEMORY_MCP_LOG_LEVEL",
 };
 
 export const DEFAULT_CONFIG_DIRNAME = ".memory-mcp";
@@ -51,17 +52,21 @@ export const defaultMemoryMcpConfig: MemoryMcpConfig = {
   tenantId: "tenant-local",
   scope: "memory.validation",
   defaultFingerprintStatus: "unknown",
-  logLevel: "info"
+  logLevel: "info",
 };
 
 export function resolveConfigPath(cwd: string, inputPath?: string): string {
   if (inputPath) {
-    return path.isAbsolute(inputPath) ? inputPath : path.resolve(cwd, inputPath);
+    return path.isAbsolute(inputPath)
+      ? inputPath
+      : path.resolve(cwd, inputPath);
   }
   return path.resolve(cwd, DEFAULT_CONFIG_DIRNAME, DEFAULT_CONFIG_FILENAME);
 }
 
-export async function readMemoryMcpConfig(configPath: string): Promise<MemoryMcpConfig> {
+export async function readMemoryMcpConfig(
+  configPath: string,
+): Promise<MemoryMcpConfig> {
   const raw = await readFile(configPath, "utf8");
   const parsed = JSON.parse(raw) as Partial<MemoryMcpConfig>;
   const merged: MemoryMcpConfig = { ...defaultMemoryMcpConfig };
@@ -77,13 +82,17 @@ export async function readMemoryMcpConfig(configPath: string): Promise<MemoryMcp
 }
 
 export async function resolveMemoryMcpConfig(
-  options: ResolveMemoryMcpConfigOptions
+  options: ResolveMemoryMcpConfigOptions,
 ): Promise<ResolvedMemoryMcpConfig> {
   const configPath = resolveConfigPath(options.cwd, options.configPathInput);
   const env = options.env ?? process.env;
   const cliOverrides = options.cliOverrides ?? {};
   const configExists = await pathExists(configPath);
-  const configFileValues = configExists ? ((JSON.parse(await readFile(configPath, "utf8")) as Partial<MemoryMcpConfig>) ?? {}) : {};
+  const configFileValues = configExists
+    ? ((JSON.parse(
+        await readFile(configPath, "utf8"),
+      ) as Partial<MemoryMcpConfig>) ?? {})
+    : {};
   const envOverrides = buildEnvOverrides(env);
   const merged: MemoryMcpConfig = { ...defaultMemoryMcpConfig };
   const sources = buildDefaultSources();
@@ -116,7 +125,7 @@ export async function resolveMemoryMcpConfig(
     config: merged,
     configPath,
     configExists,
-    sources
+    sources,
   };
 }
 
@@ -133,15 +142,25 @@ export async function pathExists(targetPath: string): Promise<boolean> {
   }
 }
 
-export async function writeJsonFile(filePath: string, payload: unknown): Promise<void> {
+export async function writeJsonFile(
+  filePath: string,
+  payload: unknown,
+): Promise<void> {
   await writeFile(filePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
 }
 
-export async function writeTextFile(filePath: string, payload: string): Promise<void> {
+export async function writeTextFile(
+  filePath: string,
+  payload: string,
+): Promise<void> {
   await writeFile(filePath, payload, "utf8");
 }
 
-export function buildMcpStdioCommand(configPath: string): { command: string; args: string[]; commandArray: string[] } {
+export function buildMcpStdioCommand(configPath: string): {
+  command: string;
+  args: string[];
+  commandArray: string[];
+} {
   const normalizedConfigPath = configPath.replace(/\\/g, "/");
   const shellCommand = process.platform === "win32" ? "cmd" : "npx";
   const shellArgs =
@@ -152,7 +171,7 @@ export function buildMcpStdioCommand(configPath: string): { command: string; arg
   return {
     command: shellCommand,
     args: shellArgs,
-    commandArray: [shellCommand, ...shellArgs]
+    commandArray: [shellCommand, ...shellArgs],
   };
 }
 
@@ -164,42 +183,52 @@ export function buildClientTemplates(configPath: string) {
       mcpServers: {
         "memory-v3": {
           command: shell.command,
-          args: shell.args
-        }
-      }
+          args: shell.args,
+        },
+      },
     },
     "claude-code-project.mcp.json": {
       mcpServers: {
         "memory-v3": {
           command: shell.command,
-          args: shell.args
-        }
-      }
+          args: shell.args,
+        },
+      },
     },
     "claude-desktop.json": {
       mcpServers: {
         "memory-v3": {
           command: shell.command,
-          args: shell.args
-        }
-      }
-    }
+          args: shell.args,
+        },
+      },
+    },
+    "trae-mcp.json": {
+      mcpServers: {
+        "memory-v3": {
+          command: shell.command,
+          args: shell.args,
+        },
+      },
+    },
   };
 }
 
-export function buildClientTemplateFiles(configPath: string): ClientTemplateFile[] {
+export function buildClientTemplateFiles(
+  configPath: string,
+): ClientTemplateFile[] {
   const shell = buildMcpStdioCommand(configPath);
   const jsonTemplates = buildClientTemplates(configPath);
   const openclawConfig = {
     command: shell.command,
-    args: shell.args
+    args: shell.args,
   };
 
   return [
     ...Object.entries(jsonTemplates).map(([fileName, payload]) => ({
       fileName,
       kind: "json" as const,
-      payload
+      payload,
     })),
     {
       fileName: "codex-config.toml",
@@ -209,8 +238,8 @@ export function buildClientTemplateFiles(configPath: string): ClientTemplateFile
         `command = ${JSON.stringify(shell.command)}`,
         `args = ${toTomlStringArray(shell.args)}`,
         "enabled = true",
-        ""
-      ].join("\n")
+        "",
+      ].join("\n"),
     },
     {
       fileName: "opencode.jsonc",
@@ -221,15 +250,15 @@ export function buildClientTemplateFiles(configPath: string): ClientTemplateFile
           "memory-v3": {
             type: "local",
             command: shell.commandArray,
-            enabled: true
-          }
-        }
-      }
+            enabled: true,
+          },
+        },
+      },
     },
     {
       fileName: "openclaw-mcp.json",
       kind: "json",
-      payload: openclawConfig
+      payload: openclawConfig,
     },
     {
       fileName: "openclaw-mcp-set.md",
@@ -244,39 +273,39 @@ export function buildClientTemplateFiles(configPath: string): ClientTemplateFile
         "openclaw mcp show memory-v3 --json",
         "```",
         "",
-        "This only writes OpenClaw MCP registry config. It does not validate the server; run `memory-mcp doctor` first."
-      ].join("\n")
+        "This only writes OpenClaw MCP registry config. It does not validate the server; run `memory-mcp doctor` first.",
+      ].join("\n"),
     },
     {
       fileName: "usage-instructions.md",
       kind: "text",
-      payload: buildUsageInstructions()
+      payload: buildUsageInstructions(),
     },
     {
       fileName: "agent-memory-policy.md",
       kind: "text",
-      payload: buildAgentMemoryPolicy()
+      payload: buildAgentMemoryPolicy(),
     },
     {
       fileName: "codex-AGENTS-snippet.md",
       kind: "text",
-      payload: buildCodexAgentsSnippet()
+      payload: buildCodexAgentsSnippet(),
     },
     {
       fileName: "claude-CLAUDE-snippet.md",
       kind: "text",
-      payload: buildClaudeSnippet()
+      payload: buildClaudeSnippet(),
     },
     {
       fileName: "opencode-instructions-snippet.md",
       kind: "text",
-      payload: buildOpenCodeInstructionsSnippet()
+      payload: buildOpenCodeInstructionsSnippet(),
     },
     {
       fileName: "openclaw-skill-snippet.md",
       kind: "text",
-      payload: buildOpenClawSkillSnippet()
-    }
+      payload: buildOpenClawSkillSnippet(),
+    },
   ];
 }
 
@@ -541,6 +570,39 @@ Reject any candidate that fails its layer's quality gate.
 `;
 }
 
+export function buildTraeSnippet(): string {
+  return `## Memory MCP
+
+Use the \`memory-v3\` MCP server when available in TRAE.
+
+At the start of substantial work, retrieve prior context with \`memory_retrieve_context\`. Use explicit \`fingerprint_status\`; only trust procedural memories as executable guidance when \`fingerprint_status=matched\`.
+
+Treat returned \`Execution Rules\` and \`rule_checklist\` as mandatory. Before writing host configuration, syncing rules/skills, approving governance changes, or deleting long-term memory/knowledge, call \`rule_gate_check\` with evidence. Do not proceed on \`block\`; ask the user on \`ask_user\`.
+
+At the end of verified work, write reusable decisions, fixes, constraints, and preferences with \`memory_ingest_candidate\`. Do not write transient reasoning, secrets, or unverified guesses.
+
+Only run \`memory_run_governance\` when asked by the user or at a deliberate checkpoint. If memory is unavailable, continue and report degraded mode.
+
+### Trae Hooks
+
+Trae hooks (\`.trae/hooks.json\`) are managed by GateMaster. Do not manually edit hook files — they are auto-generated from approved Rules. Hooks use \`.mjs\` ESM format and share \`_lib.mjs\` for BOM stripping, JSON parsing, and output formatting.
+
+### Post-Mortem Protocol
+
+When writing memories or running governance, write a survival guide for a future agent — NOT a log. Extract: Pitfall Warnings (why an approach failed), Breakthrough Actions (the decisive fix), and Environment Constraints (preconditions). Strip all ephemeral variables. Prioritize causality over execution steps.
+
+### Four-Layer Extraction Quality Protocol
+
+Classify each candidate before persisting:
+- **Knowledge**: Entity-Attribute pairs only. No action verbs.
+- **Rule**: IF/THEN mandates. \`[UP-Override]\` for user preferences. No fuzzy language.
+- **Memory**: \`{symptom, root_cause, fix_action, future_trigger}\`. No raw logs.
+- **Skill**: Parameterized with \`{placeholders}\` and \`parameters_list\`. No hardcoded values.
+
+Reject any candidate that fails its layer's quality gate.
+`;
+}
+
 function buildOpenCodeInstructionsSnippet(): string {
   return `# Memory MCP
 
@@ -614,17 +676,23 @@ function buildDefaultSources(): Record<MemoryMcpConfigKey, ConfigSource> {
     tenantId: "default",
     scope: "default",
     defaultFingerprintStatus: "default",
-    logLevel: "default"
+    logLevel: "default",
   };
 }
 
 function buildEnvOverrides(env: NodeJS.ProcessEnv): Partial<MemoryMcpConfig> {
   const overrides: Partial<MemoryMcpConfig> = {};
 
-  for (const [configKey, envKey] of Object.entries(ENV_KEY_BY_CONFIG_KEY) as Array<[MemoryMcpConfigKey, string]>) {
+  for (const [configKey, envKey] of Object.entries(
+    ENV_KEY_BY_CONFIG_KEY,
+  ) as Array<[MemoryMcpConfigKey, string]>) {
     const value = env[envKey];
     if (typeof value === "string" && value.length > 0) {
-      assignPartialConfigValue(overrides, configKey, value as MemoryMcpConfig[MemoryMcpConfigKey]);
+      assignPartialConfigValue(
+        overrides,
+        configKey,
+        value as MemoryMcpConfig[MemoryMcpConfigKey],
+      );
     }
   }
 
@@ -634,7 +702,7 @@ function buildEnvOverrides(env: NodeJS.ProcessEnv): Partial<MemoryMcpConfig> {
 function assignConfigValue(
   target: MemoryMcpConfig,
   key: MemoryMcpConfigKey,
-  value: MemoryMcpConfig[MemoryMcpConfigKey]
+  value: MemoryMcpConfig[MemoryMcpConfigKey],
 ) {
   switch (key) {
     case "memoryServiceUrl":
@@ -650,7 +718,8 @@ function assignConfigValue(
       target.scope = value as MemoryMcpConfig["scope"];
       return;
     case "defaultFingerprintStatus":
-      target.defaultFingerprintStatus = value as MemoryMcpConfig["defaultFingerprintStatus"];
+      target.defaultFingerprintStatus =
+        value as MemoryMcpConfig["defaultFingerprintStatus"];
       return;
     case "logLevel":
       target.logLevel = value as MemoryMcpConfig["logLevel"];
@@ -661,7 +730,7 @@ function assignConfigValue(
 function assignPartialConfigValue(
   target: Partial<MemoryMcpConfig>,
   key: MemoryMcpConfigKey,
-  value: MemoryMcpConfig[MemoryMcpConfigKey]
+  value: MemoryMcpConfig[MemoryMcpConfigKey],
 ) {
   switch (key) {
     case "memoryServiceUrl":
@@ -677,7 +746,8 @@ function assignPartialConfigValue(
       target.scope = value as MemoryMcpConfig["scope"];
       return;
     case "defaultFingerprintStatus":
-      target.defaultFingerprintStatus = value as MemoryMcpConfig["defaultFingerprintStatus"];
+      target.defaultFingerprintStatus =
+        value as MemoryMcpConfig["defaultFingerprintStatus"];
       return;
     case "logLevel":
       target.logLevel = value as MemoryMcpConfig["logLevel"];
