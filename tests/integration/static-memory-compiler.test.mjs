@@ -426,6 +426,7 @@ export function resolve(specifier, context, nextResolve) {
     repoRoot: tempRepo,
     targetHosts: ["trae", "claude_code", "codex_cli"],
     trigger: "immediate",
+    skipTraeMemory: true,
   });
 
   // 4.1 筛选结果
@@ -461,6 +462,7 @@ export function resolve(specifier, context, nextResolve) {
     repoRoot: tempRepo,
     targetHosts: ["trae"],
     trigger: "scheduled",
+    skipTraeMemory: true,
   });
   assert.equal(result2.files[0].status, "unchanged");
   console.log("  ✓ 第二次编译 unchanged");
@@ -551,6 +553,214 @@ async function testScheduler() {
   console.log("  ✓ 状态机字段类型完整");
 }
 
+// ─── 7. S-5 TRAE memory 系统适配器 ────────────────────────────────────
+
+async function testTraeMemoryAdapter() {
+  console.log("\n=== 7. S-5 TRAE memory 系统适配器 ===");
+
+  const {
+    encodeProjectPath,
+    getUserProfilePath,
+    getProjectMemoryPath,
+    getDefaultTraeMemoryRoot,
+    formatTraeUserPreferences,
+    formatTraeProjectConstraints,
+    formatTraeProjectConventions,
+    splitMemoriesByType,
+    writeTraeMemoryFiles,
+  } = await import(
+    "../../services/memory-service/dist/services/memory-service/src/staticMemoryCompiler/traeMemoryAdapter.js"
+  );
+
+  // 7.1 encodeProjectPath 路径编码
+  const encoded = encodeProjectPath("c:\\Users\\yangy\\.qoderworkcn\\workspace");
+  assert.equal(
+    encoded,
+    "-c-Users-yangy--qoderworkcn-workspace",
+    `路径编码错误: ${encoded}`,
+  );
+  console.log("  ✓ encodeProjectPath 路径编码正确");
+
+  // 7.2 getUserProfilePath
+  const userProfilePath = getUserProfilePath("C:\\test\\memory");
+  assert.ok(userProfilePath.endsWith("user_profile.md"), "user_profile.md 路径错误");
+  console.log("  ✓ getUserProfilePath 路径正确");
+
+  // 7.3 getProjectMemoryPath
+  const projectMemoryPath = getProjectMemoryPath(
+    "C:\\test\\memory",
+    "c:\\Users\\test\\project",
+  );
+  assert.ok(
+    projectMemoryPath.includes("projects"),
+    "project_memory.md 路径应包含 projects 目录",
+  );
+  assert.ok(
+    projectMemoryPath.endsWith("project_memory.md"),
+    "project_memory.md 路径错误",
+  );
+  console.log("  ✓ getProjectMemoryPath 路径正确");
+
+  // 7.4 splitMemoriesByType 按 memory_type 分流
+  const mixedMemories = [
+    { id: "m1", title: "user pref", content: "like dark mode", memory_type: "user_memory" },
+    { id: "m2", title: "proj conv", content: "use postgres", memory_type: "project_memory" },
+    { id: "m3", title: "fact", content: "some fact", memory_type: "factual" },
+    { id: "m4", title: "user pref 2", content: "like vim", memory_type: "user_memory" },
+  ];
+  const { userMemories, projectMemories } = splitMemoriesByType(mixedMemories);
+  assert.equal(userMemories.length, 2, "user_memory 应有 2 条");
+  assert.equal(projectMemories.length, 1, "project_memory 应有 1 条");
+  console.log("  ✓ splitMemoriesByType 按 memory_type 分流正确");
+
+  // 7.5 formatTraeUserPreferences 格式化
+  const userPrefsBlock = formatTraeUserPreferences(userMemories);
+  assert.ok(userPrefsBlock.includes("## 用户偏好"), "应包含标题");
+  assert.ok(userPrefsBlock.includes("user pref"), "应包含记忆标题");
+  assert.ok(userPrefsBlock.includes("memory_id=m1"), "应包含来源 ID");
+  console.log("  ✓ formatTraeUserPreferences 格式化正确");
+
+  // 7.6 formatTraeProjectConstraints 格式化
+  const mockRules = [
+    { id: "r1", title: "no push to main", statement: "禁止 push 到 main", enforcement_level: "must" },
+  ];
+  const constraintsBlock = formatTraeProjectConstraints(mockRules);
+  assert.ok(constraintsBlock.includes("## 硬约束"), "应包含硬约束标题");
+  assert.ok(constraintsBlock.includes("no push to main"), "应包含规则标题");
+  assert.ok(constraintsBlock.includes("must"), "应包含执行级别");
+  console.log("  ✓ formatTraeProjectConstraints 格式化正确");
+
+  // 7.7 formatTraeProjectConventions 格式化
+  const conventionsBlock = formatTraeProjectConventions(projectMemories);
+  assert.ok(conventionsBlock.includes("## 工程约定"), "应包含工程约定标题");
+  assert.ok(conventionsBlock.includes("proj conv"), "应包含记忆标题");
+  console.log("  ✓ formatTraeProjectConventions 格式化正确");
+
+  // 7.8 空数组返回空字符串
+  assert.equal(formatTraeUserPreferences([]), "", "空数组应返回空字符串");
+  assert.equal(formatTraeProjectConstraints([]), "", "空数组应返回空字符串");
+  assert.equal(formatTraeProjectConventions([]), "", "空数组应返回空字符串");
+  console.log("  ✓ 空数组返回空字符串");
+
+  // 7.9 writeTraeMemoryFiles 端到端写入临时目录
+  const tempMemoryRoot = await fs.mkdtemp(path.join(os.tmpdir(), "trae-memory-"));
+  const tempProjectPath = "c:\\test\\fake-project";
+
+  const writeResult = await writeTraeMemoryFiles(
+    { memoryRoot: tempMemoryRoot, projectPath: tempProjectPath },
+    {
+      userPreferences: userPrefsBlock,
+      projectConstraints: constraintsBlock,
+      projectConventions: conventionsBlock,
+    },
+  );
+
+  assert.ok(writeResult.userProfile, "userProfile 结果应存在");
+  assert.ok(writeResult.projectMemory, "projectMemory 结果应存在");
+  assert.ok(
+    writeResult.userProfile.status === "created" || writeResult.userProfile.status === "updated",
+    "userProfile 状态应为 created 或 updated",
+  );
+  console.log("  ✓ writeTraeMemoryFiles 写入成功");
+
+  // 7.10 验证 user_profile.md 内容包含 marker 和编译内容
+  const userProfileContent = await fs.readFile(writeResult.userProfile.filePath, "utf8");
+  assert.ok(
+    userProfileContent.includes("<!-- >>> agi-memory trae-user-preferences >>> -->"),
+    "user_profile.md 应包含 trae-user-preferences start marker",
+  );
+  assert.ok(
+    userProfileContent.includes("<!-- <<< agi-memory trae-user-preferences <<< -->"),
+    "user_profile.md 应包含 trae-user-preferences end marker",
+  );
+  assert.ok(
+    userProfileContent.includes("user pref"),
+    "user_profile.md 应包含用户偏好内容",
+  );
+  console.log("  ✓ user_profile.md marker 和内容正确");
+
+  // 7.11 验证 project_memory.md 内容包含两个 marker 区域
+  const projectMemoryContent = await fs.readFile(writeResult.projectMemory.filePath, "utf8");
+  assert.ok(
+    projectMemoryContent.includes("<!-- >>> agi-memory trae-project-constraints >>> -->"),
+    "project_memory.md 应包含 trae-project-constraints start marker",
+  );
+  assert.ok(
+    projectMemoryContent.includes("<!-- <<< agi-memory trae-project-constraints <<< -->"),
+    "project_memory.md 应包含 trae-project-constraints end marker",
+  );
+  assert.ok(
+    projectMemoryContent.includes("<!-- >>> agi-memory trae-project-conventions >>> -->"),
+    "project_memory.md 应包含 trae-project-conventions start marker",
+  );
+  assert.ok(
+    projectMemoryContent.includes("<!-- <<< agi-memory trae-project-conventions <<< -->"),
+    "project_memory.md 应包含 trae-project-conventions end marker",
+  );
+  assert.ok(
+    projectMemoryContent.includes("no push to main"),
+    "project_memory.md 应包含硬约束内容",
+  );
+  assert.ok(
+    projectMemoryContent.includes("proj conv"),
+    "project_memory.md 应包含工程约定内容",
+  );
+  console.log("  ✓ project_memory.md 双 marker 区域正确");
+
+  // 7.12 保留用户手写内容（marker 外的内容不被破坏）
+  // 先在 user_profile.md 的 marker 区域外写入用户手写内容
+  const userProfilePath2 = writeResult.userProfile.filePath;
+  let existingContent = await fs.readFile(userProfilePath2, "utf8");
+  const userHandwritten = "## 我手写的偏好\n- 这是用户手写的内容，不应被覆盖\n";
+  existingContent = `${userHandwritten}\n${existingContent}`;
+  await fs.writeFile(userProfilePath2, existingContent, "utf8");
+
+  // 重新写入编译产物
+  await writeTraeMemoryFiles(
+    { memoryRoot: tempMemoryRoot, projectPath: tempProjectPath },
+    {
+      userPreferences: formatTraeUserPreferences([
+        { id: "m-new", title: "new pref", content: "new preference", memory_type: "user_memory" },
+      ]),
+      projectConstraints: "",
+      projectConventions: "",
+    },
+  );
+
+  const finalContent = await fs.readFile(userProfilePath2, "utf8");
+  assert.ok(
+    finalContent.includes("我手写的偏好"),
+    "用户手写内容应被保留",
+  );
+  assert.ok(
+    finalContent.includes("new pref"),
+    "新编译内容应被写入",
+  );
+  // 旧编译内容应被替换（marker 区域内）
+  assert.ok(
+    !finalContent.includes("user pref\n"),
+    "旧编译内容应被替换",
+  );
+  console.log("  ✓ 保留用户手写内容，marker 区域内容被替换");
+
+  // 7.13 getDefaultTraeMemoryRoot 环境变量优先
+  const oldEnv = process.env.TRAE_MEMORY_ROOT;
+  process.env.TRAE_MEMORY_ROOT = "C:\\custom\\memory";
+  const customRoot = getDefaultTraeMemoryRoot();
+  assert.ok(
+    customRoot.includes("custom"),
+    "环境变量 TRAE_MEMORY_ROOT 应优先",
+  );
+  if (oldEnv === undefined) {
+    delete process.env.TRAE_MEMORY_ROOT;
+  } else {
+    process.env.TRAE_MEMORY_ROOT = oldEnv;
+  }
+  console.log("  ✓ getDefaultTraeMemoryRoot 环境变量优先");
+
+  await fs.rm(tempMemoryRoot, { recursive: true, force: true });
+}
+
 // ─── 6. S-3b 编译后 marker 完整性验证 ───────────────────────────────────
 
 async function testMarkerValidation() {
@@ -570,6 +780,7 @@ async function testMarkerValidation() {
     repoRoot: tempRepo,
     targetHosts: ["trae"],
     trigger: "immediate",
+    skipTraeMemory: true,
   });
   assert.ok(
     Array.isArray(result1.validationIssues),
@@ -598,6 +809,7 @@ async function testMarkerValidation() {
     repoRoot: tempRepo,
     targetHosts: ["trae"],
     trigger: "scheduled",
+    skipTraeMemory: true,
   });
   // 注意：编译会重新写入完整 marker 对，所以验证逻辑捕获的是写入后的状态
   // 写入后 marker 配对完整，validationIssues 仍应为空
@@ -634,6 +846,7 @@ async function main() {
   testHostFormatter();
   await testCompilerWithMockDb();
   await testScheduler();
+  await testTraeMemoryAdapter();
   await testMarkerValidation();
 
   console.log("\n=== 所有测试通过 ===");

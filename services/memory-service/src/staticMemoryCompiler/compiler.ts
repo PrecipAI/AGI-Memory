@@ -43,6 +43,14 @@ import {
   type MarkerKey,
   type UpsertResult,
 } from "./markerManager.js";
+import {
+  formatTraeProjectConstraints,
+  formatTraeProjectConventions,
+  formatTraeUserPreferences,
+  getDefaultTraeMemoryRoot,
+  splitMemoriesByType,
+  writeTraeMemoryFiles,
+} from "./traeMemoryAdapter.js";
 
 export interface CompileInput {
   tenantId: string;
@@ -53,11 +61,28 @@ export interface CompileInput {
   targetHosts?: HostType[];
   /** 触发方式：immediate（审批通过即时编译）| scheduled（定时兜底全量重编译） */
   trigger: "immediate" | "scheduled";
+  /**
+   * TRAE memory 根目录（可选）。
+   * 不传则用 getDefaultTraeMemoryRoot() 自动推导。
+   * 测试时可指定临时目录避免污染真实文件。
+   */
+  traeMemoryRoot?: string;
+  /**
+   * 是否跳过 TRAE memory 文件写入（可选）。
+   * 默认 false。测试 mock 场景可设为 true 避免写真实文件。
+   */
+  skipTraeMemory?: boolean;
 }
+
+/** 编译产物写入的宿主类型，包含宿主原生文件和 TRAE memory 系统文件 */
+export type CompileFileHost =
+  | HostType
+  | "trae_memory_user"
+  | "trae_memory_project";
 
 export interface CompileFileResult {
   path: string;
-  host: HostType;
+  host: CompileFileHost;
   status: "created" | "updated" | "unchanged";
   backupPath?: string;
 }
@@ -76,7 +101,7 @@ export interface CompileResult {
    * 不阻塞编译完成（warn only），但调用方可以据此判断是否需要修复。
    */
   validationIssues: Array<{
-    host: HostType;
+    host: CompileFileHost;
     path: string;
     issues: Array<{ markerKey: string; issue: string }>;
   }>;
@@ -142,12 +167,61 @@ export async function compileStaticMemory(
     })),
   );
 
+  // ── 6.5 TRAE memory 系统文件写入 ──
+  // 按 memory_type 分流：user_memory → user_profile.md，project_memory → project_memory.md
+  // rule → project_memory.md 的 constraints 区域
+  // 与宿主原生文件互补：宿主原生文件写全量，TRAE memory 按类型精准投放
+  // skipTraeMemory=true 时跳过（测试 mock 场景避免污染真实文件）
+  const traeFileResults: CompileFileResult[] = [];
+  if (!input.skipTraeMemory) {
+    const { userMemories, projectMemories } = splitMemoriesByType(
+      memoryFiltered.passed,
+    );
+    const traeUserPrefsBlock = formatTraeUserPreferences(userMemories);
+    const traeProjectConstraintsBlock = formatTraeProjectConstraints(
+      ruleFiltered.passed,
+    );
+    const traeProjectConventionsBlock = formatTraeProjectConventions(
+      projectMemories,
+    );
+
+    const traeMemoryRoot = input.traeMemoryRoot ?? getDefaultTraeMemoryRoot();
+    const traeResult = await writeTraeMemoryFiles(
+      { memoryRoot: traeMemoryRoot, projectPath: input.repoRoot },
+      {
+        userPreferences: traeUserPrefsBlock,
+        projectConstraints: traeProjectConstraintsBlock,
+        projectConventions: traeProjectConventionsBlock,
+      },
+    );
+
+    if (traeResult.userProfile) {
+      traeFileResults.push({
+        path: traeResult.userProfile.filePath,
+        host: "trae_memory_user",
+        status: traeResult.userProfile.status,
+        backupPath: traeResult.userProfile.backupPath,
+      });
+    }
+    if (traeResult.projectMemory) {
+      traeFileResults.push({
+        path: traeResult.projectMemory.filePath,
+        host: "trae_memory_project",
+        status: traeResult.projectMemory.status,
+        backupPath: traeResult.projectMemory.backupPath,
+      });
+    }
+  }
+
   // ── 7. 编译后 marker 完整性验证 ──
   // 对每个写入的文件调 validateMarkerIntegrity，发现 marker 配对问题就记录。
   // 不阻塞返回（warn only），但调用方可以据此判断是否需要修复。
+  const allFileResults = [
+    ...fileResults.filter((r): r is CompileFileResult => r !== null),
+    ...traeFileResults,
+  ];
   const validationIssues: CompileResult["validationIssues"] = [];
-  for (const fileResult of fileResults) {
-    if (!fileResult) continue;
+  for (const fileResult of allFileResults) {
     try {
       const issues = await validateMarkerIntegrity(fileResult.path);
       if (issues.length > 0) {
@@ -175,7 +249,7 @@ export async function compileStaticMemory(
     ruleCount: ruleFiltered.passed.length,
     skillCount: skillFiltered.passed.length,
     memoryCount: memoryFiltered.passed.length,
-    files: fileResults.filter((r): r is CompileFileResult => r !== null),
+    files: allFileResults,
     skipped: [
       ...ruleFiltered.skipped,
       ...skillFiltered.skipped,

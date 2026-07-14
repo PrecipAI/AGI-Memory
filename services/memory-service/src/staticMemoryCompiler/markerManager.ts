@@ -8,7 +8,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 
-// 三组 marker，对应 Rule / Skill / Memory 三层
+// 宿主原生文件的三组 marker（CLAUDE.md / AGENTS.md / .trae/instructions.md）
 export const MARKER_PAIRS = {
   rules: {
     start: "<!-- >>> memory-v3 static-rules >>> -->",
@@ -21,6 +21,20 @@ export const MARKER_PAIRS = {
   memory: {
     start: "<!-- >>> memory-v3 static-memory >>> -->",
     end: "<!-- <<< memory-v3 static-memory <<< -->",
+  },
+  // TRAE memory 系统专用 marker（user_profile.md / project_memory.md）
+  // 与宿主原生 marker 区分，避免 validateMarkerIntegrity 误报
+  trae_user_preferences: {
+    start: "<!-- >>> agi-memory trae-user-preferences >>> -->",
+    end: "<!-- <<< agi-memory trae-user-preferences <<< -->",
+  },
+  trae_project_constraints: {
+    start: "<!-- >>> agi-memory trae-project-constraints >>> -->",
+    end: "<!-- <<< agi-memory trae-project-constraints <<< -->",
+  },
+  trae_project_conventions: {
+    start: "<!-- >>> agi-memory trae-project-conventions >>> -->",
+    end: "<!-- <<< agi-memory trae-project-conventions <<< -->",
   },
 } as const;
 
