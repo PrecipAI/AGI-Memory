@@ -121,6 +121,12 @@ import {
   detectLearningChains,
   type LearningChainEvent,
 } from "./governance/learningChainDetector.js";
+import {
+  startStaticMemoryScheduler,
+  stopStaticMemoryScheduler,
+  getStaticMemorySchedulerStatus,
+  triggerStaticMemoryRecompileNow,
+} from "./staticMemoryCompiler/scheduler.js";
 
 export function buildMemoryServiceApp() {
   const app = Fastify({ logger: false });
@@ -2249,6 +2255,23 @@ export function buildMemoryServiceApp() {
     return result;
   });
 
+  // ─── 41. 静态记忆编译器 - scheduler 状态查询 + 手动触发 ─────────
+  app.get("/internal/static-memory/scheduler/status", async () => {
+    return getStaticMemorySchedulerStatus();
+  });
+
+  app.post("/internal/static-memory/recompile", async (request) => {
+    const context = resolveRequestContext(
+      request.headers as Record<string, unknown>,
+      "static-memory-recompile",
+    );
+    const result = await triggerStaticMemoryRecompileNow();
+    return {
+      trace_id: context.traceId,
+      ...result,
+    };
+  });
+
   // ─── 宿主挂载就绪提示 + 自动注册宿主自带 skill/memory/rule ──────────
   // 服务启动后自动注册内置的宿主 bootstrap 数据（50 skills + 8 memories + 5 rules），
   // 确保仪表盘一打开就能看到宿主全部能力。幂等：重复启动不会产生重复数据。
@@ -2265,6 +2288,31 @@ export function buildMemoryServiceApp() {
       );
     } catch (e) {
       console.error("[host-mount] 宿主数据注册失败:", (e as Error).message);
+    }
+
+    // ─── 41. 静态记忆编译器 - 定时兜底重编译 scheduler ────────────
+    // 服务启动后启动定时兜底（每天 03:00 全量重编译）。
+    // 单租户模式默认开启；可用 STATIC_MEMORY_SCHEDULER_ENABLED=false 禁用。
+    // 多租户模式 spec §10 明确排除，scheduler 内部会自动跳过。
+    try {
+      const schedulerStatus = startStaticMemoryScheduler();
+      console.log(
+        `[static-memory-scheduler] scheduler status: running=${schedulerStatus.running} nextRunAt=${schedulerStatus.nextRunAt ?? "n/a"}`,
+      );
+    } catch (e) {
+      console.error(
+        "[static-memory-scheduler] 启动失败:",
+        (e as Error).message,
+      );
+    }
+  });
+
+  // 服务关闭时停止 scheduler，避免定时器泄漏
+  app.addHook("onClose", async () => {
+    try {
+      stopStaticMemoryScheduler();
+    } catch {
+      // ignore
     }
   });
 

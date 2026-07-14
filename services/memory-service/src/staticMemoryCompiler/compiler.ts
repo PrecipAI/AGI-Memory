@@ -39,6 +39,7 @@ import {
 } from "./hostFormatter.js";
 import {
   upsertMarkedBlock,
+  validateMarkerIntegrity,
   type MarkerKey,
   type UpsertResult,
 } from "./markerManager.js";
@@ -69,6 +70,16 @@ export interface CompileResult {
   skipped: Array<{ id: string; title: string; reason: string }>;
   /** 触发方式，便于审计 */
   trigger: CompileInput["trigger"];
+  /**
+   * 编译后 marker 完整性验证结果。
+   * 写入完成后对每个文件调 validateMarkerIntegrity，记录 marker 配对问题。
+   * 不阻塞编译完成（warn only），但调用方可以据此判断是否需要修复。
+   */
+  validationIssues: Array<{
+    host: HostType;
+    path: string;
+    issues: Array<{ markerKey: string; issue: string }>;
+  }>;
 }
 
 /**
@@ -131,6 +142,35 @@ export async function compileStaticMemory(
     })),
   );
 
+  // ── 7. 编译后 marker 完整性验证 ──
+  // 对每个写入的文件调 validateMarkerIntegrity，发现 marker 配对问题就记录。
+  // 不阻塞返回（warn only），但调用方可以据此判断是否需要修复。
+  const validationIssues: CompileResult["validationIssues"] = [];
+  for (const fileResult of fileResults) {
+    if (!fileResult) continue;
+    try {
+      const issues = await validateMarkerIntegrity(fileResult.path);
+      if (issues.length > 0) {
+        validationIssues.push({
+          host: fileResult.host,
+          path: fileResult.path,
+          issues: issues.map((i) => ({
+            markerKey: String(i.markerKey),
+            issue: i.issue,
+          })),
+        });
+      }
+    } catch {
+      // 验证失败不阻塞编译完成
+    }
+  }
+
+  if (validationIssues.length > 0) {
+    console.warn(
+      `[static-memory-compiler] marker validation issues: ${JSON.stringify(validationIssues)}`,
+    );
+  }
+
   return {
     ruleCount: ruleFiltered.passed.length,
     skillCount: skillFiltered.passed.length,
@@ -142,6 +182,7 @@ export async function compileStaticMemory(
       ...memoryFiltered.skipped,
     ],
     trigger: input.trigger,
+    validationIssues,
   };
 }
 
