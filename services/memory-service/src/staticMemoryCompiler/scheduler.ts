@@ -248,14 +248,69 @@ export function stopStaticMemoryScheduler(): void {
 /**
  * 手动触发一次重编译（不等定时）。
  * 用于 API 触发或测试。
+ *
+ * 与定时触发的区别：
+ *   - 不等 nextRunAt，立即执行
+ *   - 共用 scheduler 状态机（更新 lastRunAt/lastResult/lastError/runCount）
+ *   - 如果定时任务正在跑（state.running=true），会跳过避免并发写冲突
+ *
+ * 返回 CompileResult；如果因并发被跳过则抛错。
  */
 export async function triggerStaticMemoryRecompileNow(): Promise<CompileResult> {
-  return compileStaticMemory({
-    tenantId: getDefaultTenantId(),
-    scope: getDefaultScope(),
-    repoRoot: findRepoRoot(),
-    trigger: "scheduled",
-  });
+  if (state.running) {
+    throw new Error(
+      "[static-memory-scheduler] 定时任务正在运行，手动触发被跳过，请稍后重试",
+    );
+  }
+
+  state.running = true;
+  state.lastRunAt = new Date();
+  state.lastError = null;
+
+  const tenantId = getDefaultTenantId();
+  const scope = getDefaultScope();
+  const repoRoot = findRepoRoot();
+  const traceId = `manual-${Date.now()}`;
+
+  console.log(
+    `[static-memory-scheduler] manual recompile started tenantId=${tenantId} scope=${scope} traceId=${traceId}`,
+  );
+
+  try {
+    const result = await compileStaticMemory({
+      tenantId,
+      scope,
+      repoRoot,
+      trigger: "scheduled",
+    });
+
+    state.lastResult = {
+      ruleCount: result.ruleCount,
+      skillCount: result.skillCount,
+      memoryCount: result.memoryCount,
+      trigger: result.trigger,
+    };
+    state.runCount += 1;
+
+    const changedFiles = result.files
+      .filter((f) => f.status !== "unchanged")
+      .map((f) => `${f.host}:${f.status}`);
+
+    console.log(
+      `[static-memory-scheduler] manual recompile done: ${result.ruleCount} rules + ${result.skillCount} skills + ${result.memoryCount} memories, changed=${changedFiles.length ? changedFiles.join(",") : "none"}, skipped=${result.skipped.length} traceId=${traceId}`,
+    );
+
+    return result;
+  } catch (e) {
+    state.lastError = e instanceof Error ? e.message : String(e);
+    state.lastResult = null;
+    console.warn(
+      `[static-memory-scheduler] manual recompile failed: ${state.lastError} traceId=${traceId}`,
+    );
+    throw e;
+  } finally {
+    state.running = false;
+  }
 }
 
 /**
