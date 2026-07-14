@@ -39,5 +39,10 @@ start-memory-service.ps1
 /tmp-*/
 
 # 自动生成的宿主产物（由 host-actions/execute 运行时生成）
-.trae/
+.trae/*
+# Trae 原生 hook 配置和脚本需要提交到仓库共享
+!.trae/hooks.json
+!.trae/hooks/
+!.trae/hooks/**
+!.trae/mcp.json
 

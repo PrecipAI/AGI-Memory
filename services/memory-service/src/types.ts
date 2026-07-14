@@ -6,6 +6,7 @@ export type NormalizedCandidate = {
   source_type: string;
   source_ref: string;
   artifact_tag: string;
+  layer?: "rule" | "memory" | "skill" | "knowledge" | "evidence" | null;
   error_code?: string | null;
   verification_status: string;
   side_effect_class: string;

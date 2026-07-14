@@ -21,6 +21,7 @@ import { buildMetacognitionMissionBrief } from "./knowledgeModelWorker.js";
 import type { RetrievalGate } from "./retrievalGate.js";
 import { applyRetrievalHook } from "./retrievalHook.js";
 import { semanticRerank } from "./semanticReranker.js";
+import { adaptRetrieveRequestForTrae, buildTraeSessionContextFromRecords } from "./traeRetrieveAdapter.js";
 
 type LayerAccessLoggerInput = {
   tenantId: string;
@@ -631,6 +632,43 @@ export async function buildRetrieveBundle(input: {
   retrievalGate: RetrievalGate;
 }): Promise<MemoryRetrieveResponse> {
   assertRetrieveContract(input.body);
+
+  // §TRAE 适配：检测 host 是否 TRAE，是则改写请求（task_type/task_phase/查询增强/preferred_layers）
+  // 非 TRAE 宿主原样透传，不改变任何行为
+  // 如果调用方（如 MCP memory_retrieve_context_trae 工具）传了 trae_session_records，
+  // 从中提取 intent/actions 作为 sessionContext，让适配器能用会话上下文做精准推断
+  const traeSessionRecordsField = (input.body as Record<string, unknown>).trae_session_records;
+  const traeSessionRecords = Array.isArray(traeSessionRecordsField)
+    ? traeSessionRecordsField.filter((item): item is Record<string, unknown> => item != null && typeof item === "object")
+    : null;
+  const traeSessionContext = traeSessionRecords && traeSessionRecords.length > 0
+    ? buildTraeSessionContextFromRecords(traeSessionRecords)
+    : null;
+  const traeAdaptation = adaptRetrieveRequestForTrae({ body: input.body, sessionContext: traeSessionContext });
+  // 保存原始 query（适配前的值），用于返回值里报告适配效果
+  const traeOriginalQuery = typeof input.body.query === "string" ? input.body.query : null;
+  if (traeAdaptation.adapted) {
+    input.body = traeAdaptation.adaptedBody;
+    // 把 trae_query_boost 增强词拼到 query 后面，让下游 DB 查询（queryFactualMemory 等）能用到
+    // 适配器已保证只有 originalQuery 非空时才设置 boost，所以这里可以安全拼接
+    const boostField = (input.body as Record<string, unknown>).trae_query_boost;
+    if (Array.isArray(boostField) && boostField.length > 0) {
+      const boostText = boostField.filter((t): t is string => typeof t === "string").join(" ");
+      const currentQuery = typeof input.body.query === "string" ? input.body.query : "";
+      if (boostText && currentQuery) {
+        (input.body as { query: string }).query = `${currentQuery} ${boostText}`;
+      }
+    }
+  }
+  const traeAdaptationReport = traeAdaptation.adapted ? {
+    adapted: true as const,
+    variant: traeAdaptation.profile?.variant ?? null,
+    notes: traeAdaptation.notes,
+    original_query: traeOriginalQuery,
+    adapted_query: typeof input.body.query === "string" ? input.body.query : null,
+    query_boost: (input.body as Record<string, unknown>).trae_query_boost ?? null
+  } : null;
+
   const bodyRecord = input.body as Record<string, unknown>;
   const taskType = resolveTaskType(bodyRecord.task_type);
   const taskPhase = resolveTaskPhase(bodyRecord.task_phase, taskType);
@@ -1023,7 +1061,10 @@ export async function buildRetrieveBundle(input: {
     metacognition: finalMetacognition,
     // fix-9: method='llm' 时附 mission_brief，宿主自己用 LLM 评估
     // 宿主不评估则按 metacognition 规则版本用
-    metacognition_mission_brief: metacognitionMissionBrief
+    metacognition_mission_brief: metacognitionMissionBrief,
+    // §TRAE 适配报告（仅 TRAE 宿主有值，非 TRAE 为 null）
+    // 让调用方能验证适配是否生效、variant 是什么、query 被增强成了什么
+    trae_adaptation: traeAdaptationReport
   } as MemoryRetrieveResponse;
 
   await Promise.all([

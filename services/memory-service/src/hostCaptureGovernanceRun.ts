@@ -1452,11 +1452,13 @@ export async function runGovernanceFromExtraction(
   }
 
   // Still apply filterExisting* checks to avoid duplicate memories / rules / skill proposals
+  // runGovernanceFromExtraction 没有 preview 对象,用 taskRequestId 构造 sessionFile 占位符
+  const genericSessionFile = `generic-extraction://${taskRequestId}`;
   const existingMemoryFilter = await filterExistingFactualMemoryCandidates({
     tenantId: input.tenantId,
     scope: input.scope,
     traceId: input.traceId,
-    sessionFile: preview.session_file,
+    sessionFile: genericSessionFile,
     extractionPreview,
   });
   extractionPreview.memory_candidates = existingMemoryFilter.memoryCandidates;
@@ -1465,7 +1467,7 @@ export async function runGovernanceFromExtraction(
     tenantId: input.tenantId,
     scope: input.scope,
     traceId: input.traceId,
-    sessionFile: preview.session_file,
+    sessionFile: genericSessionFile,
     extractionPreview,
   });
   extractionPreview.rule_candidates = existingRuleFilter.ruleCandidates;
@@ -1475,7 +1477,7 @@ export async function runGovernanceFromExtraction(
       tenantId: input.tenantId,
       scope: input.scope,
       traceId: input.traceId,
-      sessionFile: preview.session_file,
+      sessionFile: genericSessionFile,
       extractionPreview,
     });
   extractionPreview.skill_proposal_candidates =

@@ -390,6 +390,10 @@ components:
           type: string
         artifact_tag:
           type: string
+        layer:
+          type: string
+          enum: [rule, memory, skill, knowledge, evidence]
+          description: 路由权威字段。指定后路由依据此字段。
         error_code:
           type: string
         verification_status:

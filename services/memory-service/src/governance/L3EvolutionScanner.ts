@@ -12,6 +12,7 @@
 import { getPool } from "@super-agent/db";
 import { createGovernanceChangeProposal } from "@super-agent/db";
 import { createKnowledgeRelation } from "@super-agent/db";
+import { recordSessionOutcome } from "@super-agent/db";
 import type { SynthesizedKnowledgeMetadata } from "@super-agent/contracts";
 import {
   countAccessByObjectRef,
@@ -98,6 +99,32 @@ export async function scanEvolution(input: {
           : "strengthen",
     });
     proposalIds.push(proposalId);
+
+    // P2-1 回流：SUPERSEDED 信号除生成提案外，还写一条 session_outcomes 记录
+    // 让 knowledge_utility 视图能把"被覆盖的条目"从 success 信号里剥离，
+    // 反哺到下一次召回评分（被覆盖 ≠ 成功，应当降权）。
+    if (signal.signalKind === "SUPERSEDED") {
+      try {
+        await recordSessionOutcome({
+          tenantId: input.tenantId,
+          scope: input.scope,
+          sessionId: input.traceId,
+          outcome: "superseded",
+          retrievedIds: [signal.entryId],
+          classificationOverturned: true,
+          overturnSource: "l3_evolution",
+          scenarioType: "l3_evolution_superseded",
+          traceId: input.traceId,
+        });
+      } catch (err) {
+        // 回流失败不阻断扫描流程，仅记录日志
+        console.warn("[L3EvolutionScanner] SUPERSEDED 回流写入 session_outcomes 失败:", {
+          traceId: input.traceId,
+          entryId: signal.entryId,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
   }
 
   const relations = await discoverCrossLayerRelations(input);

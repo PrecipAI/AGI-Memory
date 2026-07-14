@@ -14,7 +14,7 @@
  */
 
 import { getPool } from "@super-agent/db";
-import { createGovernanceChangeProposal, getLatestThresholdCalibration } from "@super-agent/db";
+import { createGovernanceChangeProposal, getLatestThresholdCalibration, recordSessionOutcome } from "@super-agent/db";
 import { embedKnowledgeQuery, embedKnowledgePassages } from "../embeddingProvider.js";
 
 export type ConflictKind =
@@ -257,6 +257,27 @@ export async function detectConflicts(input: L2ConflictInput): Promise<L2Conflic
       },
       proposedActionType: conflict.proposedAction === "SKIP" ? "delete" : conflict.proposedAction.toLowerCase(),
     });
+  }
+
+  // P2-2: L2 冲突推翻初判时回流 session_outcomes
+  // 只有 SUPERSEDE（被替代）和 HOLD_FOR_REVIEW（待复议）意味着分类判断可能有问题。
+  // SKIP（重复）和 MERGE（扩展）不意味着分类错误。
+  if (blocking && (blocking.proposedAction === "SUPERSEDE" || blocking.proposedAction === "HOLD_FOR_REVIEW")) {
+    try {
+      await recordSessionOutcome({
+        sessionId: input.traceId,
+        traceId: input.traceId,
+        tenantId: input.tenantId,
+        scope: input.scope,
+        scenarioType: `l2_conflict_${blocking.proposedAction.toLowerCase()}`,
+        outcome: "superseded",
+        retrievedIds: [blocking.existingId],
+        classificationOverturned: true,
+        overturnSource: "l2_conflict",
+      });
+    } catch {
+      // session_outcomes 写入失败不阻断冲突检测流程
+    }
   }
 
   return {

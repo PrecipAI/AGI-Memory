@@ -213,6 +213,69 @@ const governanceCandidateBaseSchema = z.object({
     .describe(
       "Metadata object. For rule_candidate, human_readable_statement and classification_rationale are REQUIRED by backend validator.",
     ),
+  // §SelfTest 硬门控：后端强制要求 LLM 显式回答自测问题。
+  // 各层字段不同（后端 hostModelGovernanceAdapter.validateCandidate 做严格验证）：
+  //   rule: { survives_without_project_nouns: boolean, host_layer_gate: boolean }
+  //   memory: { one_month_value: boolean, about_user_not_code: boolean, time_diluted: "temporary"|"stable" }
+  //   knowledge: { ood_threshold: boolean, reusable: boolean, learning_chain_anchored: boolean }
+  //   skill: { executable_with_generic_terms: boolean, proven_multi_step: boolean }
+  // evidence 层不需要 self_test。
+  // 任一字段为 false 或缺失 → 后端 reject，返回错误说明哪个测试没过。
+  self_test: looseObjectSchema
+    .optional()
+    .describe(
+      "Structured self-test answers. REQUIRED for rule/memory/knowledge/skill candidates by backend validator. Each field must be explicitly answered true/false (or 'temporary'/'stable' for memory.time_diluted). If any field is false, do NOT submit this candidate — downgrade or discard it instead.",
+    ),
+  // §Fix-3 强制决策树：后端强制要求 LLM 逐条过 Q1-Q4 决策树并记录中间结果。
+  // 不接受裸结论——decision_reasoning 必须引用命中的 Q 编号。
+  // evidence 候选不需要 classification_trace。
+  classification_trace: z
+    .object({
+      q1_is_gate_decision: z
+        .boolean()
+        .describe("Q1: 这段内容是否决定某个动作能不能被放行？"),
+      q1a_trigger_binds_skill: z
+        .boolean()
+        .nullable()
+        .describe("Q1a: 若Q1命中，触发条件是否绑定具体Skill名称？Q1未命中时填 null"),
+      q2_is_reusable_workflow: z
+        .boolean()
+        .describe("Q2: 这段内容是否是一套可重复执行的步骤序列？"),
+      q3_binds_specific_event: z
+        .boolean()
+        .describe("Q3: 这段内容是否绑定具体一次经历？"),
+      q4_is_general_knowledge: z
+        .boolean()
+        .describe("Q4: 这段内容是否是脱离情境的一般性知识？"),
+      decision_layer: z
+        .enum(["rule", "memory", "skill", "knowledge", "evidence"])
+        .describe("最终分类（必须与 candidate_type 对应的层一致）"),
+      decision_reasoning: z
+        .string()
+        .describe("依据决策树，为什么归入这一层。必须引用命中的 Q 编号（如 Q1 命中，Q1a 不命中）。中文。"),
+    })
+    .optional()
+    .describe(
+      "强制必填（evidence 候选除外）。模型必须逐条过 Q1-Q4 决策树并记录中间结果。后端校验 decision_layer 是否与 candidate_type 一致，decision_reasoning 是否引用了 Q 编号。缺失或不一致 → 后端 reject。",
+    ),
+  // §Fix-2 独立复核：分类结果产出后，换一个视角重新审视。
+  // 这是解决"同一模型既当选手又当裁判"的结构性补救——在同一生成里强制做一次换位复核。
+  review_trace: z
+    .object({
+      review_layer: z
+        .enum(["rule", "memory", "skill", "knowledge", "evidence"])
+        .describe("复核视角的分类（假装你是另一个没看过这次对话的模型，只看 title+content 重新判断）"),
+      review_reasoning: z
+        .string()
+        .describe("复核依据。中文。必须说明为什么复核结果与初判一致或不一致。"),
+      consensus: z
+        .boolean()
+        .describe("复核结果是否与 classification_trace.decision_layer 一致。不一致时后端强制 promotion_status=needs_review。"),
+    })
+    .optional()
+    .describe(
+      "强制必填（evidence 候选除外）。分类结果产出后的独立复核记录。consensus=false 时后端强制标记 needs_review 走人工审批。",
+    ),
 });
 
 const ruleCandidateSchema = governanceCandidateBaseSchema
@@ -358,6 +421,10 @@ const knowledgeCandidateSchema = governanceCandidateBaseSchema
 const governanceEvidenceCandidateSchema = governanceCandidateBaseSchema
   .extend({
     candidate_type: z.literal("governance_evidence_candidate"),
+    // evidence 是原始数据，不需要分类判断——三件套豁免
+    classification_trace: z.any().optional(),
+    review_trace: z.any().optional(),
+    self_test: z.any().optional(),
     evidence_category: z
       .enum([
         "external_source",
@@ -766,6 +833,64 @@ Procedural memory retrieval requires fingerprint_status=matched. Use matched_or_
   );
 
   server.registerTool(
+    "memory_retrieve_context_trae",
+    {
+      title: "Memory Retrieve Context (TRAE)",
+      description:
+        "TRAE 专用召回工具。在标准 memory_retrieve_context 基础上，自动利用 TRAE session_memory 摘要字段（intent/actions/outcome/learned）增强查询：\n" +
+        "1. 检测 TRAE 变体（IDE/Work/generic），推断 task_type\n" +
+        "2. 从 intent 摘要提取中英文关键词作为查询增强词（trae_query_boost）\n" +
+        "3. 设置 TRAE profile 推荐的 preferred_layers\n" +
+        "4. IDE 场景重 actions（execution/coding），Work 场景重 intent（answer/planning）\n\n" +
+        "当 host='trae' 且能提供 session_memory 摘要记录时，优先使用本工具而非 memory_retrieve_context。\n" +
+        "传入 trae_session_records 数组（每条含 intent/actions/outcome/learned 字段），后端会自动提取上下文做适配。",
+      inputSchema: looseObjectSchema,
+    },
+    async (args) => {
+      const raw = (args ?? {}) as Record<string, unknown>;
+      if (process.env.MCP_DEBUG_PAYLOAD) {
+        console.error(
+          `[MCP DEBUG] retrieve_trae handler args keys: ${Object.keys(raw).join(",")} host=${raw.host ?? "MISSING"} records=${Array.isArray(raw.trae_session_records) ? raw.trae_session_records.length : "MISSING"}`,
+        );
+      }
+      if (!raw.task_request_id || typeof raw.task_request_id !== "string") {
+        throw new Error("task_request_id is required (uuid)");
+      }
+      if (!raw.query || typeof raw.query !== "string") {
+        throw new Error("query is required (non-empty)");
+      }
+      // 确保 host 是 TRAE 系列（默认 trae，也接受 trae_ide/trae_work 等变体）
+      if (!raw.host || typeof raw.host !== "string") {
+        raw.host = "trae";
+      }
+      // 兼容 MCP SDK 可能丢失 optional 字段的问题
+      const retrieveBody: Record<string, unknown> = { ...raw };
+      if (retrieveBody.include_procedural === undefined) {
+        retrieveBody.include_procedural = false;
+      }
+      retrieveBody.fingerprint_status = requireToolArgument(
+        raw.fingerprint_status as string | undefined,
+        "fingerprint_status",
+        "FINGERPRINT_STATUS_REQUIRED",
+      );
+      // trae_session_records 透传给后端，由 buildRetrieveBundle 读取并提取 sessionContext
+      // 不在 MCP 层做适配逻辑，保持单一数据源（后端 retrieveBundle.ts）
+      const result = await adapter.retrieve(
+        retrieveBody as Parameters<typeof adapter.retrieve>[0],
+      );
+      return {
+        content: [
+          {
+            type: "text",
+            text: jsonText(result),
+          },
+        ],
+        structuredContent: result,
+      };
+    },
+  );
+
+  server.registerTool(
     "memory_ingest_candidate",
     {
       title: "Memory Ingest Candidate",
@@ -777,6 +902,9 @@ Procedural memory retrieval requires fingerprint_status=matched. Use matched_or_
         source_type: z.string(),
         source_ref: z.string(),
         artifact_tag: z.string(),
+        layer: z.enum(["rule", "memory", "skill", "knowledge", "evidence"]).optional().describe(
+          "路由权威字段。指定后路由依据此字段，artifact_tag 降级为描述字段。如果 layer 和 artifact_tag 语义不一致，后端会拒绝提交。"
+        ),
         error_code: z.string().optional(),
         verification_status: z.string(),
         side_effect_class: z.enum([

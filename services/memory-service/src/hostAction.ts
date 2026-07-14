@@ -82,11 +82,14 @@ export async function fetchPendingHostActions(input: {
   });
 }
 
+// §4.1 Q1a 复核:Rule 被识别为"该并进某个 Skill 的执行步骤"时,标记为 redirected,
+// 不生成 Hook,转而创建 governance_change_proposal(augment_skill_with_rule_step)。
+// listPendingHostActions 的 WHERE 子句只拉 status='pending',redirected 不会被重试。
 export async function markHostActionStatus(input: {
   tenantId: string;
   objectType: "rule" | "skill";
   objectId: string;
-  status: "pending" | "generated" | "done" | "failed";
+  status: "pending" | "generated" | "done" | "failed" | "redirected";
   error?: string | null;
   summary?: string | null;
   traceId: string;

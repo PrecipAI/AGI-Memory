@@ -7,6 +7,8 @@ import type {
   CodexHostSessionListRequest,
   CodexHostSessionListResponse
 } from "./codexHostCapture.js";
+import { detectTraeHostVariant, getTraeHostProfile } from "./traeHostProfile.js";
+import { enhanceTraeExtraction, type TraeExtractionEnhancement } from "./traeExtractionEnhancer.js";
 
 // TRAE session_memory 单行记录的形状
 // 每行是摘要而非对话：{intent, actions, outcome, learned, message_summary_time, message_id}
@@ -43,6 +45,19 @@ export async function previewTraeHostCapture(
   const records = await readTraeRecords(target.session_file);
   const maxItems = normalizeMaxItems(input.max_items);
 
+  // ─── §TRAE 适配：检测宿主变体（IDE/Work/generic）───
+  const variant = detectTraeHostVariant({
+    host: "trae",
+    sessionRecords: records as Array<Record<string, unknown>>
+  });
+  const profile = getTraeHostProfile(variant);
+
+  // ─── §TRAE 适配：结构化增强 session_memory 摘要 ───
+  const enhancement = enhanceTraeExtraction({
+    records,
+    profile
+  });
+
   // TRAE 的 session_memory 每行是摘要不是原始对话。
   // 设计原则：绝不虚构原始对话——trae 宿主的对话原文存在加密 SQLCipher DB 中无法读取，
   // 只能拿到 memory 系统自动生成的摘要（intent/actions/outcome/learned）。
@@ -74,6 +89,27 @@ export async function previewTraeHostCapture(
     }
   }
 
+  // ─── §TRAE 适配：把 learned_knowledge_candidates 作为额外 commentary 消息 ───
+  // 这些是增强器从 learned 字段直接提取的知识候选，不需要 LLM 再抽
+  for (const candidate of enhancement.learned_knowledge_candidates) {
+    messages.push({
+      timestamp: candidate.source_timestamp,
+      role: "commentary",
+      text: `[TRAE增强·知识候选] ${candidate.title} | ${candidate.content}`
+    });
+  }
+
+  // ─── §TRAE 适配：把 execution_traces 作为额外 commentary 消息（IDE 场景）───
+  if (profile.extract_actions_as_trace) {
+    for (const trace of enhancement.execution_traces) {
+      messages.push({
+        timestamp: trace.timestamp,
+        role: "commentary",
+        text: `[TRAE增强·执行轨迹] ${trace.action}`
+      });
+    }
+  }
+
   // trae 摘要模式下没有真正的 user/assistant 消息
   const userMessages: TraeMessage[] = [];
   const assistantMessages: TraeMessage[] = [];
@@ -86,15 +122,23 @@ export async function previewTraeHostCapture(
   const warnings: string[] = [
     "TRAE 宿主仅提供会话摘要，非原始对话（trae 对话原文存于加密 DB 无法读取）。",
     "所有消息标记为 commentary 角色，治理抽取器应基于摘要内容判断而非当作原话。",
-    "corrections/preferences/decisions 信号未提取（避免从摘要描述性词汇虚构信号）。"
+    "corrections/preferences/decisions 信号未提取（避免从摘要描述性词汇虚构信号）。",
+    `§TRAE 适配: 检测到变体=${variant}，已应用 ${profile.variant} profile`
   ];
+  // 把增强说明加到 warnings
+  for (const note of enhancement.enhancement_notes) {
+    warnings.push(`§TRAE 增强: ${note}`);
+  }
   if (commentaryMessages.length === 0) {
     warnings.push("No summary records found in the selected TRAE session_memory file.");
   }
 
-  const quality = commentaryMessages.length > 0 ? "medium" : "low";
+  // 增强后 quality 提升
+  const quality = enhancement.enhanced_quality === "high"
+    ? "high"
+    : (commentaryMessages.length > 0 ? "medium" : "low");
 
-  return {
+  const response: CodexCapturePreviewResponse = {
     host: "trae",
     codex_home: hostHome,
     host_home: hostHome,
@@ -129,7 +173,8 @@ export async function previewTraeHostCapture(
       workspace_paths: [],
       readiness: {
         has_user_intent: commentaryMessages.length > 0,
-        has_execution_trace: false,
+        // §TRAE 适配: 有 execution_traces 时标记 has_execution_trace
+        has_execution_trace: enhancement.execution_traces.length > 0,
         has_tool_trace: false,
         has_corrections: false,
         quality,
@@ -137,6 +182,13 @@ export async function previewTraeHostCapture(
       }
     }
   };
+
+  // §TRAE 适配: 把增强上下文附加到 response（通过类型扩展）
+  // 下游 hostCaptureGovernanceRun 可以读取 trae_enhancement 字段，
+  // 把 learned_knowledge_candidates 直接作为 knowledge_candidates 预填
+  (response as CodexCapturePreviewResponse & { trae_enhancement?: TraeExtractionEnhancement }).trae_enhancement = enhancement;
+
+  return response;
 }
 
 export async function listTraeHostSessions(

@@ -1,4 +1,5 @@
 import { getPool } from "../pool.js";
+import { recordSessionOutcome } from "./knowledge.js";
 
 async function retireByStatus(tableName: "memory" | "rule" | "skill" | "conversation_summary" | "resident_snapshot"): Promise<string[]> {
   const pool = getPool();
@@ -558,7 +559,41 @@ export async function applyGovernanceChangeProposal(input: {
       `,
       [input.tenantId, input.scope, input.proposalId, JSON.stringify(input.humanResponse ?? {}), input.traceId]
     );
-    return rejected.rows[0] ?? null;
+    const rejectedProposal = rejected.rows[0] ?? null;
+
+    // P2-2: 审批推翻时回流 session_outcomes
+    // 如果 reject 原因含"分类错误"信号，写一条 classification_overturned 记录，
+    // 让 L2 阈值校准能感知到分类判断的准确率。
+    if (rejectedProposal) {
+      const feedback = String(input.humanResponse?.feedback ?? "").toLowerCase();
+      const classificationErrorSignals = [
+        "分类", "归类", "层级", "放错", "应该放", "不是rule", "不是memory",
+        "不是knowledge", "不是skill", "不是 rule", "不是 memory",
+        "不是 knowledge", "不是 skill", "wrong layer", "should be",
+        "misclassif", "wrong category", "wrong type",
+      ];
+      const isClassificationError = classificationErrorSignals.some((s) => feedback.includes(s));
+      if (isClassificationError) {
+        // 用 try-catch 包裹，失败不阻断 reject 流程
+        try {
+          await recordSessionOutcome({
+            sessionId: input.traceId,
+            traceId: input.traceId,
+            tenantId: input.tenantId,
+            scope: input.scope,
+            scenarioType: "manual_review_rejected_classification",
+            outcome: "superseded",
+            retrievedIds: rejectedProposal.target_object_id ? [String(rejectedProposal.target_object_id)] : [],
+            classificationOverturned: true,
+            overturnSource: "manual_review",
+          });
+        } catch {
+          // session_outcomes 写入失败不阻断审批流程
+        }
+      }
+    }
+
+    return rejectedProposal;
   }
 
   await pool.query("BEGIN");

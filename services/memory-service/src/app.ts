@@ -696,7 +696,7 @@ export function buildMemoryServiceApp() {
         } | null = null;
         try {
           const summarized = summarizeSession(preview);
-          mission_brief = buildMissionBrief(summarized);
+          mission_brief = buildMissionBrief(summarized, context.traceId);
         } catch {
           // Mission brief is best-effort; batch preview still valid without it
         }
@@ -763,7 +763,7 @@ export function buildMemoryServiceApp() {
         } | null = null;
         try {
           const summarized = summarizeSession(preview);
-          mission_brief = buildMissionBrief(summarized);
+          mission_brief = buildMissionBrief(summarized, context.traceId);
         } catch {
           // Mission brief is best-effort; batch preview still valid without it
         }

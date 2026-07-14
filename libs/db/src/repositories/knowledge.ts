@@ -1328,24 +1328,27 @@ export async function recordSessionOutcome(input: {
   taskDescription?: string;
   retrievedIds?: string[];
   usedIds?: string[];
-  outcome: "success" | "failure" | "failure_recovered" | "knowledge_outdated" | "abandoned";
+  outcome: "success" | "failure" | "failure_recovered" | "knowledge_outdated" | "abandoned" | "superseded";
   toolSuccess?: boolean;
   failureReason?: string;
   scenarioType?: string;
   traceId: string;
+  classificationOverturned?: boolean;
+  overturnSource?: "review_trace" | "l3_evolution" | "l2_conflict" | "manual_review" | "self_test_crosscheck";
 }): Promise<string> {
   const pool = getPool();
+  const classificationOverturned = input.classificationOverturned ?? false;
   const result = await pool.query<{ id: string }>(
     `
     INSERT INTO session_outcomes (
       tenant_id, scope, status, session_id, round_number, task_description,
       retrieved_ids, used_ids, outcome, tool_success, failure_reason,
-      scenario_type, trace_id
+      scenario_type, trace_id, classification_overturned, overturn_source, overturn_detected_at
     )
     VALUES (
       $1, $2, 'active', $3, $4, $5,
       $6::uuid[], $7::uuid[], $8, $9, $10,
-      $11, $12
+      $11, $12, $13, $14, CASE WHEN $13 = true THEN now() ELSE NULL END
     )
     RETURNING id
     `,
@@ -1361,7 +1364,9 @@ export async function recordSessionOutcome(input: {
       input.toolSuccess ?? null,
       input.failureReason ?? null,
       input.scenarioType ?? null,
-      input.traceId
+      input.traceId,
+      classificationOverturned,
+      input.overturnSource ?? null
     ]
   );
   return result.rows[0].id;

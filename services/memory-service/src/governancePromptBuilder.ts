@@ -29,6 +29,48 @@ const EVIDENCE_GOVERNANCE_LEVELS = [...GOVERNANCE_SCOPE_BY_LAYER.governance_evid
 
 const KNOWLEDGE_TYPES = [...VALID_KNOWLEDGE_TYPES].join(" | ");
 
+// P3-1: review_trace 提示词轮换 — 5 个语义等价但措辞不同的版本。
+// 调用 buildMissionBrief 时按 traceId hash 取模选择，确保：
+//   1. 同一 traceId 每次跑都选到同一版本（可复现）
+//   2. 不同 traceId 散列分布到不同版本（避免单一措辞偏差）
+// 注意：只改提示词文本，不改 review_trace schema (review_layer / review_reasoning / consensus)。
+const REVIEW_TRACE_PROMPT_VERSIONS = [
+  // 版本 A（原版）：强调"另一个模型"换位
+  "完成 classification_trace 后，**假装你是另一个完全没有看过这次对话的模型**，只看这条候选的 title + content，重新判断它该归哪一层：",
+  // 版本 B：强调"忽略分类过程"的盲判
+  "**忽略上面的分类过程**，只看 title 和 content，如果这是你第一次见到这段内容，你会把它归到哪一层？",
+  // 版本 C：以"复核员"身份独立校验
+  "作为一个**没参与分类的复核员**，你的任务是验证这个分类是否合理。只依据 title 和 content 做判断，不要被上面的 reasoning 影响。",
+  // 版本 D：通过"假设 classification_trace 不存在"做反事实推断
+  "**假设上面的 classification_trace 不存在**，仅凭 title + content，这条候选应该属于哪一层？给出你的独立判断。",
+  // 版本 E：以"审批人"视角做换位思考
+  "换位思考——如果你是审批人，只看 title 和 content（不看 classification_trace），你会把它分到哪一层？为什么？",
+] as const;
+
+// 占位符：写入 FOUR_LAYER_PROTOCOL 模板，运行时由 buildFourLayerProtocol(traceId) 替换。
+// 不直接用 ${} 插值是因为 FOUR_LAYER_PROTOCOL 是 const 字符串，traceId 在调用期才确定。
+const REVIEW_TRACE_PROMPT_PLACEHOLDER = "__REVIEW_TRACE_PROMPT_VERSION__";
+
+/**
+ * 按 traceId 的 hash 值取模选择 review_trace 提示词版本。
+ *
+ * 设计要求：
+ *   - 同一 traceId 每次都映射到同一版本 → 治理可复现
+ *   - 不同 traceId 散列分布 → 不同候选覆盖不同版本，避免单一措辞偏差污染审计链
+ *
+ * 实现说明：用 djb2-like 字符串 hash，避免引入 crypto 依赖；只要稳定可复现即可。
+ * hash 落在 int32 范围，先 Math.abs 再取模，避免负数索引。
+ */
+export function selectReviewPrompt(traceId: string): string {
+  let hash = 0;
+  for (let i = 0; i < traceId.length; i++) {
+    // djb2 变体：hash * 33 + charCode
+    hash = ((hash << 5) - hash + traceId.charCodeAt(i)) | 0;
+  }
+  const idx = Math.abs(hash) % REVIEW_TRACE_PROMPT_VERSIONS.length;
+  return REVIEW_TRACE_PROMPT_VERSIONS[idx];
+}
+
 // ─── Types ─────────────────────────────────────────────────────────────
 
 export type MissionBrief = {
@@ -40,12 +82,12 @@ export type MissionBrief = {
 
 // ─── Main Entry ────────────────────────────────────────────────────────
 
-export function buildMissionBrief(session: SummarizedSession): MissionBrief {
+export function buildMissionBrief(session: SummarizedSession, traceId: string): MissionBrief {
   const sections: string[] = [];
 
   sections.push(session.mission_brief);
   sections.push("");
-  sections.push(FOUR_LAYER_PROTOCOL);
+  sections.push(buildFourLayerProtocol(traceId));
   sections.push("");
   sections.push(HOST_MODEL_RESULT_SCHEMA);
   sections.push("");
@@ -55,6 +97,16 @@ export function buildMissionBrief(session: SummarizedSession): MissionBrief {
     text: sections.join("\n"),
     governance_mode: "host_model",
   };
+}
+
+// P3-1: 运行时按 traceId 替换 FOUR_LAYER_PROTOCOL 里的 review_trace 提示词占位符。
+// FOUR_LAYER_PROTOCOL 是静态模板字符串（编译期生成），traceId 在调用期才确定，
+// 所以不能用 ${} 插值，只能先用占位符占位再 .replace 注入。
+function buildFourLayerProtocol(traceId: string): string {
+  return FOUR_LAYER_PROTOCOL.replace(
+    REVIEW_TRACE_PROMPT_PLACEHOLDER,
+    selectReviewPrompt(traceId),
+  );
 }
 
 // ─── Directive (the "next action" instruction for the host LLM) ────────
@@ -163,16 +215,91 @@ BAD (全局级): { "title": "坑.txt 同步规则", "content": "修改 1.txt 到
 
 ---
 
-### 分类决策树 (Classification Decision Tree — RUN THIS FIRST)
+### 分类决策树 (Classification Decision Tree — RUN THIS FIRST, 严格按此顺序问, 命中即停)
 
-对每一条候选，依次问自己：
-1. 它描述的是**用户是谁**（背景、偏好、风格、习惯）？ → **Memory** (用户画像)
-2. 它教会 AI 某个**让它更聪明的洞察**？ → **Knowledge** (认知进化)
-3. 它封装了一个**经验证可复用的多步骤流程**？ → **Skill** (流程封装)
-4. 它表达了一条**AI 必须遵守的行为边界**？ → **Rule** (行为约束)
-5. 它只是原始执行数据、工具输出或事实观察？ → **Evidence** (governance_evidence_candidate)
+对每一条候选，依次问自己（**严格按此顺序，命中即停，不允许跳步**）：
+
+**Q1. 这段内容的功能，是不是"决定某个动作能不能被放行"？**
+- 是 → 候选 Rule，**必须继续 Q1a**（不能跳过）
+- 否 → 跳到 Q2
+
+**Q1a. 这个"放行判断"的触发条件，是不是就是某个已存在的具体 Skill 名称？**
+- 判据：触发条件形如"在 [某个具体 Skill 名称] 执行时"、"在 [某个具体动作] 时"——比如"抽取 Rule 候选时"、"GateMaster 生成 Hook 时"、"部署 Node 服务时"
+- **是 → 不是 Rule，是该 Skill 自己的执行步骤**。路由到"更新该 Skill"（走 skill_proposal_candidates，change_type=augment），不要进 rule_candidates
+- **否 → 才真正是 Rule**（跨场景通用的放行判断，触发条件不依赖某个具体 Skill 的存在）
+
+**Q2. 这段内容是不是"一套可重复执行的步骤序列"？**
+- 是 → **Skill** (流程封装)
+- 否 → 跳到 Q3
+
+**Q3. 这段内容是不是"绑定具体一次经历"（有具体时间/场景/一次性）？**
+- 是 → **Memory** (情景记忆/用户画像)
+- 否 → 跳到 Q4
+
+**Q4. 这段内容是不是"脱离具体情境也成立的一般性知识"？**
+- 是 → **Knowledge** (语义记忆)
+- 否 → 跳到 Q5
+
+**Q5. 它只是原始执行数据、工具输出或事实观察？**
+- 是 → **Evidence** (governance_evidence_candidate)
 
 如果一条候选不属于任何层 → 直接丢弃。宁可空数组，不要强行归类。
+
+### §1.2 强制换角度复核 (Mandatory Cross-Check — 命中即停之后必跑)
+
+**初判命中某个层之后，不允许直接定案。** 必须自问一遍：
+
+> "如果按另一个最相近的类别看，是不是更合理？"
+
+- 两次判断都指向同一类别 → 定案
+- 出现分歧 → 升级为 needs_review，必须在 reason 字段写明分歧点，由人工审批定夺
+
+**最常见的误判模式（必须用 Q1a 拦住）：**
+- "GateMaster 生成 Hook 时必须按文件类型分级" — 句式像 Rule（"必须"），但触发条件"GateMaster 生成 Hook 时"就是具体 Skill 名称 → 实际是 GateMaster 的执行步骤，不是 Rule
+- "修改 service 代码后必须运行 npm run build" — 句式像 Rule，但触发条件"修改 service 代码后"是具体动作场景 → 如果是跨项目通用的"代码改动后必跑 build"才算 Rule，否则是项目级 Memory 或 Skill 步骤
+- "在用户要求部署 Node 服务时调用此技能" — 这是 Skill 的触发条件描述，不是 Rule
+
+**判据本质**：Rule 是"跨场景通用的放行判断"，不是"某个具体场景下的操作要求"。后者是 Skill 的 execution_steps 或 Memory 的项目级约束。
+
+### §1.3 强制结构化输出 (MANDATORY Structured Output — 后端硬门控)
+
+**每一条候选（evidence 候选除外）必须携带以下两个结构化字段，后端会做严格校验。缺失或不合格 → 后端直接 reject，不接受裸结论。**
+
+#### classification_trace（分类决策树记录）
+
+示例：
+    "classification_trace": {
+      "q1_is_gate_decision": false,
+      "q1a_trigger_binds_skill": null,
+      "q2_is_reusable_workflow": false,
+      "q3_binds_specific_event": true,
+      "q4_is_general_knowledge": false,
+      "decision_layer": "memory",
+      "decision_reasoning": "Q1 不命中（不是放行判断），Q2 不命中（不是可复用流程），Q3 命中（绑定具体经历），归入 Memory"
+    }
+
+**校验规则：**
+- decision_layer 必须与 candidate_type 对应（rule_candidate→"rule"，memory_candidate→"memory"，skill_proposal_candidate→"skill"，knowledge_candidate→"knowledge"）
+- decision_reasoning 必须引用 Q1-Q4 编号（证明真的过了决策树，不是直接给结论）
+- 四个 Q 字段（q1/q2/q3/q4）必须显式回答 true/false，不允许省略
+
+#### review_trace（独立换位复核记录）
+
+__REVIEW_TRACE_PROMPT_VERSION__
+
+示例：
+    "review_trace": {
+      "review_layer": "memory",
+      "review_reasoning": "只看标题和正文，这段内容绑定具体经历而非放行判断，归入 Memory 合理",
+      "consensus": true
+    }
+
+**校验规则：**
+- review_layer 必须是 rule/memory/skill/knowledge/evidence 之一
+- consensus 为 boolean。consensus=false 时后端强制 promotion_status=needs_review 走人工审批
+- review_reasoning 必须包含中文
+
+**为什么需要这一步**：self_test 是在分类判断之后填的，同一模型不会推翻自己前面的判断。换位复核虽然不是真正的独立模型调用，但强制换一个视角重新审视，能跳出"顺着已有结论继续论证"的陷阱。
 
 ---
 
@@ -230,15 +357,23 @@ Memory 是关于 PERSON 的，不是关于 code 的。它个性化 AI 的行为�
 **质量门控**: "这条信息是否告诉我关于用户的一些事，帮助我下次更好地服务他？"
 如果答案是否 → 不是 Memory。
 
-### §M-SelfTest Memory 自我测试（生成前必跑）
-在写下每条 Memory 候选前，必须自问以下三个问题，任一为 NO 就丢弃或重写：
-1. **一月后还值得知道吗？**：想象一个月后回头看，这条信息还支撑未来交互吗？
-   - 反例：「这次把端口改成了 8080」→ 一月后毫无价值 → 丢弃或转 Evidence
-   - 正例：「用户偏好简洁回答，讨厌废话」→ 永久价值 → 通过
-2. **是关于用户的，不是关于代码的？**：Memory 必须刻画人，不是记录实现细节。
-   - 反例：「我们把 .env 改成了 15432」→ 关于代码 → 转 Evidence
-3. **是否会被时间稀释？**：项目阶段的临时偏好 → stability=temporary；长期不变 → stable。
-   - 临时偏好也要存，但必须打上 stability=temporary 让下游知道它会过期。
+### §M-SelfTest Memory 自我测试（硬门控 — 后端强制验证）
+在写下每条 Memory 候选前，必须回答以下三个问题，并以结构化字段 \`self_test\` 提交。
+**后端会验证 self_test 字段：任一必填字段缺失或为 false → 整条候选被 reject，返回错误说明哪个测试没过。**
+如果某字段为 false，不要提交该候选，降级或丢弃。
+
+\`\`\`json
+"self_test": {
+  "one_month_value": true,        // 一月后回头看，这条信息还支撑未来交互吗？
+  "about_user_not_code": true,    // 是关于用户的，不是关于代码的？
+  "time_diluted": "stable"        // "stable"（长期不变）或 "temporary"（会被时间稀释，强制 stability=temporary）
+}
+\`\`\`
+
+判断依据：
+1. **one_month_value**: 反例「这次把端口改成了 8080」→ false → 丢弃或转 Evidence；正例「用户偏好简洁回答」→ true → 通过
+2. **about_user_not_code**: 反例「我们把 .env 改成了 15432」→ false → 转 Evidence；正例「用户偏好 PM2 部署」→ true → 通过
+3. **time_diluted**: 项目阶段临时偏好 → "temporary"（后端会强制 stability=temporary）；长期不变 → "stable"
 
 **严格度 (strictness) 定义:**
 - \`hard_rule\`: 用户明确表达、绝对遵守的偏好（如"不要废话"、"只用 TypeScript"）。下游召回时不可截断。
@@ -307,16 +442,22 @@ Knowledge 是 CURATED 的理解，不是事实堆砌。它随时间进化。
 **质量门控**: "这个洞察是否会实质性地改变未来 AI 处理类似问题的方式？"
 如果答案是否 → 不是 Knowledge，只是个事实 (→ Evidence)。
 
-### §K-SelfTest Knowledge 自我测试（生成前必跑，双重门槛）
-Knowledge 是模型盲区认知，不是事实垃圾桶。在写下每条 Knowledge 候选前，必须同时通过以下两道门槛，**任一为 NO 直接降级到 Memory 或 Evidence**：
+### §K-SelfTest Knowledge 自我测试（硬门控 — 后端强制验证，双重门槛）
+Knowledge 是模型盲区认知，不是事实垃圾桶。在写下每条 Knowledge 候选前，必须回答以下三个问题，并以结构化字段 \`self_test\` 提交。
+**后端会验证 self_test 字段：任一必填字段缺失或为 false → 整条候选被 reject。**
 
-1. **模型不会（OOD 门槛）**：这条认知是否超出主流大模型的训练分布？
-   - 反例：「PostgreSQL 支持 JSONB 类型」→ 主流模型都会 → 降级 Evidence
-   - 正例：「Zod catchall 在 JSON-RPC 序列化时静默剥离嵌套字段」→ 模型训练数据里几乎没有 → 通过
-2. **会复用（Reusable 门槛）**：未来在相似场景下，AI 真的会需要这条认知做决策吗？
-   - 反例：「本次项目里我们用了 7 个 skill」→ 一次性事实，未来用不上 → 降级 Memory
-   - 正例：「PowerShell 5.x 输出非 ASCII 字符必须显式设 OutputEncoding」→ 任何 Windows 环境都会复用 → 通过
-3. **学习行为链锚定**：如果是 acquired 类型（外部检索学到），必须有 search→learn→apply 三段式证据；如果是 synthesized 类型，必须给出跨事实归纳推理。**没有总结性文本则不硬造 Knowledge。**
+\`\`\`json
+"self_test": {
+  "ood_threshold": true,           // 这条认知是否超出主流大模型的训练分布？
+  "reusable": true,                // 未来在相似场景下，AI 真的会需要这条认知做决策吗？
+  "learning_chain_anchored": true  // 有 search→learn→apply 三段式证据或跨事实归纳推理？
+}
+\`\`\`
+
+判断依据：
+1. **ood_threshold**: 反例「PostgreSQL 支持 JSONB 类型」→ false → 降级 Evidence；正例「Zod catchall 在 JSON-RPC 序列化时静默剥离嵌套字段」→ true → 通过
+2. **reusable**: 反例「本次项目里我们用了 7 个 skill」→ false → 降级 Memory；正例「PowerShell 5.x 输出非 ASCII 必须显式设 OutputEncoding」→ true → 通过
+3. **learning_chain_anchored**: acquired 类型必须有外部检索学习链；synthesized 类型必须给出跨事实归纳推理。没有总结性文本则不硬造 Knowledge → false → 丢弃
 
 **避坑指南 (avoid_pitfall) 定义:**
 基于该知识，未来必须避免的具体错误。必须写成 "IF [条件] THEN [后果]" 格式，禁止写成模糊的 "注意 X"。
@@ -344,14 +485,21 @@ BAD: { "title": "Fastify 是 HTTP 框架", "content": "Fastify is the HTTP frame
 **质量门控**: "这是一个经验证的多步骤流程吗？有明确的触发条件吗？未来的 AI 照着走能省时间吗？"
 如果答案是否 → 不是 Skill。
 
-### §S-SelfTest Skill 自我测试（生成前必跑）
-在写下每条 Skill 候选前，必须自问以下两个问题，任一为 NO 就丢弃或重写：
-1. **换通用词可执行吗？**：把项目特定名词替换成通用术语后，步骤是否仍然能被另一个 AI 完整执行？
-   - 反例（全局级）：「打开 坑.txt 核对江妄的心跳」→ 换通用词就不知道核对了 → 重写或降级 project 级
-   - 正例（全局级）：「将悬置状态物化为持久化追踪对象，在任务完结前执行待办对象库对齐」→ 换通用词仍可执行 → 通过
-2. **是否是经验证的多步流程？**：必须 ≥ 2 个原子动作，且每个动作有明确产出。一次性命令不是 Skill。
-   - 反例：「运行 npm install」→ 单步命令 → 转 Rule 或丢弃
-   - 正例：「检查 Node 版本 → 生成 PM2 ecosystem → 写 systemd 配置 → 验证 /healthz」→ 通过
+### §S-SelfTest Skill 自我测试（硬门控 — 后端强制验证）
+在写下每条 Skill 候选前，必须回答以下两个问题，并以结构化字段 \`self_test\` 提交。
+**后端会验证 self_test 字段：任一必填字段缺失或为 false → 整条候选被 reject，返回错误说明哪个测试没过。**
+如果某字段为 false，不要提交该候选，降级或丢弃。
+
+\`\`\`json
+"self_test": {
+  "executable_with_generic_terms": true,  // 换通用词可执行？（global 级强制；project 级保留具体名词，填 true 即可）
+  "proven_multi_step": true               // 是经验证的多步流程？（≥ 2 个原子动作，且每个动作有明确产出）
+}
+\`\`\`
+
+判断依据：
+1. **executable_with_generic_terms**: 反例（全局级）「打开 坑.txt 核对江妄的心跳」→ false → 重写或降级 project 级；正例（全局级）「将悬置状态物化为持久化追踪对象，在任务完结前执行待办对象库对齐」→ true → 通过。项目级保留具体名词，填 true 即可。
+2. **proven_multi_step**: 反例「运行 npm install」→ false → 转 Rule 或丢弃；正例「检查 Node 版本 → 生成 PM2 ecosystem → 写 systemd 配置 → 验证 /healthz」→ true → 通过
 
 **execution_steps 格式要求 (SCOPE-AWARE):**
 必须是 String 数组，每个元素是一个不可再分的原子动作。禁止写成一段模糊描述。
@@ -389,15 +537,21 @@ Rule 来自三个来源：
 **质量门控**: "我会在相关操作前真的执行/检查这条规则吗？"
 如果答案是否 → 不是 Rule。
 
-### §R-SelfTest Rule 自我测试（生成前必跑）
-在写下每条 Rule 候选前，必须自问以下两个问题，任一为 NO 就降级到 Memory 或丢弃：
-1. **抹掉项目名词还成立吗？**：把项目特定名词（文件名、变量名、路径、角色名）替换成通用术语后，规则是否仍然是一条运行时门控？
-   - 反例：「修改 hostModelGovernanceAdapter.ts 时必须运行 typecheck」→ 这是代码实现约束，不是运行时门控 → 降级 Memory (project_memory)
-   - 正例：「在 Windows 环境输出非 ASCII 内容前必须显式设置 OutputEncoding」→ 抹掉项目名词仍成立 → 通过
-2. **是宿主层应该拦截的，还是代码层应该硬编码的？**
-   - 代码硬编码约束（如「INSERT 必须设 origin_scope='global'」）→ 降级 Memory (project_memory)
-   - 运行时门控（如「改配置前必须 rule_gate_check」）→ 通过
-   - 判据：这条规则是否需要在宿主调用动作前做拦截？如果是代码层面强制的，不进 Rule 层。
+### §R-SelfTest Rule 自我测试（硬门控 — 后端强制验证）
+在写下每条 Rule 候选前，必须回答以下两个问题，并以结构化字段 \`self_test\` 提交。
+**后端会验证 self_test 字段：任一必填字段缺失或为 false → 整条候选被 reject，返回错误说明哪个测试没过。**
+如果某字段为 false，不要提交该候选，降级为 Memory 或丢弃。
+
+\`\`\`json
+"self_test": {
+  "survives_without_project_nouns": true,  // 抹掉项目名词后，规则仍然是一条运行时门控？
+  "host_layer_gate": true                  // 是宿主层应该拦截的（不是代码层硬编码的）？
+}
+\`\`\`
+
+判断依据：
+1. **survives_without_project_nouns**: 反例「修改 hostModelGovernanceAdapter.ts 时必须运行 typecheck」→ false → 降级 Memory (project_memory)；正例「在 Windows 环境输出非 ASCII 内容前必须显式设置 OutputEncoding」→ true → 通过
+2. **host_layer_gate**: 代码硬编码约束（如「INSERT 必须设 origin_scope='global'」）→ false → 降级 Memory (project_memory)；运行时门控（如「改配置前必须 rule_gate_check」）→ true → 通过。判据：这条规则是否需要在宿主调用动作前做拦截？如果是代码层面强制的，不进 Rule 层。
 
 **content 格式要求:**
 Rule 的 content 必须能被翻译为 IF-ELSE 伪代码逻辑。禁止使用自然语言的模糊表述。
@@ -436,11 +590,12 @@ Examples: "MCP 使用 stdio 传输", "项目使用 PostgreSQL", "构建耗时 3.
 - [ ] **通用性审计**：origin_scope 与内容具体性匹配？（project 级有血肉 / global 级已剥离）
 - [ ] **安全审计**：token/key 等敏感信息已剥离？（所有作用域都必须执行）
 - [ ] **作用域判定**：origin_scope 选择合理？（不能从 global 降级到 session/project）
-- [ ] **层自我测试（P2）**：根据所属层执行对应自我测试并通过：
-  - Rule: §R-SelfTest（抹名词还成立？宿主层拦截 vs 代码硬编码？）
-  - Memory: §M-SelfTest（一月后还值得知道？关于用户不是代码？）
-  - Skill: §S-SelfTest（换通用词可执行？≥ 2 个原子动作？）
-  - Knowledge: §K-SelfTest（模型 OOD？会复用？学习行为链锚定？）
+- [ ] **self_test 硬门控（后端强制验证）**：必须以结构化字段 \`self_test\` 提交，后端会验证必填字段。任一为 false 或缺失 → 整条候选被 reject：
+  - Rule: §R-SelfTest（survives_without_project_nouns / host_layer_gate）
+  - Memory: §M-SelfTest（one_month_value / about_user_not_code / time_diluted）
+  - Skill: §S-SelfTest（executable_with_generic_terms / proven_multi_step）
+  - Knowledge: §K-SelfTest（ood_threshold / reusable / learning_chain_anchored）
+  - evidence 层不需要 self_test
 如果任何一项为 NO → 丢弃或重新归类。`;
 
 // ─── host_model_result JSON Schema ────────────────────────────────────

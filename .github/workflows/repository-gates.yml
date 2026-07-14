@@ -60,6 +60,13 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # §4.4 CI 兜底:不管走 A/B/C 哪种路径,涉及代码提交的 Rule,
+      # 额外在 CI 里跑 gate-runtime.mjs --mount-point=pre_commit。
+      # 不解决"实时拦截",解决的是"就算前面三种路径都被绕过了,代码合并前还有最后一次机会拦下来"。
+      # exit 0=PASS, exit 1=REJECT(阻断CI), exit 2=runtime自身出错(不阻断)
+      - name: Repository Gates (pre_commit)
+        run: node scripts/gate-runtime.mjs --mount-point=pre_commit || [ $? -eq 2 ]
+
       - name: Verify P1 Golden
         run: npm run verify:p1-golden
 

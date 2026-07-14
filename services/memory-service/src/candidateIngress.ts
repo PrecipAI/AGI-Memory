@@ -43,6 +43,18 @@ export async function handleCandidateIngress(input: {
   }
 
   const candidate = input.extractor.extract(input.body);
+
+  // §Fix-1: 防御性校验 — layer 和 artifact_tag 语义不一致时直接拒绝
+  if (candidate.layer && candidate.artifact_tag) {
+    const layerTagConsistent = checkLayerArtifactTagConsistency(candidate.layer, candidate.artifact_tag);
+    if (!layerTagConsistent.consistent) {
+      throw new Error(
+        `LAYER_ARTIFACT_TAG_MISMATCH: layer="${candidate.layer}" but artifact_tag="${candidate.artifact_tag}". ` +
+        `路由依据 layer 字段。${layerTagConsistent.reason}`
+      );
+    }
+  }
+
   await ensureMemoryCandidateTaskEnvelope({
     tenantId: input.tenantId,
     scope: input.scope,
@@ -173,4 +185,23 @@ export async function handleCandidateIngress(input: {
       : `single-tenant-${routed.persistTarget}`,
     persisted_object_id: persistedObjectId ?? undefined,
   };
+}
+
+function checkLayerArtifactTagConsistency(
+  layer: string,
+  artifactTag: string,
+): { consistent: boolean; reason: string } {
+  const ruleTags = new Set(["constraint_fact", "project_constraint", "rejection_preference", "policy_constraint", "quality_gate", "routing_rule", "retrieval_rule", "execution_boundary_rule"]);
+  const memoryTags = new Set(["environment_fact", "profile_fact", "design_decision", "project_preference", "implementation_note"]);
+
+  if (layer === "rule" && !ruleTags.has(artifactTag) && artifactTag !== "summary_only") {
+    return { consistent: false, reason: `layer="rule" 应匹配 rule 类 artifact_tag（如 constraint_fact, quality_gate 等），但收到 "${artifactTag}"。` };
+  }
+  if (layer === "memory" && !memoryTags.has(artifactTag) && artifactTag !== "summary_only") {
+    return { consistent: false, reason: `layer="memory" 应匹配 memory 类 artifact_tag（如 environment_fact, profile_fact 等），但收到 "${artifactTag}"。` };
+  }
+  if (layer === "skill" && artifactTag !== "workflow_tag=standard_path") {
+    return { consistent: false, reason: `layer="skill" 应匹配 "workflow_tag=standard_path"，但收到 "${artifactTag}"。` };
+  }
+  return { consistent: true, reason: "" };
 }

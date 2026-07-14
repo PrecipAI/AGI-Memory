@@ -3607,9 +3607,42 @@
           "skill-creator": "技能生成",
         };
         const skillName = skillNames[hostAction.skill] || hostAction.skill;
+
+        // §3.2 把"生成状态"和"生效状态"分开,显式标注软执行 vs 硬拦截
+        // enforcement_mode 从 hostAction.summary 里解析(格式: enforcement_mode=xxx; host=xxx; ...)
+        // 也可从 hostAction.enforcement_mode 直接读(新版 executor 会写)
+        let enforcementMode = hostAction.enforcement_mode || null;
+        if (!enforcementMode && hostAction.summary) {
+          const m = String(hostAction.summary).match(/enforcement_mode=([a-z_]+)/);
+          if (m) enforcementMode = m[1];
+        }
+
+        // redirected:§4.1 Q1a 复核判定该 Rule 该并进 Skill,不生成 Hook
+        if (status === "redirected") {
+          return `<span class="badge" style="background: rgba(139, 92, 246,0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246,0.3);">${skillName}: 已转交 Skill 更新</span>`;
+        }
+        // failed:生成失败
+        if (status === "failed") {
+          return `<span class="badge" style="background: rgba(220, 80, 80,0.15); color: #f87171; border: 1px solid rgba(220, 80, 80,0.3);">${skillName}: 生成失败</span>`;
+        }
+        // generated/done:已生成,但要按 enforcement_mode 区分真实生效强度
         if (status === "generated" || status === "done") {
+          if (enforcementMode === "hard_native") {
+            // §4.2 情况 A:宿主原生 hook 实时拦截,最可靠
+            return `<span class="badge" style="background: rgba(91, 140, 90,0.15); color: var(--accent-emerald); border: 1px solid rgba(91, 140, 90,0.3);">${skillName}: 硬拦截 · 原生 hook 已生效</span>`;
+          }
+          if (enforcementMode === "hard_mcp") {
+            // §4.2 情况 B:GateRuntimeBridge 拦截 MCP 工具调用
+            return `<span class="badge" style="background: rgba(91, 140, 90,0.15); color: var(--accent-emerald); border: 1px solid rgba(91, 140, 90,0.3);">${skillName}: 硬拦截 · MCP 网关已生效</span>`;
+          }
+          if (enforcementMode === "soft") {
+            // §4.2 情况 C:软执行,依赖模型自觉配合,不能显示成跟硬拦截一样的"已生效"
+            return `<span class="badge" style="background: rgba(198, 139, 60,0.15); color: var(--accent-amber); border: 1px solid rgba(198, 139, 60,0.3);">${skillName}: 软执行 · 依赖模型自觉配合</span>`;
+          }
+          // 旧数据没有 enforcement_mode,保持原"已执行"显示
           return `<span class="badge" style="background: rgba(91, 140, 90,0.15); color: var(--accent-emerald); border: 1px solid rgba(91, 140, 90,0.3);">${skillName}: 已执行</span>`;
         }
+        // pending:待宿主执行
         return `<span class="badge" style="background: rgba(198, 139, 60,0.15); color: var(--accent-amber); border: 1px solid rgba(198, 139, 60,0.3);">${skillName}: 待宿主执行</span>`;
       }
 

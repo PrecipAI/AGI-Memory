@@ -173,6 +173,32 @@ export type GovernanceCandidatePreview = {
     target_candidate_index: number;
     link_type: "derived_from" | "explains" | "constrains" | "provenance";
   }>;
+  // §SelfTest 硬门控：LLM 必须显式回答自测问题，后端强制验证。
+  // 各层字段不同：
+  //   rule: { survives_without_project_nouns: boolean, host_layer_gate: boolean }
+  //   memory: { one_month_value: boolean, about_user_not_code: boolean, time_diluted: "temporary"|"stable" }
+  //   knowledge: { ood_threshold: boolean, reusable: boolean, learning_chain_anchored: boolean }
+  //   skill: { executable_with_generic_terms: boolean, proven_multi_step: boolean }
+  // evidence 层不需要 self_test。
+  self_test?: Record<string, unknown>;
+  // §Fix-3 强制决策树记录：rule/memory/skill/knowledge 候选必填（evidence 除外）。
+  // 后端 validateCandidate 校验 decision_layer 与 candidate_type 一致 + decision_reasoning 引用 Q 编号。
+  classification_trace?: {
+    q1_is_gate_decision: boolean;
+    q1a_trigger_binds_skill: boolean | null;
+    q2_is_reusable_workflow: boolean;
+    q3_binds_specific_event: boolean;
+    q4_is_general_knowledge: boolean;
+    decision_layer: "rule" | "memory" | "skill" | "knowledge" | "evidence";
+    decision_reasoning: string;
+  };
+  // §Fix-2 独立复核记录：rule/memory/skill/knowledge 候选必填（evidence 除外）。
+  // consensus=false 时后端强制 promotion_status=needs_review 走人工审批。
+  review_trace?: {
+    review_layer: "rule" | "memory" | "skill" | "knowledge" | "evidence";
+    review_reasoning: string;
+    consensus: boolean;
+  };
 };
 
 export type GovernanceBatchPreviewResponse = {
