@@ -18,6 +18,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fetchPendingHostActions, markHostActionStatus, type HostActionItem } from "./hostAction.js";
 import { listActiveSkills, getPool } from "@super-agent/db";
+import { compileStaticMemory } from "./staticMemoryCompiler/compiler.js";
 
 interface RegistryEntry {
   id: string;
@@ -1289,6 +1290,31 @@ export async function executeHostActions(input: ExecuteHostActionsInput): Promis
         status: "failed",
         error: errorMsg
       });
+    }
+  }
+
+  // ─── S-2: 审批通过并落地后，即时编译静态记忆到宿主原生文件 ────────
+  // 设计原则：互补而非替代。宿主管会话内压缩，AGI-Memory 管跨会话持久化。
+  // 把审批通过的 Rule/Skill/Memory 编译进 CLAUDE.md / AGENTS.md / .trae/instructions.md，
+  // 宿主原生读取这些文件就能吃到治理产出，不需要每次都主动调 retrieve_context。
+  // 失败不阻塞主流程（审批已生效，编译可重试）。
+  if (result.succeeded > 0) {
+    try {
+      const compileResult = await compileStaticMemory({
+        tenantId: input.tenantId,
+        scope: input.scope,
+        repoRoot: REPO_ROOT,
+        trigger: "immediate",
+      });
+      if (compileResult.files.length > 0) {
+        console.log(
+          `[static-memory-compiler] immediate trigger: ${compileResult.ruleCount} rules + ${compileResult.skillCount} skills + ${compileResult.memoryCount} memories → ${compileResult.files.length} files updated traceId=${input.traceId}`,
+        );
+      }
+    } catch (e) {
+      console.warn(
+        `[static-memory-compiler] immediate trigger failed (non-blocking): ${e instanceof Error ? e.message : String(e)} traceId=${input.traceId}`,
+      );
     }
   }
 
