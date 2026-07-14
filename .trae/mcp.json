@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "memory-v3": {
+      "command": "node",
+      "args": [
+        "C:/Users/yangy/.qoderworkcn/workspace/mq988j0j137zwdp8/agi-memory-src/services/memory-mcp-server/dist/services/memory-mcp-server/src/cli.js",
+        "start",
+        "--config",
+        "C:/Users/yangy/.qoderworkcn/workspace/mq988j0j137zwdp8/agi-memory-src/.memory-mcp/config.json"
+      ],
+      "env": {
+        "MEMORY_SERVICE_URL": "http://127.0.0.1:3101",
+        "TENANT_ID": "tenant-local",
+        "SCOPE": "memory.validation"
+      }
+    }
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Glob|Grep|SearchCodebase|Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .trae/hooks/host-graphify-priority.mjs",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .trae/hooks/host-rule-e6e2079a7780.mjs",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "RunCommand",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .trae/hooks/host-rule-a0d618cdfceb.mjs",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "RunCommand",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .trae/hooks/host-rule-021ae95005d9.mjs",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "RunCommand",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .trae/hooks/host-rule-4f62bd21b386.mjs",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .trae/hooks/host-task-nature-confirm.mjs",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "node .trae/hooks/host-safety-compliance.mjs",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .trae/hooks/host-fact-confirmation.mjs",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .trae/hooks/host-rule-31f3f8627c7e.mjs",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .trae/hooks/host-rule-f9f4c7da77e9.mjs",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .trae/hooks/host-rule-9e9f8e793178.mjs",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
