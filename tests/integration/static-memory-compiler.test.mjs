@@ -141,7 +141,7 @@ function testContentFilter() {
     promotion_status: "active",
     origin_scope: "user",
     availability_scope: "user_reusable",
-    stability: "long_lived",
+    importance: 80,
     memory_type: "user_memory",
     self_test: { about_user_not_code: false },
   };
@@ -156,7 +156,7 @@ function testContentFilter() {
     promotion_status: "active",
     origin_scope: "user",
     availability_scope: "user_reusable",
-    stability: "long_lived",
+    importance: 85,
     memory_type: "user_memory",
     self_test: { about_user_not_code: true },
   };
@@ -171,7 +171,7 @@ function testContentFilter() {
     promotion_status: "active",
     origin_scope: "project",
     availability_scope: "workspace_reusable",
-    stability: "long_lived",
+    importance: 82,
     memory_type: "project_memory",
   };
   assert.equal(shouldCompileToStaticMemory("memory", projectMemoryWithNoun).pass, false);
@@ -185,11 +185,25 @@ function testContentFilter() {
     promotion_status: "active",
     origin_scope: "project",
     availability_scope: "workspace_reusable",
-    stability: "long_lived",
+    importance: 80,
     memory_type: "project_memory",
   };
   assert.equal(shouldCompileToStaticMemory("memory", validProjectMemory).pass, true);
   console.log("  ✓ 合格的 project_memory 通过");
+
+  // 1.11a 低 importance memory 被排除
+  const lowImportanceMemory = {
+    id: "m4b",
+    title: "低价值记忆",
+    content: "用户刚才提到了某个临时想法",
+    promotion_status: "active",
+    origin_scope: "project",
+    availability_scope: "workspace_reusable",
+    importance: 50,
+    memory_type: "project_memory",
+  };
+  assert.equal(shouldCompileToStaticMemory("memory", lowImportanceMemory).pass, false);
+  console.log("  ✓ importance < 70 的低价值记忆被排除");
 
   // 1.12 批量筛选
   const items = [validMustRule, needsReviewItem, sessionItem];
@@ -496,7 +510,7 @@ const mockMemoryRows = [
     promotion_status: "active",
     origin_scope: "user",
     availability_scope: "user_reusable",
-    stability: "long_lived",
+    importance: 85,
     self_test: { about_user_not_code: true },
   },
 ];

@@ -43,7 +43,7 @@ export interface FilterableItem {
   origin_scope: string;
   availability_scope: string;
   governance_level?: string;
-  stability?: string;
+  importance?: number;
   memory_type?: string;
   self_test?: Record<string, unknown> | null;
   metadata?: Record<string, unknown> | null;
@@ -133,9 +133,11 @@ export function shouldCompileToStaticMemory(
   }
 
   if (layer === "memory") {
-    // memory 必须是 long_lived stability（没设 stability 的也放行，默认当 long_lived）
-    if (item.stability && item.stability !== "long_lived") {
-      return { pass: false, reason: `stability=${item.stability}` };
+    // memory 必须高 importance（DB 实际字段是 importance smallint，范围 0-100）。
+    // importance < 70 视为短期/低价值记忆，不编译进静态文件。
+    // 未设 importance 的也放行（默认当高价值），与原 stability 缺失放行行为一致。
+    if (item.importance !== undefined && item.importance < 70) {
+      return { pass: false, reason: `importance=${item.importance} below threshold 70` };
     }
     // user_memory 如果 self_test 明确标记 about_user_not_code=false 则跳过（代码细节不该编译）
     // self_test 不存在或字段缺失时放行（很多 memory 没填 self_test）

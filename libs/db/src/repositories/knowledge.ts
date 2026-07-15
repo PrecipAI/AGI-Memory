@@ -1849,7 +1849,7 @@ export async function queryActiveDerivedKnowledge(input: {
       AND status = 'active'
       AND lifecycle_state = 'curated'
       AND recall_state = 'active'
-      AND review_state = 'human_approved'
+      AND review_state IN ('model_accepted', 'human_accepted', 'human_approved')
       AND knowledge_type IN (
         'external_fact',
         'method',

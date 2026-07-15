@@ -369,7 +369,7 @@ function adaptMemoryRow(row: Record<string, unknown>): FilterableItem {
     promotion_status: String(row.promotion_status ?? "active"),
     origin_scope: String(row.origin_scope ?? "session"),
     availability_scope: String(row.availability_scope ?? "session_only"),
-    stability: typeof row.stability === "string" ? row.stability : undefined,
+    importance: typeof row.importance === "number" ? row.importance : undefined,
     memory_type: typeof row.memory_type === "string" ? row.memory_type : undefined,
     self_test:
       (row.self_test as Record<string, unknown> | null) ?? null,
