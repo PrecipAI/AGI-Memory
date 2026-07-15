@@ -77,6 +77,67 @@ export class MemoryEngineAdapter {
     return this.call("/internal/memory/retrieve", body);
   }
 
+  /**
+   * 调 /internal/knowledge/retrieve 召回 synthesized_knowledge（认知层）。
+   * Knowledge 层含模型不搜索不思考就得不出的合成认知（limitation/pattern/synthesis 等），
+   * memory_retrieve_context 调用后并行调本方法，把 derived_knowledge 合并到返回结果。
+   *
+   * 设计：不走 runGate 门控（knowledge retrieve 是只读召回，无副作用）。
+   * 失败不抛异常（knowledge 召回失败不阻塞 memory 召回），返回空数组。
+   */
+  async retrieveKnowledge(body: {
+    task_request_id: string;
+    query: string;
+    fingerprint?: string;
+    fingerprint_status?: string;
+    top_k?: number;
+    include_factual?: boolean;
+    include_procedural?: boolean;
+  }): Promise<{ derived_knowledge: unknown[]; [key: string]: unknown }> {
+    const defaults = this.getDefaults();
+    const traceId = `trace-memory-mcp-knowledge-${Date.now()}-${randomUUID()}`;
+    const idempotencyKey = `memory-mcp:/internal/knowledge/retrieve:${randomUUID()}`;
+    try {
+      const response = await fetch(
+        new URL("/internal/knowledge/retrieve", this.config.memoryServiceUrl),
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-tenant-id": defaults.tenant_id,
+            "x-scope": defaults.scope,
+            "x-trace-id": traceId,
+            "idempotency-key": idempotencyKey,
+          },
+          body: JSON.stringify(body),
+        },
+      );
+      if (!response.ok) {
+        const bodyText = await response.text();
+        if (process.env.MCP_DEBUG_PAYLOAD) {
+          console.error(
+            `[MCP DEBUG] knowledge retrieve failed: ${response.status} ${bodyText}`,
+          );
+        }
+        return { derived_knowledge: [] };
+      }
+      const result = await response.json() as { derived_knowledge?: unknown[] };
+      return {
+        ...result,
+        derived_knowledge: Array.isArray(result.derived_knowledge)
+          ? result.derived_knowledge
+          : [],
+      };
+    } catch (e) {
+      if (process.env.MCP_DEBUG_PAYLOAD) {
+        console.error(
+          `[MCP DEBUG] knowledge retrieve error: ${(e as Error).message}`,
+        );
+      }
+      return { derived_knowledge: [] };
+    }
+  }
+
   async ingestCandidate(
     body: MemoryCandidateRequest,
   ): Promise<MemoryCandidateResponse> {

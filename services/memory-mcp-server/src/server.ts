@@ -819,7 +819,26 @@ Procedural memory retrieval requires fingerprint_status=matched. Use matched_or_
       );
       const result = await adapter.retrieve(
         retrieveBody as Parameters<typeof adapter.retrieve>[0],
-      );
+      ) as Record<string, unknown>;
+
+      // 并行调 knowledge retrieve，把 derived_knowledge 合并到结果
+      // Knowledge 层含模型不搜索就得不出的合成认知，附加到 memory 召回结果里
+      const knowledgeResult = await adapter.retrieveKnowledge({
+        task_request_id: raw.task_request_id as string,
+        query: raw.query as string,
+        fingerprint: raw.fingerprint as string | undefined,
+        fingerprint_status: raw.fingerprint_status as string | undefined,
+        top_k: 10,
+        include_factual: false,
+        include_procedural: false,
+      });
+      if (
+        Array.isArray(knowledgeResult.derived_knowledge) &&
+        knowledgeResult.derived_knowledge.length > 0
+      ) {
+        result.derived_knowledge = knowledgeResult.derived_knowledge;
+      }
+
       return {
         content: [
           {
@@ -877,7 +896,26 @@ Procedural memory retrieval requires fingerprint_status=matched. Use matched_or_
       // 不在 MCP 层做适配逻辑，保持单一数据源（后端 retrieveBundle.ts）
       const result = await adapter.retrieve(
         retrieveBody as Parameters<typeof adapter.retrieve>[0],
-      );
+      ) as Record<string, unknown>;
+
+      // 并行调 knowledge retrieve，把 derived_knowledge 合并到结果
+      // Knowledge 层含模型不搜索就得不出的合成认知，附加到 memory 召回结果里
+      const knowledgeResult = await adapter.retrieveKnowledge({
+        task_request_id: raw.task_request_id as string,
+        query: raw.query as string,
+        fingerprint: raw.fingerprint as string | undefined,
+        fingerprint_status: raw.fingerprint_status as string | undefined,
+        top_k: 10,
+        include_factual: false,
+        include_procedural: false,
+      });
+      if (
+        Array.isArray(knowledgeResult.derived_knowledge) &&
+        knowledgeResult.derived_knowledge.length > 0
+      ) {
+        result.derived_knowledge = knowledgeResult.derived_knowledge;
+      }
+
       return {
         content: [
           {
