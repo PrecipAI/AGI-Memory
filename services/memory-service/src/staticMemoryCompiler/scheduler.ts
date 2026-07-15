@@ -33,7 +33,7 @@ export interface SchedulerStatus {
   lastRunAt: string | null;
   lastResult: Pick<
     CompileResult,
-    "ruleCount" | "skillCount" | "memoryCount" | "trigger"
+    "ruleCount" | "skillCount" | "memoryCount" | "knowledgeCount" | "trigger"
   > | null;
   lastError: string | null;
   nextRunAt: string | null;
@@ -134,6 +134,7 @@ async function runOnce(): Promise<void> {
       ruleCount: result.ruleCount,
       skillCount: result.skillCount,
       memoryCount: result.memoryCount,
+      knowledgeCount: result.knowledgeCount,
       trigger: result.trigger,
     };
     state.runCount += 1;
@@ -143,7 +144,7 @@ async function runOnce(): Promise<void> {
       .map((f) => `${f.host}:${f.status}`);
 
     console.log(
-      `[static-memory-scheduler] scheduled recompile done: ${result.ruleCount} rules + ${result.skillCount} skills + ${result.memoryCount} memories, changed=${changedFiles.length ? changedFiles.join(",") : "none"}, skipped=${result.skipped.length} traceId=${traceId}`,
+      `[static-memory-scheduler] scheduled recompile done: ${result.ruleCount} rules + ${result.skillCount} skills + ${result.memoryCount} memories + ${result.knowledgeCount} knowledge, changed=${changedFiles.length ? changedFiles.join(",") : "none"}, skipped=${result.skipped.length} traceId=${traceId}`,
     );
   } catch (e) {
     state.lastError = e instanceof Error ? e.message : String(e);
@@ -288,6 +289,7 @@ export async function triggerStaticMemoryRecompileNow(): Promise<CompileResult> 
       ruleCount: result.ruleCount,
       skillCount: result.skillCount,
       memoryCount: result.memoryCount,
+      knowledgeCount: result.knowledgeCount,
       trigger: result.trigger,
     };
     state.runCount += 1;
@@ -297,7 +299,7 @@ export async function triggerStaticMemoryRecompileNow(): Promise<CompileResult> 
       .map((f) => `${f.host}:${f.status}`);
 
     console.log(
-      `[static-memory-scheduler] manual recompile done: ${result.ruleCount} rules + ${result.skillCount} skills + ${result.memoryCount} memories, changed=${changedFiles.length ? changedFiles.join(",") : "none"}, skipped=${result.skipped.length} traceId=${traceId}`,
+      `[static-memory-scheduler] manual recompile done: ${result.ruleCount} rules + ${result.skillCount} skills + ${result.memoryCount} memories + ${result.knowledgeCount} knowledge, changed=${changedFiles.length ? changedFiles.join(",") : "none"}, skipped=${result.skipped.length} traceId=${traceId}`,
     );
 
     return result;

@@ -671,7 +671,8 @@ function resolveEnforcementMode(input: {
     return "hard_native";
   }
   // 情况 B:动作是 MCP 工具调用(before_tool_call/after_tool_call)
-  // GateRuntimeBridge 挂在 engineAdapter.call() 私有方法上,已确认能覆盖全部 8 个已注册 MCP 工具
+  // 实现路径：memory-mcp-server/src/engineAdapter.ts 的 runGate() 方法
+  // 直接 spawn scripts/gate-runtime.mjs 子进程执行 hook，覆盖全部已注册 MCP 工具
   const mcpMountPoints = ["before_tool_call", "after_tool_call"];
   if (input.mountPoints.some(mp => mcpMountPoints.includes(mp))) {
     return "hard_mcp";
@@ -1308,7 +1309,7 @@ export async function executeHostActions(input: ExecuteHostActionsInput): Promis
       });
       if (compileResult.files.length > 0) {
         console.log(
-          `[static-memory-compiler] immediate trigger: ${compileResult.ruleCount} rules + ${compileResult.skillCount} skills + ${compileResult.memoryCount} memories → ${compileResult.files.length} files updated traceId=${input.traceId}`,
+          `[static-memory-compiler] immediate trigger: ${compileResult.ruleCount} rules + ${compileResult.skillCount} skills + ${compileResult.memoryCount} memories + ${compileResult.knowledgeCount} knowledge → ${compileResult.files.length} files updated traceId=${input.traceId}`,
         );
       }
     } catch (e) {

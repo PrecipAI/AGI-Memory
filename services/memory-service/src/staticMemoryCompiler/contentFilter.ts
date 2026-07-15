@@ -31,7 +31,7 @@ const PROJECT_NOUN_PATTERNS = [
   /super[-_]?agent/i,
 ];
 
-export type CompilableLayer = "rule" | "skill" | "memory";
+export type CompilableLayer = "rule" | "skill" | "memory" | "knowledge";
 
 export interface FilterableItem {
   id: string;
@@ -47,6 +47,12 @@ export interface FilterableItem {
   memory_type?: string;
   self_test?: Record<string, unknown> | null;
   metadata?: Record<string, unknown> | null;
+  // Knowledge 层字段
+  knowledge_type?: string;
+  confidence_score?: number;
+  lifecycle_state?: string;
+  review_state?: string;
+  recall_state?: string;
 }
 
 export interface FilterResult {
@@ -144,6 +150,30 @@ export function shouldCompileToStaticMemory(
       if (PROJECT_NOUN_PATTERNS.some((p) => p.test(textToCheck))) {
         return { pass: false, reason: "project_memory contains project nouns (cross-project leak risk)" };
       }
+    }
+  }
+
+  if (layer === "knowledge") {
+    // knowledge 必须是 model_accepted 或 human_accepted（needs_human_review 不编译）
+    const acceptedReviews = ["model_accepted", "human_accepted"];
+    if (item.review_state && !acceptedReviews.includes(item.review_state)) {
+      return { pass: false, reason: `review_state=${item.review_state}` };
+    }
+    // knowledge 必须是 active recall_state（audit_only 不编译进静态文件）
+    if (item.recall_state && item.recall_state !== "active") {
+      return { pass: false, reason: `recall_state=${item.recall_state}` };
+    }
+    // knowledge 必须是 curated lifecycle_state（candidate 不编译）
+    if (item.lifecycle_state && item.lifecycle_state !== "curated") {
+      return { pass: false, reason: `lifecycle_state=${item.lifecycle_state}` };
+    }
+    // knowledge 不能含项目专名（跨项目泄露风险）
+    if (textToCheck && PROJECT_NOUN_PATTERNS.some((p) => p.test(textToCheck))) {
+      return { pass: false, reason: "content contains project nouns (cross-project leak risk)" };
+    }
+    // knowledge 必须有 content
+    if (!textToCheck) {
+      return { pass: false, reason: "knowledge has no content" };
     }
   }
 

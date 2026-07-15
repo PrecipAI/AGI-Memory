@@ -32,6 +32,7 @@ import {
   formatRules,
   formatSkills,
   formatMemories,
+  formatKnowledge,
   detectHosts,
 } from "../../services/memory-service/dist/services/memory-service/src/staticMemoryCompiler/hostFormatter.js";
 
@@ -196,6 +197,91 @@ function testContentFilter() {
   assert.equal(filtered.passed.length, 1);
   assert.equal(filtered.skipped.length, 2);
   console.log("  ✓ 批量筛选正确（1 passed, 2 skipped）");
+
+  // 1.13 knowledge 筛选：review_state=needs_human_review 被排除
+  const needsReviewKnowledge = {
+    id: "k1",
+    title: "待审核知识",
+    content: "需要人工审核的合成知识",
+    promotion_status: "active",
+    origin_scope: "project",
+    availability_scope: "project_reusable",
+    review_state: "needs_human_review",
+    recall_state: "active",
+    lifecycle_state: "curated",
+  };
+  const kResult1 = shouldCompileToStaticMemory("knowledge", needsReviewKnowledge);
+  assert.equal(kResult1.pass, false, "needs_human_review 应被排除");
+  assert.ok(kResult1.reason?.includes("review_state"), "原因应含 review_state");
+  console.log("  ✓ knowledge needs_human_review 被排除");
+
+  // 1.14 knowledge 筛选：recall_state=audit_only 被排除
+  const auditOnlyKnowledge = {
+    id: "k2",
+    title: "审计知识",
+    content: "仅审计的合成知识",
+    promotion_status: "active",
+    origin_scope: "project",
+    availability_scope: "project_reusable",
+    review_state: "model_accepted",
+    recall_state: "audit_only",
+    lifecycle_state: "curated",
+  };
+  const kResult2 = shouldCompileToStaticMemory("knowledge", auditOnlyKnowledge);
+  assert.equal(kResult2.pass, false, "audit_only 应被排除");
+  assert.ok(kResult2.reason?.includes("recall_state"), "原因应含 recall_state");
+  console.log("  ✓ knowledge audit_only 被排除");
+
+  // 1.15 knowledge 筛选：lifecycle_state=candidate 被排除
+  const candidateKnowledge = {
+    id: "k3",
+    title: "候选知识",
+    content: "候选状态的合成知识",
+    promotion_status: "active",
+    origin_scope: "project",
+    availability_scope: "project_reusable",
+    review_state: "model_accepted",
+    recall_state: "active",
+    lifecycle_state: "candidate",
+  };
+  const kResult3 = shouldCompileToStaticMemory("knowledge", candidateKnowledge);
+  assert.equal(kResult3.pass, false, "candidate 应被排除");
+  assert.ok(kResult3.reason?.includes("lifecycle_state"), "原因应含 lifecycle_state");
+  console.log("  ✓ knowledge candidate 被排除");
+
+  // 1.16 knowledge 筛选：合格知识通过
+  const validKnowledge = {
+    id: "k4",
+    title: "合格知识",
+    content: "经过治理审批的合成知识",
+    promotion_status: "active",
+    origin_scope: "project",
+    availability_scope: "project_reusable",
+    review_state: "model_accepted",
+    recall_state: "active",
+    lifecycle_state: "curated",
+    knowledge_type: "pattern",
+    confidence_score: 0.92,
+  };
+  const kResult4 = shouldCompileToStaticMemory("knowledge", validKnowledge);
+  assert.equal(kResult4.pass, true, "合格 knowledge 应通过");
+  console.log("  ✓ knowledge 合格知识通过");
+
+  // 1.17 knowledge 筛选：含项目专名被排除
+  const projectNounKnowledge = {
+    id: "k5",
+    title: "含专名知识",
+    content: "这个知识包含 agi-memory 项目名",
+    promotion_status: "active",
+    origin_scope: "project",
+    availability_scope: "project_reusable",
+    review_state: "model_accepted",
+    recall_state: "active",
+    lifecycle_state: "curated",
+  };
+  const kResult5 = shouldCompileToStaticMemory("knowledge", projectNounKnowledge);
+  assert.equal(kResult5.pass, false, "含项目专名应被排除");
+  console.log("  ✓ knowledge 含项目专名被排除");
 }
 
 // ─── 2. markerManager 单元测试 ────────────────────────────────────────
@@ -330,6 +416,7 @@ function testHostFormatter() {
   assert.equal(formatRules([]), "");
   assert.equal(formatSkills([]), "");
   assert.equal(formatMemories([]), "");
+  assert.equal(formatKnowledge([]), "");
   console.log("  ✓ 空数组返回空字符串");
 
   // 3.5 宿主检测
@@ -337,6 +424,27 @@ function testHostFormatter() {
   const hosts = detectHosts(tempDir);
   assert.ok(Array.isArray(hosts));
   console.log(`  ✓ detectHosts 返回数组（${hosts.length} 个宿主）`);
+
+  // 3.6 格式化知识
+  const knowledges = [
+    {
+      id: "k1",
+      title: "测试知识",
+      content: "这是一个合成知识",
+      promotion_status: "active",
+      origin_scope: "project",
+      availability_scope: "project_reusable",
+      knowledge_type: "pattern",
+      confidence_score: 0.92,
+    },
+  ];
+  const knowledgeBlock = formatKnowledge(knowledges);
+  assert.ok(knowledgeBlock.includes("测试知识"), "应包含知识标题");
+  assert.ok(knowledgeBlock.includes("这是一个合成知识"), "应包含知识内容");
+  assert.ok(knowledgeBlock.includes("pattern"), "应包含知识类型");
+  assert.ok(knowledgeBlock.includes("92.0%"), "应包含置信度百分比");
+  assert.ok(knowledgeBlock.includes("synthesized_knowledge_id=k1"), "应包含来源 ID");
+  console.log("  ✓ formatKnowledge 输出正确");
 }
 
 // ─── 4. compiler 端到端测试（mock DB）────────────────────────────────
@@ -396,6 +504,35 @@ const mockMemoryRows = [
 export function listActiveRules() { return Promise.resolve(mockRuleRows); }
 export function listActiveSkills() { return Promise.resolve(mockSkillRows); }
 export function queryFactualMemory() { return Promise.resolve(mockMemoryRows); }
+
+const mockKnowledgeRows = [
+  {
+    id: "k-001",
+    title: "合格知识",
+    content: "经过治理审批的合成知识模式",
+    status: "active",
+    origin_scope: "project",
+    availability_scope: "project_reusable",
+    knowledge_type: "pattern",
+    confidence_score: 0.92,
+    lifecycle_state: "curated",
+    review_state: "model_accepted",
+    recall_state: "active",
+  },
+  {
+    id: "k-002",
+    title: "待审核知识",
+    content: "需要人工审核的合成知识",
+    status: "active",
+    origin_scope: "project",
+    availability_scope: "project_reusable",
+    lifecycle_state: "curated",
+    review_state: "needs_human_review",
+    recall_state: "active",
+  },
+];
+
+export function querySynthesizedKnowledge() { return Promise.resolve(mockKnowledgeRows); }
 `;
 
   const mockDbPath = path.join(os.tmpdir(), `mock-db-${Date.now()}.mjs`);
@@ -433,7 +570,8 @@ export function resolve(specifier, context, nextResolve) {
   assert.equal(result.ruleCount, 1, `ruleCount 应为 1，实际 ${result.ruleCount}`);
   assert.equal(result.skillCount, 1, `skillCount 应为 1，实际 ${result.skillCount}`);
   assert.equal(result.memoryCount, 1, `memoryCount 应为 1，实际 ${result.memoryCount}`);
-  console.log("  ✓ 筛选结果正确（1 rule + 1 skill + 1 memory）");
+  assert.equal(result.knowledgeCount, 1, `knowledgeCount 应为 1，实际 ${result.knowledgeCount}`);
+  console.log("  ✓ 筛选结果正确（1 rule + 1 skill + 1 memory + 1 knowledge）");
 
   // 4.2 三宿主文件写入
   assert.equal(result.files.length, 3, `files 应为 3，实际 ${result.files.length}`);
@@ -443,8 +581,8 @@ export function resolve(specifier, context, nextResolve) {
   assert.equal(result.trigger, "immediate");
   console.log("  ✓ trigger 透传正确");
 
-  // 4.4 跳过的条目
-  assert.equal(result.skipped.length, 1, `skipped 应为 1，实际 ${result.skipped.length}`);
+  // 4.4 跳过的条目（k-002 needs_human_review 被跳过）
+  assert.equal(result.skipped.length, 2, `skipped 应为 2，实际 ${result.skipped.length}`);
   assert.equal(result.skipped[0].id, "rule-002");
   console.log("  ✓ 跳过未审批条目");
 

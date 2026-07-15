@@ -23,6 +23,7 @@ import {
   listActiveRules,
   listActiveSkills,
   queryFactualMemory,
+  querySynthesizedKnowledge,
 } from "@super-agent/db";
 
 import {
@@ -31,6 +32,7 @@ import {
 } from "./contentFilter.js";
 import {
   detectHosts,
+  formatKnowledge,
   formatMemories,
   formatRules,
   formatSkills,
@@ -91,6 +93,7 @@ export interface CompileResult {
   ruleCount: number;
   skillCount: number;
   memoryCount: number;
+  knowledgeCount: number;
   files: CompileFileResult[];
   skipped: Array<{ id: string; title: string; reason: string }>;
   /** 触发方式，便于审计 */
@@ -120,7 +123,7 @@ export async function compileStaticMemory(
   // ── 1. 并行查询 DB ──
   // queryFactualMemory 不传 memoryType → 返回全部业务类型（user_memory/project_memory 等）
   // 比 listActiveFactualMemory 更合适，后者写死 memory_type='factual' 从未命中过
-  const [ruleRows, skillRows, memoryRows] = await Promise.all([
+  const [ruleRows, skillRows, memoryRows, knowledgeRows] = await Promise.all([
     listActiveRules({ tenantId: input.tenantId, scope: input.scope }),
     listActiveSkills({
       tenantId: input.tenantId,
@@ -128,22 +131,26 @@ export async function compileStaticMemory(
       fingerprint: null,
     }),
     queryFactualMemory({ tenantId: input.tenantId, scope: input.scope }),
+    querySynthesizedKnowledge({ tenantId: input.tenantId, scope: input.scope }),
   ]);
 
   // ── 2. 类型适配 ──
   const ruleItems: FilterableItem[] = ruleRows.map(adaptRuleRow);
   const skillItems: FilterableItem[] = skillRows.map(adaptSkillRow);
   const memoryItems: FilterableItem[] = memoryRows.map(adaptMemoryRow);
+  const knowledgeItems: FilterableItem[] = knowledgeRows.map(adaptKnowledgeRow);
 
   // ── 3. 按层筛选 ──
   const ruleFiltered = filterCompilableItems("rule", ruleItems);
   const skillFiltered = filterCompilableItems("skill", skillItems);
   const memoryFiltered = filterCompilableItems("memory", memoryItems);
+  const knowledgeFiltered = filterCompilableItems("knowledge", knowledgeItems);
 
   // ── 4. 格式化 ──
   const rulesBlock = formatRules(ruleFiltered.passed);
   const skillsBlock = formatSkills(skillFiltered.passed);
   const memoryBlock = formatMemories(memoryFiltered.passed);
+  const knowledgeBlock = formatKnowledge(knowledgeFiltered.passed);
 
   // ── 5. 确定目标宿主 ──
   // 显式指定 > 自动检测 > 三宿主全写（兜底，避免漏写）
@@ -158,12 +165,13 @@ export async function compileStaticMemory(
   }
 
   // ── 6. 三宿主并行写入 ──
-  // 宿主之间相互独立，可并行；同一宿主文件内三个 marker 区域串行写（避免并发写冲突）。
+  // 宿主之间相互独立，可并行；同一宿主文件内四个 marker 区域串行写（避免并发写冲突）。
   const fileResults = await Promise.all(
     hosts.map((host) => writeHostFile(host, input.repoRoot, {
       rules: rulesBlock,
       skills: skillsBlock,
       memory: memoryBlock,
+      knowledge: knowledgeBlock,
     })),
   );
 
@@ -249,11 +257,13 @@ export async function compileStaticMemory(
     ruleCount: ruleFiltered.passed.length,
     skillCount: skillFiltered.passed.length,
     memoryCount: memoryFiltered.passed.length,
+    knowledgeCount: knowledgeFiltered.passed.length,
     files: allFileResults,
     skipped: [
       ...ruleFiltered.skipped,
       ...skillFiltered.skipped,
       ...memoryFiltered.skipped,
+      ...knowledgeFiltered.skipped,
     ],
     trigger: input.trigger,
     validationIssues,
@@ -267,18 +277,19 @@ export async function compileStaticMemory(
 async function writeHostFile(
   host: HostType,
   repoRoot: string,
-  blocks: { rules: string; skills: string; memory: string },
+  blocks: { rules: string; skills: string; memory: string; knowledge?: string },
 ): Promise<CompileFileResult | null> {
   const config = HOST_CONFIGS[host];
   if (!config) return null;
 
   const filePath = config.getFilePath(repoRoot);
 
-  // 串行写三个 marker 区域，合并状态
+  // 串行写四个 marker 区域，合并状态
   const writes: Array<{ markerKey: MarkerKey; block: string }> = [];
   if (blocks.rules) writes.push({ markerKey: "rules", block: blocks.rules });
   if (blocks.skills) writes.push({ markerKey: "skills", block: blocks.skills });
   if (blocks.memory) writes.push({ markerKey: "memory", block: blocks.memory });
+  if (blocks.knowledge) writes.push({ markerKey: "knowledge", block: blocks.knowledge });
 
   if (writes.length === 0) return null;
 
@@ -362,5 +373,31 @@ function adaptMemoryRow(row: Record<string, unknown>): FilterableItem {
     memory_type: typeof row.memory_type === "string" ? row.memory_type : undefined,
     self_test:
       (row.self_test as Record<string, unknown> | null) ?? null,
+  };
+}
+
+/**
+ * synthesized_knowledge 行 → FilterableItem 适配器。
+ * kp_synthesized_knowledge 表的字段映射到 FilterableItem：
+ *   - status → promotion_status（active/needs_review 等）
+ *   - lifecycle_state → lifecycle_state（curated/candidate）
+ *   - review_state → review_state（model_accepted/needs_human_review）
+ *   - recall_state → recall_state（active/audit_only）
+ *   - knowledge_type → knowledge_type
+ *   - confidence_score → confidence_score
+ */
+function adaptKnowledgeRow(row: Record<string, unknown>): FilterableItem {
+  return {
+    id: String(row.id ?? ""),
+    title: String(row.title ?? ""),
+    content: typeof row.content === "string" ? row.content : undefined,
+    promotion_status: String(row.status ?? "active"),
+    origin_scope: String(row.origin_scope ?? "project"),
+    availability_scope: String(row.availability_scope ?? "project_reusable"),
+    knowledge_type: typeof row.knowledge_type === "string" ? row.knowledge_type : undefined,
+    confidence_score: typeof row.confidence_score === "number" ? row.confidence_score : undefined,
+    lifecycle_state: typeof row.lifecycle_state === "string" ? row.lifecycle_state : undefined,
+    review_state: typeof row.review_state === "string" ? row.review_state : undefined,
+    recall_state: typeof row.recall_state === "string" ? row.recall_state : undefined,
   };
 }

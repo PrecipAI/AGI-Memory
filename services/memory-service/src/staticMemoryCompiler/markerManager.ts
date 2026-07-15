@@ -36,6 +36,11 @@ export const MARKER_PAIRS = {
     start: "<!-- >>> agi-memory trae-project-conventions >>> -->",
     end: "<!-- <<< agi-memory trae-project-conventions <<< -->",
   },
+  // Knowledge 层专用 marker（宿主原生文件 + TRAE memory 文件通用）
+  knowledge: {
+    start: "<!-- >>> memory-v3 static-knowledge >>> -->",
+    end: "<!-- <<< memory-v3 static-knowledge <<< -->",
+  },
 } as const;
 
 export type MarkerKey = keyof typeof MARKER_PAIRS;

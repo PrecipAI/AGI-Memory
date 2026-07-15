@@ -102,6 +102,34 @@ export function formatMemories(memories: FilterableItem[]): string {
 }
 
 /**
+ * 把 synthesized_knowledge 格式化为宿主原生文件的 knowledge 区域。
+ * 只编译 review_state=model_accepted 且 recall_state=active 的 knowledge。
+ */
+export function formatKnowledge(knowledges: FilterableItem[]): string {
+  if (knowledges.length === 0) return "";
+
+  const lines: string[] = ["## 认知知识（AGI-Memory 编译）", ""];
+  lines.push("以下合成知识已经过治理审批，可作为认知参考：");
+  lines.push("");
+
+  for (const knowledge of knowledges) {
+    const content = knowledge.content ?? "";
+    const knowledgeType = knowledge.knowledge_type ?? "general";
+    const confidence = knowledge.confidence_score ?? 0;
+    lines.push(`### ${knowledge.title}`);
+    lines.push(`- **类型**: ${knowledgeType}`);
+    lines.push(`- **内容**: ${content}`);
+    lines.push(
+      `- **置信度**: ${(typeof confidence === "number" ? confidence * 100 : 0).toFixed(1)}%`,
+    );
+    lines.push(`- **来源**: AGI-Memory synthesized_knowledge_id=${knowledge.id}`);
+    lines.push("");
+  }
+
+  return lines.join("\n");
+}
+
+/**
  * 检测当前环境是哪个宿主。
  * 复用 hostActionExecutor 的检测逻辑：环境变量 + 文件系统特征。
  */
