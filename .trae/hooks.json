@@ -65,6 +65,11 @@
             "type": "command",
             "command": "node .trae/hooks/host-safety-compliance.mjs",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "node .trae/hooks/knowledge-recall-inject.mjs",
+            "timeout": 15
           }
         ]
       }
